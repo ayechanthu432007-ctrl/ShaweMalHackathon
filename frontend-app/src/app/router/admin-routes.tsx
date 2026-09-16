@@ -4,6 +4,12 @@ import { SignInPage } from '@/features/auth/pages/SignInPage'
 import { SignUpPage } from '@/features/auth/pages/SignUpPage'
 import { AdminLayout } from '@/features/admin/layout/AdminLayout'
 import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage'
+import { AdminMarketplaceListingPage } from '@/features/admin/pages/AdminMarketplaceListingPage'
+import { AdminMarketplaceListingsPage } from '@/features/admin/pages/AdminMarketplaceListingsPage'
+import { AdminMarketplacePage } from '@/features/admin/pages/AdminMarketplacePage'
+import { AdminMarketplaceReportsPage } from '@/features/admin/pages/AdminMarketplaceReportsPage'
+import { AdminMarketplaceUserPage } from '@/features/admin/pages/AdminMarketplaceUserPage'
+import { AdminMarketplaceUsersPage } from '@/features/admin/pages/AdminMarketplaceUsersPage'
 import { AdminMasterDataEntityPage } from '@/features/admin/pages/AdminMasterDataEntityPage'
 import { AdminMasterDataPage } from '@/features/admin/pages/AdminMasterDataPage'
 import { AdminMovingAssignPage } from '@/features/admin/pages/AdminMovingAssignPage'
@@ -49,6 +55,12 @@ export const adminRoutes: RouteObject[] = [
           { path: 'reports/bookings', element: <AdminHouseBookingReportPage /> },
           { path: 'reports/moving', element: <AdminMovingRequestReportPage /> },
           { path: 'reports/moving/:id', element: <AdminMovingRequestDetailPage /> },
+          { path: 'marketplace', element: <AdminMarketplacePage /> },
+          { path: 'marketplace/listings', element: <AdminMarketplaceListingsPage /> },
+          { path: 'marketplace/listings/:id', element: <AdminMarketplaceListingPage /> },
+          { path: 'marketplace/reports', element: <AdminMarketplaceReportsPage /> },
+          { path: 'marketplace/users', element: <AdminMarketplaceUsersPage /> },
+          { path: 'marketplace/users/:id', element: <AdminMarketplaceUserPage /> },
         ],
       },
     ],

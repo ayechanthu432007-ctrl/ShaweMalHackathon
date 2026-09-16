@@ -32,7 +32,9 @@ uploads/**
 !uploads/moving/
 !uploads/docs/
 !uploads/profile/
+!uploads/marketplace/
 !uploads/houses/.gitkeep
 !uploads/moving/.gitkeep
 !uploads/docs/.gitkeep
 !uploads/profile/.gitkeep
+!uploads/marketplace/.gitkeep

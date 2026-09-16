@@ -34,6 +34,7 @@ function buildPublicSubLinks(options: { isAgent: boolean; isDriver: boolean }) {
     { to: '/moving-status', labelKey: 'nav.movingStatus' },
     ...(options.isDriver ? [{ to: '/driver/jobs', labelKey: 'nav.driverJobs' }] : []),
     { to: '/finding-roommates', labelKey: 'nav.findingRoommates' },
+    { to: '/marketplace', labelKey: 'nav.marketplace' },
   ]
 }
 

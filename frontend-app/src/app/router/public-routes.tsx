@@ -12,6 +12,14 @@ import { HomePage } from '@/features/home/pages/HomePage'
 import { FindingHousePage } from '@/features/houses/pages/FindingHousePage'
 import { HouseDetailsPage } from '@/features/houses/pages/HouseDetailsPage'
 import { BookingConfirmationPage } from '@/features/houses/pages/BookingConfirmationPage'
+import { ListingDetailPage } from '@/features/marketplace/pages/ListingDetailPage'
+import { MarketplaceHomePage } from '@/features/marketplace/pages/MarketplaceHomePage'
+import { MarketplacePolicyPage } from '@/features/marketplace/pages/MarketplacePolicyPage'
+import { MarketplaceSearchPage } from '@/features/marketplace/pages/MarketplaceSearchPage'
+import { MovingOutSalePage } from '@/features/marketplace/pages/MovingOutSalePage'
+import { MyMarketplacePage } from '@/features/marketplace/pages/MyMarketplacePage'
+import { SellerProfilePage } from '@/features/marketplace/pages/SellerProfilePage'
+import { SellItemPage } from '@/features/marketplace/pages/SellItemPage'
 import { HireMovingPage } from '@/features/moving/pages/HireMovingPage'
 import { MovingRequestDetailPage } from '@/features/moving/pages/MovingRequestDetailPage'
 import { MovingStatusListPage } from '@/features/moving/pages/MovingStatusListPage'
@@ -45,6 +53,15 @@ export const publicRoutes: RouteObject = {
     { path: 'moving-status', element: <MovingStatusListPage /> },
     { path: 'moving-status/:id', element: <MovingStatusPage /> },
     { path: 'finding-roommates', element: <FindingRoommatesPage /> },
+    { path: 'marketplace', element: <MarketplaceHomePage /> },
+    { path: 'marketplace/search', element: <MarketplaceSearchPage /> },
+    { path: 'marketplace/items/:id', element: <ListingDetailPage /> },
+    { path: 'marketplace/sellers/:sellerId', element: <SellerProfilePage /> },
+    { path: 'marketplace/moving-out-sales/:saleId', element: <MovingOutSalePage /> },
+    { path: 'marketplace/policy', element: <MarketplacePolicyPage /> },
+    { path: 'marketplace/sell', element: <SellItemPage /> },
+    { path: 'marketplace/my', element: <MyMarketplacePage /> },
+    { path: 'marketplace/my/listings/:id/edit', element: <SellItemPage /> },
     { path: 'profile', element: <ProfilePage /> },
     { path: 'profile/wishlist', element: <WishlistPage /> },
     { path: 'profile/history', element: <HistoryPage /> },

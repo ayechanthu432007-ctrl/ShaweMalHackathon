@@ -65,6 +65,65 @@ enum RoommateGender {
 enum ReviewTargetType {
   AGENT
   DRIVER
+  SELLER
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+}
+
+enum ListingModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REMOVED
+}
+
+enum ListingCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  USED
+}
+
+enum ListingPickupMethod {
+  MEET_UP
+  SELLER_DELIVERY
+  BUYER_PICKUP
+  DISCUSS
+}
+
+enum ListingReportReason {
+  SCAM
+  WRONG_INFORMATION
+  FAKE_ITEM
+  PROHIBITED_ITEM
+  DUPLICATE_LISTING
+  OFFENSIVE_CONTENT
+  INAPPROPRIATE_IMAGE
+  WRONG_CATEGORY
+  SUSPICIOUS_PAYMENT
+  OTHER
+}
+
+enum ListingReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum RelocationStatus {
+  PLANNING
+  MOVING
+  SETTLED
 }
 
 model User {
@@ -75,6 +134,10 @@ model User {
   profilePicturePath String?
   passwordHash       String
   isActive           Boolean            @default(true)
+  accountStatus      AccountStatus      @default(ACTIVE)
+  phoneVerifiedAt    DateTime?
+  identityVerifiedAt DateTime?
+  trustedSellerAt    DateTime?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
   userRoles          UserRole[]
@@ -94,6 +157,17 @@ model User {
   roommatePosts      RoommatePost[]
   ratingReviewsGiven RatingReview[]     @relation("RatingReviewReviewer")
   ratingReviewsReceived RatingReview[]  @relation("RatingReviewTarget")
+  listings           Listing[]          @relation("ListingSeller")
+  purchasedListings  Listing[]          @relation("ListingBuyer")
+  sellerContact      SellerContact?
+  listingContactReveals ListingContactReveal[]
+  listingReportsFiled ListingReport[]   @relation("ListingReportReporter")
+  listingReportsReceived ListingReport[] @relation("ListingReportReportedUser")
+  listingReportsHandled ListingReport[] @relation("ListingReportAdmin")
+  movingOutSales     MovingOutSale[]
+  relocationPreference RelocationPreference?
+
+  @@index([accountStatus])
 }
 
 model Role {
@@ -184,6 +258,7 @@ model State {
   cities      City[]
   houses      House[]
   agentProfiles AgentProfile[]
+  listings    Listing[]
 
   @@unique([name, countryCode])
   @@index([isActive])
@@ -201,6 +276,11 @@ model City {
   state            State    @relation(fields: [stateId], references: [id], onDelete: Restrict)
   houses           House[]
   agentProfiles    AgentProfile[]
+  listings         Listing[]
+  movingOutSalesFrom MovingOutSale[] @relation("MovingOutSaleOrigin")
+  movingOutSalesTo MovingOutSale[]   @relation("MovingOutSaleDestination")
+  relocationOrigins RelocationPreference[] @relation("RelocationOrigin")
+  relocationDestinations RelocationPreference[] @relation("RelocationDestination")
 
   @@unique([name, stateId])
   @@index([isActive])
@@ -602,14 +682,18 @@ model Booking {
 model Wishlist {
   id        String   @id @default(cuid())
   userId    String
-  houseId   String
+  houseId   String?
+  listingId String?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  house     House    @relation(fields: [houseId], references: [id], onDelete: Cascade)
+  house     House?   @relation(fields: [houseId], references: [id], onDelete: Cascade)
+  listing   Listing? @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@unique([userId, houseId])
+  @@unique([userId, listingId])
   @@index([userId])
   @@index([houseId])
+  @@index([listingId])
 }
 
 model RatingReview {
@@ -621,12 +705,14 @@ model RatingReview {
   comment         String?          @db.VarChar(1000)
   bookingId       String?          @unique
   movingRequestId String?          @unique
+  listingId       String?          @unique
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   reviewer        User             @relation("RatingReviewReviewer", fields: [reviewerUserId], references: [id], onDelete: Cascade)
   targetUser      User             @relation("RatingReviewTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
   booking         Booking?         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   movingRequest   MovingRequest?   @relation(fields: [movingRequestId], references: [id], onDelete: Cascade)
+  listing         Listing?         @relation(fields: [listingId], references: [id], onDelete: Cascade)
 
   @@index([reviewerUserId, createdAt])
   @@index([targetType, targetUserId, createdAt])
@@ -645,4 +731,168 @@ model StatusCode {
 
   @@unique([entityType, code])
   @@index([isActive])
+}
+
+model MarketplaceCategory {
+  id          String                @id @default(cuid())
+  name        String
+  nameMy      String?
+  slug        String                @unique
+  parentId    String?
+  sortOrder   Int                   @default(0)
+  isActive    Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  parent      MarketplaceCategory?  @relation("MarketplaceCategoryTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children    MarketplaceCategory[] @relation("MarketplaceCategoryTree")
+  listings    Listing[]             @relation("ListingCategory")
+  subListings Listing[]             @relation("ListingSubcategory")
+
+  @@index([parentId])
+  @@index([isActive])
+}
+
+model Listing {
+  id               String                  @id @default(cuid())
+  sellerId         String
+  title            String                  @db.VarChar(120)
+  description      String                  @db.VarChar(4000)
+  categoryId       String
+  subcategoryId    String?
+  price            Decimal                 @db.Decimal(12, 2)
+  condition        ListingCondition
+  stateId          String
+  cityId           String
+  locationDetail   String?                 @db.VarChar(200)
+  pickupMethod     ListingPickupMethod
+  showPhone        Boolean                 @default(true)
+  showTelegram     Boolean                 @default(true)
+  showViber        Boolean                 @default(true)
+  status           ListingStatus           @default(ACTIVE)
+  moderationStatus ListingModerationStatus @default(APPROVED)
+  moderationNote   String?                 @db.VarChar(500)
+  policyAcceptedAt DateTime
+  buyerId          String?
+  movingOutSaleId  String?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  publishedAt      DateTime?
+  soldAt           DateTime?
+  seller           User                    @relation("ListingSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  buyer            User?                   @relation("ListingBuyer", fields: [buyerId], references: [id], onDelete: SetNull)
+  category         MarketplaceCategory     @relation("ListingCategory", fields: [categoryId], references: [id], onDelete: Restrict)
+  subcategory      MarketplaceCategory?    @relation("ListingSubcategory", fields: [subcategoryId], references: [id], onDelete: Restrict)
+  state            State                   @relation(fields: [stateId], references: [id], onDelete: Restrict)
+  city             City                    @relation(fields: [cityId], references: [id], onDelete: Restrict)
+  movingOutSale    MovingOutSale?          @relation(fields: [movingOutSaleId], references: [id], onDelete: SetNull)
+  images           ListingImage[]
+  wishlists        Wishlist[]
+  contactReveals   ListingContactReveal[]
+  reports          ListingReport[]
+  review           RatingReview?
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([cityId])
+  @@index([status, moderationStatus, publishedAt])
+  @@index([movingOutSaleId])
+}
+
+model ListingImage {
+  id            String   @id @default(cuid())
+  listingId     String
+  imagePath     String
+  optimizedPath String?
+  thumbnailPath String?
+  displayOrder  Int      @default(0)
+  isCover       Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  listing       Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, displayOrder])
+}
+
+model SellerContact {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  phone            String?
+  telegramUsername String?
+  viberNumber      String?
+  showPhone        Boolean  @default(true)
+  showTelegram     Boolean  @default(true)
+  showViber        Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ListingContactReveal {
+  id        String   @id @default(cuid())
+  listingId String
+  userId    String
+  method    String
+  createdAt DateTime @default(now())
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, userId, method])
+  @@index([listingId])
+  @@index([userId])
+}
+
+model ListingReport {
+  id             String              @id @default(cuid())
+  reporterId     String
+  listingId      String?
+  reportedUserId String?
+  reason         ListingReportReason
+  description    String?             @db.VarChar(1000)
+  status         ListingReportStatus @default(OPEN)
+  adminId        String?
+  adminNote      String?             @db.VarChar(500)
+  createdAt      DateTime            @default(now())
+  resolvedAt     DateTime?
+  reporter       User                @relation("ListingReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  listing        Listing?            @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  reportedUser   User?               @relation("ListingReportReportedUser", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  admin          User?               @relation("ListingReportAdmin", fields: [adminId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([listingId])
+  @@index([reportedUserId])
+}
+
+model MovingOutSale {
+  id                String    @id @default(cuid())
+  sellerId          String
+  title             String    @db.VarChar(120)
+  description       String?   @db.VarChar(1000)
+  originCityId      String
+  destinationCityId String?
+  moveOutDate       DateTime?
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  seller            User      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  originCity        City      @relation("MovingOutSaleOrigin", fields: [originCityId], references: [id], onDelete: Restrict)
+  destinationCity   City?     @relation("MovingOutSaleDestination", fields: [destinationCityId], references: [id], onDelete: SetNull)
+  listings          Listing[]
+
+  @@index([sellerId])
+  @@index([isActive, createdAt])
+}
+
+model RelocationPreference {
+  id                String           @id @default(cuid())
+  userId            String           @unique
+  originCityId      String?
+  destinationCityId String
+  moveDate          DateTime?
+  status            RelocationStatus @default(PLANNING)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  originCity        City?            @relation("RelocationOrigin", fields: [originCityId], references: [id], onDelete: SetNull)
+  destinationCity   City             @relation("RelocationDestination", fields: [destinationCityId], references: [id], onDelete: Restrict)
 }

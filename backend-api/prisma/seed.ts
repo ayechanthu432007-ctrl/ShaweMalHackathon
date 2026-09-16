@@ -416,6 +416,89 @@ const seedMovingInventoryItems = async (): Promise<void> => {
   console.log(`Moving inventory items seeded: ${MOVING_INVENTORY_ITEMS.length}`);
 };
 
+const MARKETPLACE_CATEGORIES: Array<{ name: string; nameMy: string; slug: string; children: string[] }> = [
+  {
+    name: 'Furniture',
+    nameMy: 'ပရိဘောဂ',
+    slug: 'furniture',
+    children: ['Bed', 'Mattress', 'Wardrobe', 'Table', 'Chair', 'Sofa', 'Shelf', 'Desk']
+  },
+  {
+    name: 'Electronics',
+    nameMy: 'လျှပ်စစ်ပစ္စည်း',
+    slug: 'electronics',
+    children: ['Laptop', 'Monitor', 'Phone', 'Refrigerator', 'TV', 'Fan', 'Washing machine', 'Rice cooker', 'Other electronics']
+  },
+  {
+    name: 'Bedroom',
+    nameMy: 'အိပ်ခန်းသုံးပစ္စည်း',
+    slug: 'bedroom',
+    children: ['Bedding', 'Pillow', 'Blanket', 'Curtains', 'Storage']
+  },
+  {
+    name: 'Kitchen',
+    nameMy: 'မီးဖိုချောင်သုံးပစ္စည်း',
+    slug: 'kitchen',
+    children: ['Cooking equipment', 'Kitchenware', 'Refrigerator', 'Microwave', 'Rice cooker']
+  },
+  {
+    name: 'Study',
+    nameMy: 'စာကြည့်ပစ္စည်း',
+    slug: 'study',
+    children: ['Desk', 'Chair', 'Books', 'Stationery', 'Bookshelf']
+  },
+  {
+    name: 'Home Essentials',
+    nameMy: 'အိမ်သုံးပစ္စည်း',
+    slug: 'home-essentials',
+    children: ['Lighting', 'Cleaning supplies', 'Storage', 'Decoration']
+  },
+  {
+    name: 'Bags & Relocation',
+    nameMy: 'အိတ်နှင့် အိမ်ပြောင်းပစ္စည်း',
+    slug: 'bags-relocation',
+    children: ['Suitcases', 'Travel bags', 'Moving boxes', 'Storage boxes']
+  },
+  {
+    name: 'Other',
+    nameMy: 'အခြား',
+    slug: 'other',
+    children: []
+  }
+];
+
+const toSlug = (value: string): string =>
+  value
+    .toLowerCase()
+    .replace(/&/g, ' ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const seedMarketplaceCategories = async (): Promise<void> => {
+  let childCount = 0;
+
+  for (const [parentIndex, category] of MARKETPLACE_CATEGORIES.entries()) {
+    const parent = await prisma.marketplaceCategory.upsert({
+      where: { slug: category.slug },
+      update: { name: category.name, nameMy: category.nameMy, sortOrder: parentIndex, parentId: null, isActive: true },
+      create: { name: category.name, nameMy: category.nameMy, slug: category.slug, sortOrder: parentIndex, isActive: true }
+    });
+
+    for (const [childIndex, childName] of category.children.entries()) {
+      // Subcategory slugs are prefixed with the parent because names repeat (e.g. Desk under Furniture and Study).
+      const slug = `${category.slug}-${toSlug(childName)}`;
+      await prisma.marketplaceCategory.upsert({
+        where: { slug },
+        update: { name: childName, parentId: parent.id, sortOrder: childIndex, isActive: true },
+        create: { name: childName, slug, parentId: parent.id, sortOrder: childIndex, isActive: true }
+      });
+      childCount += 1;
+    }
+  }
+
+  console.log(`Marketplace categories seeded: ${MARKETPLACE_CATEGORIES.length} categories, ${childCount} subcategories`);
+};
+
 const seedAdminUser = async (): Promise<void> => {
   const email = process.env.SEED_ADMIN_EMAIL ?? 'admin@shawemal.com';
   const password = process.env.SEED_ADMIN_PASSWORD ?? 'Admin@123456';
@@ -462,7 +545,9 @@ const seedAdminUser = async (): Promise<void> => {
         name,
         phone,
         passwordHash,
-        isActive: true
+        isActive: true,
+        accountStatus: 'ACTIVE',
+        phoneVerifiedAt: existingUser.phoneVerifiedAt ?? new Date()
       }
     });
 
@@ -477,6 +562,7 @@ const seedAdminUser = async (): Promise<void> => {
       phone,
       passwordHash,
       isActive: true,
+      phoneVerifiedAt: new Date(),
       userRoles: {
         create: {
           roleId: adminRole.id
@@ -497,6 +583,7 @@ const main = async (): Promise<void> => {
   await seedAmenities();
   await seedFloorLevels();
   await seedMovingInventoryItems();
+  await seedMarketplaceCategories();
   await seedAdminUser();
 };
 

@@ -1,4 +1,6 @@
 import { prisma } from '../prisma/client';
+import { ApiError } from '../utils/api-error';
+import { getSellerRatings, LISTING_CARD_INCLUDE, mapListingCard, PUBLIC_LISTING_WHERE } from './marketplace-shared';
 
 const WISHLIST_ITEM_INCLUDE = {
   house: {
@@ -96,7 +98,8 @@ export const removeFromWishlist = async (userId: string, houseId: string) => {
 export const listWishlist = async (userId: string) => {
   const items = await prisma.wishlist.findMany({
     where: {
-      userId
+      userId,
+      houseId: { not: null }
     },
     include: WISHLIST_ITEM_INCLUDE,
     orderBy: {
@@ -104,5 +107,39 @@ export const listWishlist = async (userId: string) => {
     }
   });
 
-  return items.map(mapWishlistItem);
+  return items.flatMap((item) => (item.houseId && item.house ? [mapWishlistItem({ ...item, houseId: item.houseId, house: item.house })] : []));
+};
+
+export const addListingToWishlist = async (userId: string, listingId: string) => {
+  const listing = await prisma.listing.findFirst({ where: { AND: [{ id: listingId }, PUBLIC_LISTING_WHERE] }, select: { id: true } });
+  if (!listing) {
+    throw new ApiError(404, 'LISTING_NOT_FOUND', 'Listing not found.');
+  }
+
+  return prisma.wishlist.upsert({
+    where: { userId_listingId: { userId, listingId } },
+    update: {},
+    create: { userId, listingId }
+  });
+};
+
+export const removeListingFromWishlist = async (userId: string, listingId: string) => {
+  return prisma.wishlist.deleteMany({ where: { userId, listingId } });
+};
+
+export const listListingWishlist = async (userId: string) => {
+  const items = await prisma.wishlist.findMany({
+    where: { userId, listing: PUBLIC_LISTING_WHERE },
+    include: { listing: { include: LISTING_CARD_INCLUDE } },
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const listings = items.flatMap((item) => (item.listing ? [item.listing] : []));
+  const ratings = await getSellerRatings(listings.map((listing) => listing.sellerId));
+
+  return items.flatMap((item) =>
+    item.listing
+      ? [{ id: item.id, listingId: item.listing.id, createdAt: item.createdAt, listing: mapListingCard(item.listing, ratings) }]
+      : []
+  );
 };

@@ -1,6 +1,13 @@
 import { Request, Response } from 'express';
 
-import { addToWishlist, listWishlist, removeFromWishlist } from '../services/wishlist.service';
+import {
+  addListingToWishlist,
+  addToWishlist,
+  listListingWishlist,
+  listWishlist,
+  removeFromWishlist,
+  removeListingFromWishlist
+} from '../services/wishlist.service';
 import { ApiError } from '../utils/api-error';
 import { sendSuccess } from '../utils/api-response';
 
@@ -33,4 +40,27 @@ export const listWishlistController = async (req: Request, res: Response): Promi
 
   const items = await listWishlist(userId);
   sendSuccess(res, 200, 'Wishlist fetched successfully', { items });
+};
+
+export const addListingWishlistController = async (req: Request, res: Response): Promise<void> => {
+  const userId = requireActor(req);
+  const listingId = String(req.params.listingId ?? '');
+
+  const item = await addListingToWishlist(userId, listingId);
+  sendSuccess(res, 201, 'Saved to wishlist', { item });
+};
+
+export const removeListingWishlistController = async (req: Request, res: Response): Promise<void> => {
+  const userId = requireActor(req);
+  const listingId = String(req.params.listingId ?? '');
+
+  await removeListingFromWishlist(userId, listingId);
+  sendSuccess(res, 200, 'Removed from wishlist', { ok: true });
+};
+
+export const listListingWishlistController = async (req: Request, res: Response): Promise<void> => {
+  const userId = requireActor(req);
+
+  const items = await listListingWishlist(userId);
+  sendSuccess(res, 200, 'Saved items fetched successfully', { items });
 };

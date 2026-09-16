@@ -1,6 +1,6 @@
 import { apiRequest } from '@/lib/api/client'
 
-export type UploadCategory = 'houses' | 'moving' | 'docs' | 'profile'
+export type UploadCategory = 'houses' | 'moving' | 'docs' | 'profile' | 'marketplace'
 
 export async function uploadFiles(
   files: File[],

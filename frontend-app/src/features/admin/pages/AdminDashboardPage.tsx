@@ -70,6 +70,9 @@ export function AdminDashboardPage() {
               <Button asChild variant="secondary">
                 <Link to="/admin/master-data">{t('admin.nav.masterData')}</Link>
               </Button>
+              <Button asChild variant="secondary">
+                <Link to="/admin/marketplace">{t('admin.nav.marketplace')}</Link>
+              </Button>
             </CardContent>
           </Card>
         </>

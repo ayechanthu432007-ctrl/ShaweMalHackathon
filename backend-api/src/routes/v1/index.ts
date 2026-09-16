@@ -1,5 +1,6 @@
 import { Router } from 'express';
 
+import { adminMarketplaceRouter } from './admin-marketplace.routes';
 import { adminRouter } from './admin.routes';
 import { agentRouter } from './agent.routes';
 import { authRouter } from './auth.routes';
@@ -9,6 +10,7 @@ import { filesRouter } from './files.routes';
 import { healthRouter } from './health.routes';
 import { homeRouter } from './home.routes';
 import { housesRouter } from './houses.routes';
+import { marketplaceRouter } from './marketplace.routes';
 import { masterDataRouter } from './master-data.routes';
 import { movingRouter } from './moving.routes';
 import { notificationsRouter } from './notifications.routes';
@@ -36,10 +38,12 @@ v1Router.use('/registrations', registrationRouter);
 v1Router.use('/agent', agentRouter);
 v1Router.use('/driver', driverRouter);
 v1Router.use('/moving', movingRouter);
+v1Router.use('/marketplace', marketplaceRouter);
 v1Router.use('/uploads', uploadsRouter);
 v1Router.use('/files', filesRouter);
 v1Router.use('/master-data', publicMasterDataRouter);
 v1Router.use('/admin/master-data', masterDataRouter);
+v1Router.use('/admin/marketplace', adminMarketplaceRouter);
 v1Router.use('/admin', adminRouter);
 
 export { v1Router };

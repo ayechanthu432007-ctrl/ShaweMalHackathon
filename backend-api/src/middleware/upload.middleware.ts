@@ -3,7 +3,7 @@ import multer from 'multer';
 
 import { env } from '../config/env';
 import { ApiError } from '../utils/api-error';
-import { DEFAULT_UPLOAD_ALLOWED_MIME } from '../utils/upload-path';
+import { DEFAULT_UPLOAD_ALLOWED_MIME, MAX_FILES_PER_UPLOAD } from '../utils/upload-path';
 
 const storage = multer.memoryStorage();
 
@@ -11,7 +11,7 @@ const upload = multer({
   storage,
   limits: {
     fileSize: env.uploadMaxBytes,
-    files: 5
+    files: MAX_FILES_PER_UPLOAD
   },
   fileFilter: (_req, file, callback) => {
     const allowed = env.uploadAllowedMime.length > 0 ? env.uploadAllowedMime : DEFAULT_UPLOAD_ALLOWED_MIME;
@@ -25,7 +25,7 @@ const upload = multer({
 });
 
 export const uploadFilesMiddleware = (req: Request, res: Response, next: NextFunction): void => {
-  upload.array('files', 5)(req, res, (error: unknown) => {
+  upload.array('files', MAX_FILES_PER_UPLOAD)(req, res, (error: unknown) => {
     if (!error) {
       next();
       return;

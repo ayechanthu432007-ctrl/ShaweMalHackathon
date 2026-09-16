@@ -49,6 +49,9 @@ export function UserMenu() {
           <Link to="/profile/history">{t('nav.history')}</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
+          <Link to="/marketplace/my">{t('nav.myMarketplace')}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link to="/agent-register">{t('nav.agentRegister')}</Link>
         </DropdownMenuItem>
         {user?.roles?.includes('agent') ? (

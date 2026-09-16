@@ -27,6 +27,27 @@ export const requireAuth = (req: Request, _res: Response, next: NextFunction): v
   next();
 };
 
+/** Attaches auth context when a valid Bearer token is present; anonymous requests pass through. */
+export const optionalAuth = (req: Request, _res: Response, next: NextFunction): void => {
+  const authHeader = req.header('authorization');
+  const [scheme, token] = authHeader?.split(' ') ?? [];
+
+  if (scheme?.toLowerCase() === 'bearer' && token) {
+    try {
+      const decoded = verifyJwt(token);
+      req.auth = {
+        userId: decoded.sub,
+        email: decoded.email,
+        roles: decoded.roles
+      };
+    } catch {
+      // Invalid or expired tokens are treated as anonymous on public routes.
+    }
+  }
+
+  next();
+};
+
 export const requireRole = (allowedRoles: string[]) => {
   return (req: Request, _res: Response, next: NextFunction): void => {
     if (!req.auth) {

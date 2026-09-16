@@ -12,7 +12,7 @@ export const uploadFilesController = async (req: Request, res: Response): Promis
 
   const categoryRaw = typeof req.query.category === 'string' ? req.query.category : req.body?.category;
   if (!isUploadCategory(categoryRaw)) {
-    throw new ApiError(400, 'UPLOAD_INVALID_CATEGORY', 'category must be one of: houses, moving, docs, profile.');
+    throw new ApiError(400, 'UPLOAD_INVALID_CATEGORY', 'category must be one of: houses, moving, docs, profile, marketplace.');
   }
 
   const files = (req.files ?? []) as Express.Multer.File[];

@@ -39,7 +39,9 @@
     "profile": "Profile",
     "wishlist": "Wishlist",
     "history": "History",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "marketplace": "Marketplace",
+    "myMarketplace": "My Marketplace"
   },
   "public": {
     "homeTitle": "Home",
@@ -95,7 +97,8 @@
       "masterData": "Master Data",
       "reports": "Reports",
       "bookingReport": "House bookings",
-      "movingReport": "Moving requests"
+      "movingReport": "Moving requests",
+      "marketplace": "Marketplace"
     },
     "dashboard": {
       "quickLinks": "Quick links"
@@ -357,6 +360,127 @@
         "driver": "Driver",
         "price": "Estimated price",
         "actions": "Actions"
+      }
+    },
+    "marketplace": {
+      "title": "Marketplace",
+      "subtitle": "Moderate listings, review reports, and manage sellers.",
+      "navLabel": "Marketplace administration",
+      "loadError": "Could not load marketplace data.",
+      "actionError": "The action could not be completed.",
+      "saved": "Saved.",
+      "nav": {
+        "overview": "Overview",
+        "listings": "Listings",
+        "reports": "Reports",
+        "users": "Users"
+      },
+      "accountStatus": {
+        "ACTIVE": "Active",
+        "SUSPENDED": "Suspended",
+        "BANNED": "Banned"
+      },
+      "overview": {
+        "totalListings": "Total listings",
+        "activeListings": "Active listings",
+        "soldItems": "Sold items",
+        "reportedListings": "Reported listings",
+        "suspendedSellers": "Suspended or banned users",
+        "pendingReviews": "Listings pending review",
+        "openReportsBanner": "Open reports waiting for review: {{count}}",
+        "reviewReports": "Review reports"
+      },
+      "listings": {
+        "title": "Listing management",
+        "search": "Search by title, seller name, or email",
+        "moderation": "Moderation",
+        "anyModeration": "Any moderation status",
+        "listingStatus": "Status",
+        "anyStatus": "Active or sold",
+        "reportedOnly": "Only listings with open reports",
+        "item": "Item",
+        "seller": "Seller",
+        "reports": "Open reports",
+        "created": "Created"
+      },
+      "listing": {
+        "viewPublic": "View public page",
+        "policyAccepted": "Seller accepted the marketplace policy on {{date}}",
+        "reportsTitle": "Reports ({{count}})",
+        "moderationTitle": "Moderation",
+        "note": "Note to the seller",
+        "noteRequired": "A note is required to reject or remove a listing.",
+        "actions": {
+          "approve": "Approve",
+          "reject": "Reject",
+          "remove": "Remove",
+          "restore": "Restore"
+        },
+        "categoryTitle": "Category",
+        "saveCategory": "Save category",
+        "sellerTitle": "Seller",
+        "manageSeller": "Manage seller"
+      },
+      "reports": {
+        "title": "Reports",
+        "empty": "No reports.",
+        "reportedBy": "Reported by {{name}} on {{date}}",
+        "listing": "Listing",
+        "seller": "Seller",
+        "note": "Admin note (optional)",
+        "removeListing": "Also remove the listing",
+        "resolve": "Resolve",
+        "dismiss": "Dismiss",
+        "closedBy": "Closed by {{name}} on {{date}}",
+        "status": {
+          "OPEN": "Open",
+          "RESOLVED": "Resolved",
+          "DISMISSED": "Dismissed"
+        }
+      },
+      "users": {
+        "title": "User management",
+        "search": "Search by name, email, or phone",
+        "accountStatus": "Account",
+        "anyAccountStatus": "Any account status",
+        "verification": "Verification",
+        "anyVerification": "Any verification",
+        "verificationFilters": {
+          "phone_unverified": "Phone not verified",
+          "phone_verified": "Phone verified",
+          "identity_verified": "Identity verified",
+          "trusted": "Trusted sellers"
+        },
+        "reportedOnly": "Only users with open reports",
+        "user": "User",
+        "listings": "Listings",
+        "openReports": "Open reports",
+        "joined": "Joined"
+      },
+      "user": {
+        "viewProfile": "View seller profile",
+        "verificationTitle": "Verification",
+        "phoneHint": "Confirm the phone number belongs to this user before granting. Required to sell.",
+        "since": "Since {{date}}",
+        "grant": "Grant",
+        "revoke": "Revoke",
+        "trustedCriteria": "Trusted Seller criteria",
+        "trustedChecks": {
+          "identityVerified": "Identity verified",
+          "completedTransactions": "At least {{minSoldListings}} completed sales",
+          "goodReviews": "At least {{minReviews}} reviews averaging {{minAverageRating}}★ or more",
+          "noSeriousReports": "No upheld reports"
+        },
+        "accountTitle": "Account status",
+        "accountHint": "Suspended and banned users are signed out, cannot sign in, and their listings are hidden.",
+        "reason": "Reason (shown to the user)",
+        "reactivate": "Reactivate",
+        "suspend": "Suspend",
+        "ban": "Ban",
+        "banConfirm": "Ban {{name}}? They will be signed out and their listings hidden.",
+        "sellerContact": "Seller contact details",
+        "listingHistory": "Listing history ({{count}})",
+        "reportsReceived": "Reports received ({{count}})"
       }
     }
   },
@@ -889,7 +1013,10 @@
     "emptyBookings": "No bookings yet.",
     "emptyMoving": "No moving requests yet.",
     "assignedDriver": "Assigned driver",
-    "notificationSummary": "{{total}} notifications · {{unread}} unread"
+    "notificationSummary": "{{total}} notifications · {{unread}} unread",
+    "wishlistHousesTab": "Houses",
+    "wishlistItemsTab": "Marketplace items",
+    "wishlistItemsEmpty": "You haven't saved any marketplace items yet."
   },
   "uploads": {
     "addPhotos": "Add photos",
@@ -923,5 +1050,342 @@
     "agentFallback": "your agent",
     "starLabel": "{{count}} star",
     "starValue": "{{rating}} out of 5 stars"
+  },
+  "marketplace": {
+    "title": "Shawe Mal Marketplace",
+    "subtitle": "Buy and sell furniture, electronics, and household items — perfect for moving in or moving out.",
+    "searchLabel": "Search the marketplace",
+    "searchPlaceholder": "Search beds, desks, fridges…",
+    "searchAction": "Search",
+    "sellItem": "Sell an item",
+    "myMarketplace": "My Marketplace",
+    "loadError": "Could not load the marketplace. Please try again.",
+    "noPhoto": "No photo",
+    "save": "Save",
+    "saved": "Saved",
+    "unsave": "Remove from wishlist",
+    "back": "Back",
+    "backToMarketplace": "Back to marketplace",
+    "viewAll": "View all",
+    "categoriesTitle": "Categories",
+    "recommendedTitle": "Recommended for you",
+    "recommendedForMove": "Recommended for your move",
+    "recommendedEmpty": "No recommendations yet. Check back soon.",
+    "recentTitle": "Recently listed",
+    "verifiedSellersTitle": "Verified sellers",
+    "emptyMarketTitle": "No items listed yet. Be the first to sell!",
+    "status": {
+      "ACTIVE": "Active",
+      "SOLD": "Sold"
+    },
+    "moderation": {
+      "PENDING": "Pending review",
+      "APPROVED": "Approved",
+      "REJECTED": "Not approved",
+      "REMOVED": "Removed"
+    },
+    "condition": {
+      "NEW": "New",
+      "LIKE_NEW": "Like new",
+      "GOOD": "Good",
+      "FAIR": "Fair",
+      "USED": "Used"
+    },
+    "pickup": {
+      "MEET_UP": "Meet-up",
+      "SELLER_DELIVERY": "Seller delivery",
+      "BUYER_PICKUP": "Buyer pickup",
+      "DISCUSS": "Discuss with seller"
+    },
+    "badges": {
+      "none": "No verification badges yet",
+      "PHONE_VERIFIED": {
+        "label": "Phone verified",
+        "description": "The seller's phone number has been confirmed by Shawe Mal."
+      },
+      "IDENTITY_VERIFIED": {
+        "label": "Identity verified",
+        "description": "The seller's identity document was checked and approved."
+      },
+      "TRUSTED_SELLER": {
+        "label": "Trusted seller",
+        "description": "Verified identity, multiple completed sales, good reviews, and no serious reports."
+      }
+    },
+    "fields": {
+      "title": "Title",
+      "category": "Category",
+      "subcategory": "Subcategory",
+      "price": "Price (MMK)",
+      "condition": "Condition",
+      "description": "Description",
+      "township": "Township",
+      "area": "Area / neighborhood (optional)",
+      "pickup": "Pickup method",
+      "movingOutSale": "Moving-out sale (optional)"
+    },
+    "search": {
+      "allItems": "All items",
+      "resultsFor": "Results for “{{query}}”",
+      "count": "Items found: {{count}}",
+      "sort": "Sort",
+      "sortNewest": "Newest first",
+      "sortPriceAsc": "Price: low to high",
+      "sortPriceDesc": "Price: high to low",
+      "filters": "Filters",
+      "any": "Any",
+      "minPrice": "Min price (MMK)",
+      "maxPrice": "Max price (MMK)",
+      "apply": "Apply filters",
+      "emptyTitle": "No items match your search",
+      "emptyHint": "Try different keywords or remove some filters.",
+      "pageStatus": "Page {{page}} of {{total}}"
+    },
+    "route": {
+      "title": "Moving soon?",
+      "subtitle": "Tell us where you're moving and we'll suggest furniture and essentials near your new place.",
+      "savedSummary": "Your move: {{from}} → {{to}}. Recommendations below are picked for your new area.",
+      "from": "Moving from",
+      "to": "Moving to",
+      "anywhere": "Anywhere",
+      "chooseDestination": "Choose township",
+      "showItems": "Show items"
+    },
+    "detail": {
+      "notFound": "This item could not be found.",
+      "ownerBanner": "This is your listing.",
+      "contactSeller": "Contact seller",
+      "noContactMethods": "The seller hasn't shared contact options.",
+      "soldNotice": "This item was sold on {{date}} and is no longer available.",
+      "listedOn": "Listed on {{date}}",
+      "partOfSale": "Part of the moving-out sale: {{title}}",
+      "sellerInfo": "Seller information"
+    },
+    "contact": {
+      "phone": "Phone",
+      "telegram": "Telegram",
+      "viber": "Viber",
+      "telegramUsername": "Telegram username",
+      "viberNumber": "Viber number",
+      "signInHint": "Sign in to see the seller's contact details.",
+      "error": "Could not load contact details.",
+      "revealed": {
+        "phone": "Call the seller:",
+        "telegram": "Opening Telegram:",
+        "viber": "Opening Viber:"
+      },
+      "safetyTip": "Safety tip: meet in a public place, check the item before paying, and never send a deposit to strangers. Shawe Mal does not handle payments."
+    },
+    "seller": {
+      "notFound": "This seller could not be found.",
+      "joined": "Joined {{date}}",
+      "rating": "{{rating}} ({{count}} reviews)",
+      "noRatings": "No ratings yet",
+      "soldCount": "Sold: {{count}}",
+      "activeCount": "Active listings: {{count}}",
+      "viewProfile": "View seller profile",
+      "viewListings": "View listings",
+      "statListings": "Listings",
+      "statActive": "Active",
+      "statSold": "Sold",
+      "statReviews": "Reviews",
+      "listingsTabs": "Seller listings",
+      "activeTab": "Active ({{count}})",
+      "soldTab": "Sold ({{count}})",
+      "noListings": "No listings here.",
+      "reviewsTitle": "Reviews",
+      "noReviews": "No reviews yet.",
+      "reviewFor": "Bought:"
+    },
+    "review": {
+      "title": "How was buying from {{name}}?",
+      "commentLabel": "Your review",
+      "commentPlaceholder": "Was the item as described? Was the seller on time?",
+      "submit": "Submit review",
+      "error": "Could not submit your review."
+    },
+    "report": {
+      "listingAction": "Report listing",
+      "sellerAction": "Report seller",
+      "titleListing": "Report this listing",
+      "titleSeller": "Report this seller",
+      "subtitle": "Reports are private. Our team reviews every report.",
+      "reasonLabel": "What's wrong?",
+      "reasons": {
+        "SCAM": "Scam / suspicious",
+        "WRONG_INFORMATION": "Wrong information",
+        "FAKE_ITEM": "Fake item",
+        "PROHIBITED_ITEM": "Prohibited item",
+        "DUPLICATE_LISTING": "Duplicate listing",
+        "OFFENSIVE_CONTENT": "Offensive content",
+        "INAPPROPRIATE_IMAGE": "Inappropriate image",
+        "WRONG_CATEGORY": "Wrong category",
+        "SUSPICIOUS_PAYMENT": "Seller asking for suspicious payment",
+        "OTHER": "Other"
+      },
+      "detailsOptional": "Additional details (optional)",
+      "detailsRequired": "Please describe the problem",
+      "detailsPlaceholder": "Tell us what happened",
+      "submit": "Send report",
+      "thanks": "Thank you. Our team will review your report.",
+      "error": "Could not send the report."
+    },
+    "photos": {
+      "count": "{{count}} / {{max}} photos",
+      "hint": "Add up to 10 photos. Drag or use the arrows to reorder, and choose a cover photo. Large photos are compressed automatically.",
+      "empty": "Tap to add photos",
+      "cover": "Cover",
+      "setCover": "Cover",
+      "moveLeft": "Move photo earlier",
+      "moveRight": "Move photo later",
+      "photoAlt": "Photo {{index}}",
+      "tooLarge": "One of the photos is too large (max 25 MB)."
+    },
+    "sell": {
+      "title": "Sell an item",
+      "editTitle": "Edit listing",
+      "subtitle": "Four quick steps. Buyers contact you directly — Shawe Mal doesn't take a cut.",
+      "progressLabel": "Listing progress",
+      "stepHeading": "Step {{step}} — {{title}}",
+      "steps": {
+        "photos": "Photos",
+        "details": "Item info",
+        "location": "Location",
+        "contact": "Contact"
+      },
+      "titlePlaceholder": "e.g. Wooden study desk with drawers",
+      "descriptionPlaceholder": "Size, brand, age, any defects, reason for selling…",
+      "chooseCategory": "Choose category",
+      "chooseSubcategory": "Choose subcategory",
+      "noSubcategory": "No subcategory needed",
+      "chooseCondition": "Choose condition",
+      "chooseTownship": "Choose township",
+      "areaPlaceholder": "e.g. Near Hledan Junction",
+      "movingOutSaleHint": "Group this item with your other items for sale before you move.",
+      "noMovingOutSale": "Not part of a moving-out sale",
+      "contactIntro": "Buyers see Phone, Telegram, and Viber buttons — your details only appear when a signed-in buyer taps a button.",
+      "showButton": "Show button",
+      "contactPrivacy": "These contact details are saved to your seller profile and used for all your listings.",
+      "publish": "Publish listing",
+      "saveChanges": "Save changes",
+      "saveError": "Something went wrong. Please try again.",
+      "restricted": "Your account is restricted and cannot sell on the marketplace.",
+      "verifyTitle": "Verify your phone to start selling",
+      "verifyBody": "To keep the marketplace safe, every seller needs a verified phone number. Send a request and the Shawe Mal team will confirm your number.",
+      "verifyRequest": "Request phone verification",
+      "verifyRequestSent": "Request sent",
+      "verifyRequested": "Verification requested on {{date}}. We'll notify you once it's approved.",
+      "errors": {
+        "photos": "Add at least one photo.",
+        "title": "Title must be at least 3 characters.",
+        "category": "Choose a category.",
+        "subcategory": "Choose a subcategory.",
+        "price": "Enter a valid price.",
+        "condition": "Choose the item's condition.",
+        "description": "Description must be at least 10 characters.",
+        "township": "Choose a township.",
+        "pickup": "Choose a pickup method.",
+        "contact": "Turn on at least one contact button that has contact details.",
+        "phoneFormat": "Phone and Viber numbers can only contain digits, spaces, dashes, and a leading +.",
+        "telegramFormat": "Telegram usernames are 5-32 letters, numbers, or underscores.",
+        "policy": "Please confirm the marketplace policy."
+      }
+    },
+    "policy": {
+      "eyebrow": "Marketplace policy",
+      "title": "Allowed and prohibited items",
+      "intro": "Shawe Mal Marketplace is for relocation-related goods. Listings that break these rules are held for review or removed.",
+      "allowedTitle": "You can sell",
+      "allowed": {
+        "furniture": "Furniture — beds, wardrobes, tables, chairs, sofas",
+        "electronics": "Electronics — laptops, phones, TVs, fans",
+        "appliances": "Appliances — refrigerators, washing machines, rice cookers",
+        "study": "Study items — desks, bookshelves, stationery",
+        "household": "Household goods — bedding, kitchenware, decoration",
+        "bags": "Bags, suitcases, and moving boxes",
+        "books": "Books",
+        "other": "Other legal, safe, second-hand goods"
+      },
+      "prohibitedTitle": "You cannot sell",
+      "prohibited": {
+        "weapons": "Weapons, ammunition, and explosives",
+        "drugs": "Drugs and controlled substances",
+        "stolen": "Stolen goods",
+        "counterfeit": "Counterfeit or fake branded items",
+        "wildlife": "Wildlife and animal products such as ivory",
+        "medicine": "Prescription medicine",
+        "adult": "Adult or offensive content",
+        "documents": "IDs, passports, or official documents"
+      },
+      "rulesTitle": "Seller rules",
+      "rules": {
+        "honest": "Describe the item honestly, including defects.",
+        "photos": "Use real photos of the item you are selling.",
+        "contact": "Respond to buyers politely through the contact methods you provide.",
+        "sold": "Mark items as Sold as soon as the sale is complete.",
+        "payment": "Never ask buyers for deposits or advance payments to unknown accounts."
+      },
+      "moderationTitle": "Moderation and privacy",
+      "moderationBody": "Listings are checked automatically for prohibited items and reviewed by our team when reported. Repeated violations lead to suspension or a permanent ban.",
+      "privacyBody": "Your phone number, Telegram, and Viber are only shown to signed-in buyers who tap a contact button on your listing.",
+      "confirmTitle": "Before you publish",
+      "confirmBody": "Only eligible items that follow the Shawe Mal Marketplace policy can be listed. Your contact details are shared with buyers who tap a contact button.",
+      "readPolicy": "Read the policy",
+      "checkbox": "I confirm this item is allowed and I agree to the marketplace and privacy policy."
+    },
+    "my": {
+      "activeCount": "Active listings",
+      "soldCount": "Sold listings",
+      "attentionCount": "Need attention",
+      "listingsTitle": "My listings",
+      "filterLabel": "Filter listings",
+      "all": "All",
+      "empty": "You haven't listed anything yet.",
+      "contacts": "Contacts: {{count}}",
+      "contactsHint": "Buyers who tapped a contact button",
+      "saves": "Saves: {{count}}",
+      "phoneNotVerified": "Your phone number isn't verified yet, so you can't publish new listings."
+    },
+    "actions": {
+      "edit": "Edit",
+      "markSold": "Mark sold",
+      "relist": "Mark available",
+      "delete": "Delete"
+    },
+    "markSold": {
+      "title": "Mark as sold",
+      "body": "“{{title}}” will be shown as sold and buyers can no longer contact you about it.",
+      "whoBought": "Who bought it?",
+      "contactedOn": "Contacted {{date}}",
+      "someoneElse": "Someone else / I'd rather not say",
+      "reviewHint": "If you choose a buyer, they can leave you a review."
+    },
+    "deleteDialog": {
+      "title": "Delete listing?",
+      "body": "“{{title}}” will be permanently deleted."
+    },
+    "movingOut": {
+      "sectionTitle": "Moving-out sales",
+      "sectionSubtitle": "Neighbours selling their things before they move.",
+      "mySubtitle": "Group items you want to sell before you move.",
+      "myEmpty": "No moving-out sales yet.",
+      "createTitle": "Create moving-out sale",
+      "editTitle": "Edit moving-out sale",
+      "dialogBody": "After creating the sale, choose it in Step 3 when you list each item.",
+      "titlePlaceholder": "e.g. Leaving Tamwe — everything must go",
+      "moveOutDate": "Move-out date (optional)",
+      "notDecided": "Not decided",
+      "activeToggle": "Sale is active",
+      "save": "Save sale",
+      "badge": "Moving-out sale",
+      "route": "{{from}} → {{to}}",
+      "from": "Moving out of {{from}}",
+      "itemCount": "Items for sale: {{count}}",
+      "leaving": "Leaving {{date}}",
+      "ended": "Sale ended",
+      "allSold": "Everything in this sale has been sold.",
+      "notFound": "This moving-out sale could not be found.",
+      "deleteConfirm": "Delete this moving-out sale? Its items stay listed."
+    }
   }
 }

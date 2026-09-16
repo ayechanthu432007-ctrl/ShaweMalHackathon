@@ -90,6 +90,14 @@ export const login = async (input: LoginInput) => {
     throw new ApiError(401, 'AUTH_INVALID_CREDENTIALS', 'Invalid email or password.');
   }
 
+  if (user.accountStatus === 'BANNED') {
+    throw new ApiError(403, 'AUTH_ACCOUNT_BANNED', 'This account has been banned.');
+  }
+
+  if (user.accountStatus === 'SUSPENDED') {
+    throw new ApiError(403, 'AUTH_ACCOUNT_SUSPENDED', 'This account is suspended. Please contact support.');
+  }
+
   const safeUser = toSafeUser(user);
   const accessToken = generateAccessToken(
     {
