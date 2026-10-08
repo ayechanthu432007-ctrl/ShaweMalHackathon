@@ -26,9 +26,9 @@ export function UserMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button type="button" variant="outline" size="sm" className="gap-2">
+        <Button type="button" variant="outline" size="sm" className="gap-2" aria-label={user?.name ?? t('nav.profile')}>
           <UserRound className="size-4" />
-          <span className="max-w-[10rem] truncate">{user?.name ?? t('nav.profile')}</span>
+          <span className="hidden max-w-[10rem] truncate sm:inline">{user?.name ?? t('nav.profile')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

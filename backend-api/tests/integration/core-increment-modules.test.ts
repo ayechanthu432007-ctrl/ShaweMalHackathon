@@ -56,6 +56,7 @@ interface MockRoommatePost {
   hobbyChillWithOthers: boolean;
   hobbyRelaxSilent: boolean;
   hobbyPlayingGym: boolean;
+  photoPaths?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -399,12 +400,26 @@ jest.mock('../../src/prisma/client', () => {
           hobbyChillWithOthers: data.hobbyChillWithOthers,
           hobbyRelaxSilent: data.hobbyRelaxSilent,
           hobbyPlayingGym: data.hobbyPlayingGym,
+          photoPaths: data.photoPaths,
           createdAt: now,
           updatedAt: now
         };
 
         roommatePosts.push(created);
         return hydrateRoommatePost(created);
+      }),
+      findUnique: jest.fn(async ({ where }: { where: { id: string } }) => {
+        return roommatePosts.find((item) => item.id === where.id) ?? null;
+      }),
+      update: jest.fn(async ({ where, data }: { where: { id: string }; data: any }) => {
+        const existing = roommatePosts.find((item) => item.id === where.id) as MockRoommatePost;
+        Object.assign(existing, data, { updatedAt: new Date() });
+        return hydrateRoommatePost(existing);
+      }),
+      delete: jest.fn(async ({ where }: { where: { id: string } }) => {
+        const index = roommatePosts.findIndex((item) => item.id === where.id);
+        const [removed] = roommatePosts.splice(index, 1);
+        return removed;
       })
     },
     ratingReview: {
@@ -869,11 +884,101 @@ describe('Core increment modules', () => {
         budgetCostSharing: 'Split bills',
         gender: 'ANY',
         occupationId: 'occ-1',
-        hobbyReading: true
+        hobbyReading: true,
+        photos: ['uploads/profile/photo-1.jpg']
       });
 
     expect(createResponse.status).toBe(201);
     expect(createResponse.body.data.item.title).toBe('Need roommate');
+    expect(createResponse.body.data.item.photos).toEqual(['uploads/profile/photo-1.jpg']);
+  });
+
+  it('requires one or two photos on roommate posts and keeps older posts readable', async () => {
+    const owner = authHeader('user-normal', ['normal']);
+    const payload = {
+      houseId: 'house-1',
+      title: 'Need roommate',
+      budgetCostSharing: 'Split bills',
+      gender: 'ANY',
+      occupationId: 'occ-1'
+    };
+    const create = (photos?: unknown) =>
+      request(app)
+        .post('/api/v1/roommates')
+        .set('Authorization', owner)
+        .send(photos === undefined ? payload : { ...payload, photos });
+
+    // Seeded post predates the photo column.
+    const listResponse = await request(app).get('/api/v1/roommates');
+    expect(listResponse.status).toBe(200);
+    expect(listResponse.body.data.items[0].photos).toEqual([]);
+
+    expect((await create()).status).toBe(400);
+    expect((await create([])).status).toBe(400);
+    expect(
+      (await create(['uploads/profile/a.jpg', 'uploads/profile/b.jpg', 'uploads/profile/c.jpg'])).status
+    ).toBe(400);
+    expect((await create(['uploads/profile/a.jpg', 'uploads/profile/a.jpg'])).status).toBe(400);
+    expect((await create(['https://example.com/a.jpg'])).status).toBe(400);
+    expect((await create(['uploads/docs/a.jpg'])).status).toBe(400);
+    expect(roommatePosts).toHaveLength(1);
+
+    const two = await create(['uploads/profile/a.jpg', 'uploads/profile/b.png']);
+    expect(two.status).toBe(201);
+    expect(two.body.data.item.photos).toEqual(['uploads/profile/a.jpg', 'uploads/profile/b.png']);
+  });
+
+  it('lets only the owner edit or delete a roommate post', async () => {
+    const owner = authHeader('user-normal', ['normal']);
+    const other = authHeader('user-agent', ['agent']);
+    const admin = authHeader('user-admin', ['admin']);
+    const payload = {
+      houseId: 'house-1',
+      title: 'Updated title',
+      budgetCostSharing: 'Split bills',
+      gender: 'FEMALE',
+      occupationId: 'occ-1',
+      photos: ['uploads/profile/new-1.jpg', 'uploads/profile/new-2.jpg']
+    };
+
+    expect((await request(app).put('/api/v1/roommates/roommate-1').send(payload)).status).toBe(401);
+    expect((await request(app).delete('/api/v1/roommates/roommate-1')).status).toBe(401);
+
+    for (const intruder of [other, admin]) {
+      const forbiddenEdit = await request(app)
+        .put('/api/v1/roommates/roommate-1')
+        .set('Authorization', intruder)
+        .send(payload);
+      expect(forbiddenEdit.status).toBe(403);
+
+      const forbiddenDelete = await request(app).delete('/api/v1/roommates/roommate-1').set('Authorization', intruder);
+      expect(forbiddenDelete.status).toBe(403);
+    }
+    expect(roommatePosts[0]?.title).toBe('Looking for quiet roommate');
+
+    const missing = await request(app).put('/api/v1/roommates/nope').set('Authorization', owner).send(payload);
+    expect(missing.status).toBe(404);
+
+    // The photo rule also applies while editing.
+    const noPhotos = await request(app)
+      .put('/api/v1/roommates/roommate-1')
+      .set('Authorization', owner)
+      .send({ ...payload, photos: [] });
+    expect(noPhotos.status).toBe(400);
+
+    const edited = await request(app).put('/api/v1/roommates/roommate-1').set('Authorization', owner).send(payload);
+    expect(edited.status).toBe(200);
+    expect(edited.body.data.item.title).toBe('Updated title');
+    expect(edited.body.data.item.gender).toBe('FEMALE');
+    expect(edited.body.data.item.photos).toEqual(payload.photos);
+    expect(roommatePosts[0]?.userId).toBe('user-normal');
+
+    const removed = await request(app).delete('/api/v1/roommates/roommate-1').set('Authorization', owner);
+    expect(removed.status).toBe(200);
+    expect(roommatePosts).toHaveLength(0);
+
+    const again = await request(app).delete('/api/v1/roommates/roommate-1').set('Authorization', owner);
+    expect(again.status).toBe(404);
   });
 
   it('supports profile read/update/history and validates patch payload', async () => {

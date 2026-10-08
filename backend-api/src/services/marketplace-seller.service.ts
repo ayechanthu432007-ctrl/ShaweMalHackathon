@@ -70,7 +70,8 @@ export const getMySellerStatus = async (userId: string) => {
   return {
     accountStatus: user.accountStatus,
     badges: sellerBadges(user),
-    canSell: user.accountStatus === 'ACTIVE' && Boolean(user.phoneVerifiedAt),
+    // Phone verification is an optional trust badge; any active account may sell.
+    canSell: user.accountStatus === 'ACTIVE',
     phoneVerificationRequestedAt: lastRequest?.createdAt ?? null,
     contact: {
       phone: user.sellerContact?.phone ?? user.phone,
@@ -154,13 +155,8 @@ export const updateMySellerContact = async (
   return getMySellerStatus(userId);
 };
 
-const requireSeller = async (userId: string) => {
-  const user = await requireActiveMarketplaceUser(userId);
-  if (!user.phoneVerifiedAt) {
-    throw new ApiError(403, 'MARKETPLACE_PHONE_NOT_VERIFIED', 'Your phone number must be verified before you can sell.');
-  }
-  return user;
-};
+/** Any signed-in user in good standing may sell; no admin verification is needed first. */
+const requireSeller = requireActiveMarketplaceUser;
 
 const resolveListingData = async (userId: string, accountPhone: string, input: ListingInput) => {
   if (!input.policyAccepted) {
@@ -248,22 +244,28 @@ const resolveListingData = async (userId: string, accountPhone: string, input: L
   };
 };
 
-const autoModerationNote = (hits: string[]) =>
-  `Held for review: listing mentions possibly prohibited items (${hits.slice(0, 5).join(', ')}).`;
-
-const notifyHeldForReview = (userId: string, title: string) =>
-  prisma.notification.create({
-    data: {
-      userId,
-      title: 'Listing held for review',
-      message: `"${title}" will be visible after an admin reviews it against the marketplace policy.`
-    }
+/**
+ * Listings publish immediately. A prohibited-keyword hit no longer holds the listing;
+ * admins are told about it so they can review (and remove) it after the fact.
+ */
+const notifyAdminsOfFlaggedListing = async (listingId: string, title: string, hits: string[]) => {
+  const admins = await prisma.user.findMany({
+    where: { userRoles: { some: { role: { name: 'admin' } } } },
+    select: { id: true }
   });
+
+  await prisma.notification.createMany({
+    data: admins.map((admin) => ({
+      userId: admin.id,
+      title: 'Marketplace listing flagged',
+      message: `"${title}" (listing ${listingId}) mentions possibly prohibited items (${hits.slice(0, 5).join(', ')}). It is live; please review it.`
+    }))
+  });
+};
 
 export const createMyListing = async (userId: string, input: ListingInput) => {
   const seller = await requireSeller(userId);
   const resolved = await resolveListingData(userId, seller.phone, input);
-  const held = resolved.prohibitedHits.length > 0;
   const now = new Date();
 
   const listing = await prisma.listing.create({
@@ -271,16 +273,15 @@ export const createMyListing = async (userId: string, input: ListingInput) => {
       ...resolved.scalars,
       sellerId: userId,
       status: 'ACTIVE',
-      moderationStatus: held ? 'PENDING' : 'APPROVED',
-      moderationNote: held ? autoModerationNote(resolved.prohibitedHits) : null,
+      moderationStatus: 'APPROVED',
       policyAcceptedAt: now,
-      publishedAt: held ? null : now,
+      publishedAt: now,
       images: { create: resolved.images }
     }
   });
 
-  if (held) {
-    await notifyHeldForReview(userId, listing.title);
+  if (resolved.prohibitedHits.length > 0) {
+    await notifyAdminsOfFlaggedListing(listing.id, listing.title, resolved.prohibitedHits);
   }
 
   return { id: listing.id, status: listing.status, moderationStatus: listing.moderationStatus };
@@ -346,15 +347,10 @@ export const updateMyListing = async (userId: string, listingId: string, input: 
   }
 
   const resolved = await resolveListingData(userId, seller.phone, input);
-  const held = resolved.prohibitedHits.length > 0;
 
-  // Rejected listings go back to the review queue after the seller fixes them.
-  const moderationStatus = held || existing.moderationStatus === 'REJECTED' || existing.moderationStatus === 'PENDING' ? 'PENDING' : 'APPROVED';
-  const moderationNote = held
-    ? autoModerationNote(resolved.prohibitedHits)
-    : moderationStatus === 'PENDING'
-      ? 'Updated by seller; awaiting review.'
-      : null;
+  // Listings an admin rejected go back to the admin's review queue after the seller fixes them.
+  const moderationStatus = existing.moderationStatus === 'REJECTED' || existing.moderationStatus === 'PENDING' ? 'PENDING' : 'APPROVED';
+  const moderationNote = moderationStatus === 'PENDING' ? 'Updated by seller; awaiting review.' : null;
 
   await prisma.$transaction([
     prisma.listingImage.deleteMany({ where: { listingId } }),
@@ -371,8 +367,8 @@ export const updateMyListing = async (userId: string, listingId: string, input: 
     })
   ]);
 
-  if (held && existing.moderationStatus === 'APPROVED') {
-    await notifyHeldForReview(userId, resolved.scalars.title);
+  if (resolved.prohibitedHits.length > 0 && moderationStatus === 'APPROVED') {
+    await notifyAdminsOfFlaggedListing(listingId, resolved.scalars.title, resolved.prohibitedHits);
   }
 
   return { id: listingId, moderationStatus };

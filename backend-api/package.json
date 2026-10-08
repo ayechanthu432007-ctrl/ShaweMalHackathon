@@ -15,7 +15,9 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "telegram:dev": "tsx src/scripts/telegram-poll.ts",
+    "telegram:set-webhook": "tsx src/scripts/telegram-set-webhook.ts"
   },
   "keywords": [],
   "author": "",

@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -225,16 +226,12 @@ export function DriverJobsPage() {
 
     return (
       <div className="space-y-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold">{t('driver.jobDetailTitle')}</h1>
-            <p className="text-sm text-muted-foreground">
-              {t('moving.orderNumber')}: {request.orderNumber ?? request.id}
-            </p>
-          </div>
-          <Button asChild variant="outline">
-            <Link to="/driver/jobs">{t('driver.backToJobs')}</Link>
-          </Button>
+        <BackLink to="/driver/jobs" label={t('driver.backToJobs')} />
+        <div>
+          <h1 className="text-2xl font-semibold">{t('driver.jobDetailTitle')}</h1>
+          <p className="text-sm text-muted-foreground">
+            {t('moving.orderNumber')}: {request.orderNumber ?? request.id}
+          </p>
         </div>
 
         {canRespond ? (

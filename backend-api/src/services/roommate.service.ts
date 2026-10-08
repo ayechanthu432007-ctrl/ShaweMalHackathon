@@ -39,6 +39,11 @@ interface CreateRoommatePostInput {
   hobbyChillWithOthers?: boolean;
   hobbyRelaxSilent?: boolean;
   hobbyPlayingGym?: boolean;
+  photos: string[];
+}
+
+interface UpdateRoommatePostInput extends CreateRoommatePostInput {
+  id: string;
 }
 
 const ROOMMATE_INCLUDE = {
@@ -106,6 +111,8 @@ const mapRoommatePost = (item: Prisma.RoommatePostGetPayload<{ include: typeof R
     hobbyRelaxSilent: item.hobbyRelaxSilent,
     hobbyPlayingGym: item.hobbyPlayingGym
   },
+  // Posts created before photos were introduced have no photo list.
+  photos: item.photoPaths ?? [],
   user: item.user,
   house: item.house,
   createdAt: item.createdAt,
@@ -168,7 +175,7 @@ export const listRoommatePosts = async (input: ListRoommatePostsInput) => {
   return items.map(mapRoommatePost);
 };
 
-export const createRoommatePost = async (input: CreateRoommatePostInput) => {
+const assertHouseAndOccupation = async (input: Pick<CreateRoommatePostInput, 'houseId' | 'occupationId'>) => {
   const [house, occupation] = await Promise.all([
     prisma.house.findUnique({
       where: {
@@ -196,38 +203,83 @@ export const createRoommatePost = async (input: CreateRoommatePostInput) => {
   if (!occupation || !occupation.isActive) {
     throw new ApiError(400, 'OCCUPATION_NOT_AVAILABLE', 'Occupation is invalid or inactive.');
   }
+};
+
+const toPostData = (input: CreateRoommatePostInput) => ({
+  houseId: input.houseId,
+  title: input.title,
+  budgetCostSharing: input.budgetCostSharing,
+  gender: input.gender,
+  occupationId: input.occupationId,
+  isLgbtqFriendly: Boolean(input.isLgbtqFriendly),
+  isCannabisFriendly: Boolean(input.isCannabisFriendly),
+  isSmokingFriendly: Boolean(input.isSmokingFriendly),
+  isNoSmoking: Boolean(input.isNoSmoking),
+  isCatFriendly: Boolean(input.isCatFriendly),
+  isDogFriendly: Boolean(input.isDogFriendly),
+  isAlcoholFriendly: Boolean(input.isAlcoholFriendly),
+  likesNightOut: Boolean(input.likesNightOut),
+  likesHangoutEveryday: Boolean(input.likesHangoutEveryday),
+  hobbyPlayingGame: Boolean(input.hobbyPlayingGame),
+  hobbyWatchingMovies: Boolean(input.hobbyWatchingMovies),
+  hobbySinging: Boolean(input.hobbySinging),
+  hobbyPlayingFootball: Boolean(input.hobbyPlayingFootball),
+  hobbyRunning: Boolean(input.hobbyRunning),
+  hobbyCooking: Boolean(input.hobbyCooking),
+  hobbyReading: Boolean(input.hobbyReading),
+  hobbyFoodie: Boolean(input.hobbyFoodie),
+  hobbyChillWithOthers: Boolean(input.hobbyChillWithOthers),
+  hobbyRelaxSilent: Boolean(input.hobbyRelaxSilent),
+  hobbyPlayingGym: Boolean(input.hobbyPlayingGym),
+  photoPaths: input.photos
+});
+
+export const createRoommatePost = async (input: CreateRoommatePostInput) => {
+  await assertHouseAndOccupation(input);
 
   const created = await prisma.roommatePost.create({
     data: {
       userId: input.userId,
-      houseId: input.houseId,
-      title: input.title,
-      budgetCostSharing: input.budgetCostSharing,
-      gender: input.gender,
-      occupationId: input.occupationId,
-      isLgbtqFriendly: Boolean(input.isLgbtqFriendly),
-      isCannabisFriendly: Boolean(input.isCannabisFriendly),
-      isSmokingFriendly: Boolean(input.isSmokingFriendly),
-      isNoSmoking: Boolean(input.isNoSmoking),
-      isCatFriendly: Boolean(input.isCatFriendly),
-      isDogFriendly: Boolean(input.isDogFriendly),
-      isAlcoholFriendly: Boolean(input.isAlcoholFriendly),
-      likesNightOut: Boolean(input.likesNightOut),
-      likesHangoutEveryday: Boolean(input.likesHangoutEveryday),
-      hobbyPlayingGame: Boolean(input.hobbyPlayingGame),
-      hobbyWatchingMovies: Boolean(input.hobbyWatchingMovies),
-      hobbySinging: Boolean(input.hobbySinging),
-      hobbyPlayingFootball: Boolean(input.hobbyPlayingFootball),
-      hobbyRunning: Boolean(input.hobbyRunning),
-      hobbyCooking: Boolean(input.hobbyCooking),
-      hobbyReading: Boolean(input.hobbyReading),
-      hobbyFoodie: Boolean(input.hobbyFoodie),
-      hobbyChillWithOthers: Boolean(input.hobbyChillWithOthers),
-      hobbyRelaxSilent: Boolean(input.hobbyRelaxSilent),
-      hobbyPlayingGym: Boolean(input.hobbyPlayingGym)
+      ...toPostData(input)
     },
     include: ROOMMATE_INCLUDE
   });
 
   return mapRoommatePost(created);
+};
+
+/** Only the user who created a roommate post may change or remove it. */
+const findOwnedRoommatePost = async (userId: string, postId: string) => {
+  const post = await prisma.roommatePost.findUnique({
+    where: { id: postId },
+    select: { id: true, userId: true }
+  });
+
+  if (!post) {
+    throw new ApiError(404, 'ROOMMATE_POST_NOT_FOUND', 'Roommate post not found.');
+  }
+
+  if (post.userId !== userId) {
+    throw new ApiError(403, 'ROOMMATE_POST_FORBIDDEN', 'You can only manage your own roommate posts.');
+  }
+
+  return post;
+};
+
+export const updateRoommatePost = async (input: UpdateRoommatePostInput) => {
+  await findOwnedRoommatePost(input.userId, input.id);
+  await assertHouseAndOccupation(input);
+
+  const updated = await prisma.roommatePost.update({
+    where: { id: input.id },
+    data: toPostData(input),
+    include: ROOMMATE_INCLUDE
+  });
+
+  return mapRoommatePost(updated);
+};
+
+export const deleteRoommatePost = async (userId: string, postId: string) => {
+  await findOwnedRoommatePost(userId, postId);
+  await prisma.roommatePost.delete({ where: { id: postId } });
 };

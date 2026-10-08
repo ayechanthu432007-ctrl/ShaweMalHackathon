@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { ApiRequestError } from '@/lib/api/client'
 import { movingApi } from '@/features/moving/api/moving-api'
@@ -65,16 +66,12 @@ export function AdminMovingRequestDetailPage() {
 
   return (
     <section className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t('admin.movingReport.detailTitle')}</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {t('moving.orderNumber')}: {request.orderNumber ?? request.id}
-          </p>
-        </div>
-        <Button asChild variant="outline">
-          <Link to="/admin/reports/moving">{t('admin.movingReport.backToList')}</Link>
-        </Button>
+      <BackLink to="/admin/reports/moving" label={t('admin.movingReport.backToList')} />
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.movingReport.detailTitle')}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t('moving.orderNumber')}: {request.orderNumber ?? request.id}
+        </p>
       </div>
 
       <AdminMovingRequestDetails request={request} />

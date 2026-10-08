@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, PhoneCall, ShieldCheck } from 'lucide-react'
+import { Check, ShieldCheck } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -16,7 +17,7 @@ import { marketplaceApi } from '../api/marketplace-api'
 import { selectClassName, textareaClassName } from '../components/MarketplaceDialog'
 import { MarketplacePhotoUploader } from '../components/MarketplacePhotoUploader'
 import { useMarketplaceCategories, useSellerStatus, useTownships } from '../hooks/useMarketplaceData'
-import { categoryLabel, formatDate } from '../lib/marketplace-format'
+import { categoryLabel } from '../lib/marketplace-format'
 import {
   LISTING_CONDITIONS,
   PICKUP_METHODS,
@@ -88,45 +89,6 @@ function Field({ id, label, error, children, hint }: { id: string; label: string
   )
 }
 
-function PhoneVerificationGate() {
-  const { t } = useTranslation()
-  const queryClient = useQueryClient()
-  const statusQuery = useSellerStatus()
-  const requestMutation = useMutation({
-    mutationFn: () => marketplaceApi.requestPhoneVerification(),
-    onSuccess: (data) => queryClient.setQueryData(['marketplace', 'seller-status'], data),
-  })
-
-  const requestedAt = statusQuery.data?.phoneVerificationRequestedAt
-
-  return (
-    <Card className="mx-auto max-w-xl">
-      <CardHeader className="space-y-3">
-        <div className="flex size-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-          <PhoneCall className="size-6" aria-hidden />
-        </div>
-        <CardTitle className="text-xl">{t('marketplace.sell.verifyTitle')}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 text-sm">
-        <p className="text-muted-foreground">{t('marketplace.sell.verifyBody')}</p>
-        {requestedAt ? (
-          <p className="rounded-md bg-muted px-3 py-2" role="status">
-            {t('marketplace.sell.verifyRequested', { date: formatDate(requestedAt) })}
-          </p>
-        ) : null}
-        {requestMutation.isError ? (
-          <p className="text-destructive" role="alert">
-            {requestMutation.error instanceof ApiRequestError ? requestMutation.error.message : t('marketplace.sell.saveError')}
-          </p>
-        ) : null}
-        <Button type="button" disabled={requestMutation.isPending || Boolean(requestedAt)} onClick={() => requestMutation.mutate()}>
-          {requestedAt ? t('marketplace.sell.verifyRequestSent') : t('marketplace.sell.verifyRequest')}
-        </Button>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function SellItemPage() {
   const { t, i18n } = useTranslation()
   const { id: editingId } = useParams()
@@ -138,6 +100,7 @@ export function SellItemPage() {
 
   const [step, setStep] = useState<Step>(1)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
+  const [dirty, setDirty] = useState(false)
   const [contact, setContact] = useState<SellerContactSettings | null>(null)
   const [errors, setErrors] = useState<Errors>({})
 
@@ -196,6 +159,7 @@ export function SellItemPage() {
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((previous) => ({ ...previous, [key]: value }))
     setErrors((previous) => ({ ...previous, [key]: undefined }))
+    setDirty(true)
   }
 
   const validateStep = (target: Step): Errors => {
@@ -305,10 +269,6 @@ export function SellItemPage() {
     return <p className="text-sm text-destructive">{t('marketplace.sell.restricted')}</p>
   }
 
-  if (statusQuery.data && !statusQuery.data.canSell) {
-    return <PhoneVerificationGate />
-  }
-
   if (isEditing && existingQuery.isError) {
     return <p className="text-sm text-destructive">{t('marketplace.detail.notFound')}</p>
   }
@@ -324,6 +284,10 @@ export function SellItemPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <BackButton
+        fallback={isEditing ? '/marketplace/my' : '/marketplace'}
+        confirmMessage={dirty && !publishMutation.isSuccess ? t('common.discardChanges') : null}
+      />
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">{isEditing ? t('marketplace.sell.editTitle') : t('marketplace.sell.title')}</h1>
         <p className="mt-1 text-muted-foreground">{t('marketplace.sell.subtitle')}</p>
@@ -374,6 +338,7 @@ export function SellItemPage() {
               error={errors.images}
               onChange={({ photos, coverIndex }) => {
                 setForm((previous) => ({ ...previous, images: photos, coverIndex }))
+                setDirty(true)
                 setErrors((previous) => ({ ...previous, images: undefined }))
               }}
             />

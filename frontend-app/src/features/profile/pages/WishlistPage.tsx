@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { HouseCard } from '@/features/houses/components/HouseCard'
 import { wishlistApi } from '@/features/houses/api/wishlist-api'
@@ -59,14 +60,12 @@ export function WishlistPage() {
   )
 
   const header = (
-    <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-2">
+      <BackLink to="/profile" label={t('nav.profile')} />
       <div>
         <h1 className="text-2xl font-semibold">{t('nav.wishlist')}</h1>
         <p className="text-sm text-muted-foreground">{t('profile.wishlistSubtitle')}</p>
       </div>
-      <Button asChild variant="outline" size="sm">
-        <Link to="/profile">{t('nav.profile')}</Link>
-      </Button>
     </div>
   )
 

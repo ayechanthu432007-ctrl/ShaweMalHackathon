@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, Truck } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -46,6 +47,7 @@ export function MovingOutSalePage() {
 
   return (
     <div className="space-y-6">
+      <BackButton fallback="/marketplace" />
       <Card className="border-primary/30 bg-gradient-to-br from-primary/10 via-card to-card">
         <CardContent className="space-y-4 p-6">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">

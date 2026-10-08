@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { ApiRequestError } from '@/lib/api/client'
 
@@ -80,14 +81,10 @@ export function MovingStatusPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t('nav.movingStatus')}</h1>
-          <p className="text-sm text-muted-foreground">{t('moving.statusSubtitle')}</p>
-        </div>
-        <Button asChild variant="outline">
-          <Link to="/moving-status">{t('moving.statusBackToList')}</Link>
-        </Button>
+      <BackLink to="/moving-status" label={t('moving.statusBackToList')} />
+      <div>
+        <h1 className="text-3xl font-semibold tracking-tight">{t('nav.movingStatus')}</h1>
+        <p className="text-sm text-muted-foreground">{t('moving.statusSubtitle')}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">

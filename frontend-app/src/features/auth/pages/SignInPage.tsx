@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { validateLoginForm, type LoginFormValues } from '@/features/auth/schemas/auth-schemas'
+import { ApiRequestError } from '@/lib/api/client'
 import type { AuthUser } from '@/features/auth/types'
 
 type SignInPageProps = {
@@ -85,9 +86,11 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
         return
       }
 
-      navigate(nextPath)
-    } catch {
-      setFormError(t('auth.loginFailed'))
+      // Replace the sign-in entry so Back from the destination doesn't return to this form.
+      navigate(nextPath, { replace: true })
+    } catch (error) {
+      // Only an answer from the server means the credentials were rejected; anything else is a connection problem.
+      setFormError(error instanceof ApiRequestError ? t('auth.loginFailed') : t('auth.serverUnreachable'))
     }
   })
 

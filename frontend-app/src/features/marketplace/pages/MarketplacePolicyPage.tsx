@@ -2,6 +2,7 @@ import { CircleCheck, CircleX, ShieldCheck } from 'lucide-react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -14,6 +15,7 @@ export function MarketplacePolicyPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
+      <BackButton fallback="/marketplace" />
       <div className="space-y-2">
         <p className="inline-flex items-center gap-1.5 text-sm font-medium text-primary">
           <ShieldCheck className="size-4" aria-hidden />

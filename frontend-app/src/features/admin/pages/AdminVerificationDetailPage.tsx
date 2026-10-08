@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -137,9 +138,7 @@ export function AdminVerificationDetailPage({ kind }: { kind: DetailKind }) {
   return (
     <section className="space-y-6">
       <div>
-        <Button asChild variant="outline" size="sm">
-          <Link to={queuePath}>{t('admin.verifications.backToQueue')}</Link>
-        </Button>
+        <BackLink to={queuePath} label={t('admin.verifications.backToQueue')} />
         <h1 className="mt-4 text-3xl font-semibold tracking-tight">{t(titleKey)}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t('admin.verifications.detailSubtitle')}</p>
       </div>

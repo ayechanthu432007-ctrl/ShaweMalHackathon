@@ -1,4 +1,4 @@
-import type { RoommateGender } from '../types'
+import type { RoommateGender, RoommatePost } from '../types'
 
 export const ROOMMATE_INTEREST_FLAGS = [
   'isLgbtqFriendly',
@@ -36,6 +36,9 @@ export type RoommatePostFormValues = {
   budgetCostSharing: string
   gender: RoommateGender
   occupationId: string
+  /** Photo 1 is required, photo 2 is optional. */
+  photo1: string
+  photo2: string
 } & Record<RoommateFlagKey, boolean>
 
 export function defaultRoommatePostFormValues(): RoommatePostFormValues {
@@ -49,6 +52,26 @@ export function defaultRoommatePostFormValues(): RoommatePostFormValues {
     budgetCostSharing: '',
     gender: 'ANY',
     occupationId: '',
+    photo1: '',
+    photo2: '',
+    ...flags,
+  }
+}
+
+export function roommatePostToFormValues(post: RoommatePost): RoommatePostFormValues {
+  const selected = { ...post.preferences, ...post.hobbies }
+  const flags = Object.fromEntries(
+    [...ROOMMATE_INTEREST_FLAGS, ...ROOMMATE_HOBBY_FLAGS].map((key) => [key, Boolean(selected[key])]),
+  ) as Record<RoommateFlagKey, boolean>
+
+  return {
+    houseId: post.house?.id ?? '',
+    title: post.title,
+    budgetCostSharing: post.budgetCostSharing,
+    gender: (['MALE', 'FEMALE', 'ANY'] as const).find((value) => value === post.gender) ?? 'ANY',
+    occupationId: post.occupation?.id ?? '',
+    photo1: post.photos?.[0] ?? '',
+    photo2: post.photos?.[1] ?? '',
     ...flags,
   }
 }
@@ -64,6 +87,7 @@ export function validateRoommatePostForm(
   if (!values.budgetCostSharing.trim()) errors.budgetCostSharing = t('auth.required')
   if (!values.occupationId.trim()) errors.occupationId = t('auth.required')
   if (!values.gender) errors.gender = t('auth.required')
+  if (!values.photo1.trim()) errors.photo1 = t('roommates.photoRequired')
 
   return errors
 }

@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Flag, Heart, MapPin, PackageCheck, Pencil, Star, Truck } from 'lucide-react'
+import { Flag, Heart, MapPin, PackageCheck, Pencil, Star, Truck } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StarRating } from '@/features/reviews/components/StarRating'
@@ -128,11 +129,6 @@ export function ListingDetailPage() {
     enabled: Boolean(id),
   })
 
-  const goBack = () => {
-    if (window.history.length > 1) navigate(-1)
-    else navigate('/marketplace')
-  }
-
   if (listingQuery.isLoading) {
     return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
   }
@@ -164,10 +160,7 @@ export function ListingDetailPage() {
 
   return (
     <div className="space-y-6">
-      <Button type="button" variant="ghost" className="-ml-3" onClick={goBack}>
-        <ArrowLeft aria-hidden />
-        {t('marketplace.back')}
-      </Button>
+      <BackButton fallback="/marketplace" />
 
       {listing.isOwner ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-muted/50 p-4">

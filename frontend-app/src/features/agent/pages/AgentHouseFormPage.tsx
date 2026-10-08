@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { MultiImageUploadField } from '@/components/uploads/MultiImageUploadField'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -109,7 +110,7 @@ export function AgentHouseFormPage() {
     setError,
     setValue,
     clearErrors,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<AgentHouseFormValues>({
     defaultValues: defaultAgentHouseFormValues(),
   })
@@ -252,6 +253,7 @@ export function AgentHouseFormPage() {
 
   return (
     <section className="mx-auto max-w-3xl space-y-6">
+      <BackButton fallback="/agent/houses" confirmMessage={isDirty && !isSubmitting ? t('common.discardChanges') : null} />
       <div className="space-y-1">
         <h1 className="text-3xl font-semibold tracking-tight">
           {isEdit ? t('agent.houses.editTitle') : t('agent.houses.createTitle')}

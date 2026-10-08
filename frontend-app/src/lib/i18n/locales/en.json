@@ -1,5 +1,7 @@
 {
   "common": {
+    "back": "Back",
+    "discardChanges": "You have unsaved changes. Leave this page and discard them?",
     "appName": "Shawe MaL",
     "language": "Language",
     "theme": "Theme",
@@ -19,7 +21,12 @@
     "no": "No",
     "close": "Close"
   },
+  "contact": {
+    "telegram": "Chat with the Shawe Mal Telegram bot",
+    "viber": "Chat with us on Viber"
+  },
   "nav": {
+    "menu": "Menu",
     "home": "Home",
     "aboutUs": "About Us",
     "agentRegister": "Agent Register",
@@ -75,6 +82,7 @@
     "minPassword": "Password must be at least 8 characters",
     "invalidEmail": "Email format is invalid",
     "loginFailed": "Login failed. Check your credentials.",
+    "serverUnreachable": "Could not reach the server. Check that the API is running and that this page is opened at the allowed address, then try again.",
     "registerFailed": "Registration failed. Please try again.",
     "registerSuccess": "Registration successful. You can sign in now.",
     "adminRequired": "Admin role is required to access the admin portal.",
@@ -938,6 +946,23 @@
     "backToJobs": "Back to jobs"
   },
   "roommates": {
+    "photos": "Your photos",
+    "photosHint": "Add at least one photo of yourself. You can add up to two. JPEG, PNG or WebP, 5 MB or smaller each.",
+    "photoLabel": "Photo {{index}}",
+    "photoRequiredTag": "Required",
+    "photoOptionalTag": "Optional",
+    "photoRequired": "Photo 1 is required. Please upload at least one photo.",
+    "photoAlt": "Photo {{index}} of {{name}}",
+    "editAction": "Edit",
+    "deleteAction": "Delete",
+    "editTitle": "Edit roommate post",
+    "saveChanges": "Save changes",
+    "updateSuccess": "Roommate post updated.",
+    "updateFailed": "Could not update roommate post.",
+    "deleteConfirmTitle": "Delete this post?",
+    "deleteConfirmBody": "\"{{title}}\" will be permanently deleted. This cannot be undone.",
+    "deleteSuccess": "Roommate post deleted.",
+    "deleteFailed": "Could not delete roommate post.",
     "subtitle": "Browse roommate posts or publish your own requirement.",
     "filtersTitle": "Browse filters",
     "postAction": "Post roommate request",

@@ -24,4 +24,15 @@ export const roommatesApi = {
       body: input,
     })
   },
+  update(id: string, input: RoommateCreateInput) {
+    return apiRequest<{ item: RoommatePost }>(`/roommates/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: input,
+    })
+  },
+  remove(id: string) {
+    return apiRequest<{ id: string }>(`/roommates/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+    })
+  },
 }

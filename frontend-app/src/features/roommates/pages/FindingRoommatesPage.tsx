@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Pencil, Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
@@ -9,7 +10,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SingleImageUploadField } from '@/components/uploads/SingleImageUploadField'
 import { housesApi } from '@/features/houses/api/houses-api'
+import { MarketplaceDialog } from '@/features/marketplace/components/MarketplaceDialog'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
 import { ApiRequestError } from '@/lib/api/client'
 import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
@@ -19,17 +22,18 @@ import {
   defaultRoommatePostFormValues,
   ROOMMATE_HOBBY_FLAGS,
   ROOMMATE_INTEREST_FLAGS,
+  roommatePostToFormValues,
   validateRoommatePostForm,
   type RoommatePostFormValues,
 } from '../schemas/roommate-post-schema'
-import type { RoommateGender, RoommateListFilters } from '../types'
+import type { RoommateCreateInput, RoommateGender, RoommateListFilters, RoommatePost } from '../types'
 
 const selectClassName =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 export function FindingRoommatesPage() {
   const { t } = useTranslation()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const queryClient = useQueryClient()
   const [filters, setFilters] = useState<RoommateListFilters>({
     gender: '',
@@ -39,6 +43,9 @@ export function FindingRoommatesPage() {
   })
   const [appliedFilters, setAppliedFilters] = useState<RoommateListFilters>({})
   const [showPostForm, setShowPostForm] = useState(false)
+  const [editingPost, setEditingPost] = useState<RoommatePost | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<RoommatePost | null>(null)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
@@ -72,25 +79,69 @@ export function FindingRoommatesPage() {
     register,
     handleSubmit,
     setError,
+    clearErrors,
+    setValue,
+    watch,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<RoommatePostFormValues>({
     defaultValues: defaultRoommatePostFormValues(),
   })
 
+  const closePostForm = () => {
+    reset(defaultRoommatePostFormValues())
+    setEditingPost(null)
+    setShowPostForm(false)
+    setFormError(null)
+  }
+
   const createMutation = useMutation({
     mutationFn: roommatesApi.create,
     onSuccess: async () => {
       setSuccessMessage(t('roommates.postSuccess'))
-      setFormError(null)
-      reset(defaultRoommatePostFormValues())
-      setShowPostForm(false)
+      closePostForm()
       await queryClient.invalidateQueries({ queryKey: ['roommates'] })
     },
     onError: (error) => {
       setFormError(error instanceof ApiRequestError ? error.message : t('roommates.postFailed'))
     },
   })
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, input }: { id: string; input: RoommateCreateInput }) => roommatesApi.update(id, input),
+    onSuccess: async () => {
+      setSuccessMessage(t('roommates.updateSuccess'))
+      closePostForm()
+      await queryClient.invalidateQueries({ queryKey: ['roommates'] })
+    },
+    onError: (error) => {
+      setFormError(error instanceof ApiRequestError ? error.message : t('roommates.updateFailed'))
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: roommatesApi.remove,
+    onSuccess: async (_data, id) => {
+      setSuccessMessage(t('roommates.deleteSuccess'))
+      setDeleteTarget(null)
+      if (editingPost?.id === id) closePostForm()
+      await queryClient.invalidateQueries({ queryKey: ['roommates'] })
+    },
+    onError: (error) => {
+      setDeleteError(error instanceof ApiRequestError ? error.message : t('roommates.deleteFailed'))
+    },
+  })
+
+  const isSaving = createMutation.isPending || updateMutation.isPending
+
+  const onEdit = (post: RoommatePost) => {
+    reset(roommatePostToFormValues(post))
+    setEditingPost(post)
+    setFormError(null)
+    setSuccessMessage(null)
+    setShowPostForm(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const occupationNameById = useMemo(() => {
     return new Map((occupationsQuery.data?.items ?? []).map((item) => [item.id, item.name]))
@@ -118,7 +169,7 @@ export function FindingRoommatesPage() {
 
     setFormError(null)
     setSuccessMessage(null)
-    await createMutation.mutateAsync({
+    const input: RoommateCreateInput = {
       houseId: values.houseId,
       title: values.title.trim(),
       budgetCostSharing: values.budgetCostSharing.trim(),
@@ -144,8 +195,30 @@ export function FindingRoommatesPage() {
       hobbyChillWithOthers: values.hobbyChillWithOthers,
       hobbyRelaxSilent: values.hobbyRelaxSilent,
       hobbyPlayingGym: values.hobbyPlayingGym,
-    })
+      photos: [values.photo1, values.photo2].filter((path) => path.trim().length > 0),
+    }
+
+    // Failures are reported through each mutation's onError.
+    try {
+      if (editingPost) {
+        await updateMutation.mutateAsync({ id: editingPost.id, input })
+      } else {
+        await createMutation.mutateAsync(input)
+      }
+    } catch {
+      return
+    }
   })
+
+  const houseOptions = housesQuery.data?.items ?? []
+  const occupationOptions = occupationsQuery.data?.items ?? []
+  // Keep the edited post's own house/occupation selectable even when the loaded lists don't include them.
+  const editingHouse =
+    editingPost?.house && !houseOptions.some((house) => house.id === editingPost.house?.id) ? editingPost.house : null
+  const editingOccupation =
+    editingPost?.occupation && !occupationOptions.some((item) => item.id === editingPost.occupation?.id)
+      ? editingPost.occupation
+      : null
 
   return (
     <div className="space-y-6">
@@ -155,7 +228,7 @@ export function FindingRoommatesPage() {
           <p className="text-sm text-muted-foreground">{t('roommates.subtitle')}</p>
         </div>
         {isAuthenticated ? (
-          <Button type="button" onClick={() => setShowPostForm((value) => !value)}>
+          <Button type="button" onClick={() => (showPostForm ? closePostForm() : setShowPostForm(true))}>
             {showPostForm ? t('common.cancel') : t('roommates.postAction')}
           </Button>
         ) : (
@@ -269,16 +342,17 @@ export function FindingRoommatesPage() {
       </Card>
 
       {showPostForm && isAuthenticated ? (
-        <Card>
+        <Card key={editingPost?.id ?? 'new'}>
           <CardHeader>
-            <CardTitle className="text-lg">{t('roommates.postTitle')}</CardTitle>
+            <CardTitle className="text-lg">{editingPost ? t('roommates.editTitle') : t('roommates.postTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form className="grid gap-4 sm:grid-cols-2" onSubmit={onPost} noValidate>
               <Field label={t('roommates.house')} error={errors.houseId?.message} className="sm:col-span-2">
                 <select className={selectClassName} {...register('houseId')}>
                   <option value="">{t('houses.filters.any')}</option>
-                  {(housesQuery.data?.items ?? []).map((house) => (
+                  {editingHouse ? <option value={editingHouse.id}>{editingHouse.title}</option> : null}
+                  {houseOptions.map((house) => (
                     <option key={house.id} value={house.id}>
                       {house.title}
                     </option>
@@ -301,7 +375,8 @@ export function FindingRoommatesPage() {
               <Field label={t('roommates.occupation')} error={errors.occupationId?.message}>
                 <select className={selectClassName} {...register('occupationId')}>
                   <option value="">{t('houses.filters.any')}</option>
-                  {(occupationsQuery.data?.items ?? []).map((item) => (
+                  {editingOccupation ? <option value={editingOccupation.id}>{editingOccupation.name}</option> : null}
+                  {occupationOptions.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.name}
                     </option>
@@ -333,11 +408,47 @@ export function FindingRoommatesPage() {
                 </div>
               </fieldset>
 
+              <fieldset className="space-y-2 sm:col-span-2">
+                <legend className="text-sm font-medium">{t('roommates.photos')}</legend>
+                <p className="text-xs text-muted-foreground">{t('roommates.photosHint')}</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {(['photo1', 'photo2'] as const).map((field, index) => (
+                    <div key={field} className="space-y-2 rounded-md border border-input p-3">
+                      <p className="text-sm font-medium">
+                        {t('roommates.photoLabel', { index: index + 1 })}{' '}
+                        <span className={index === 0 ? 'text-destructive' : 'font-normal text-muted-foreground'}>
+                          ({index === 0 ? t('roommates.photoRequiredTag') : t('roommates.photoOptionalTag')})
+                        </span>
+                      </p>
+                      <SingleImageUploadField
+                        path={watch(field)}
+                        category="profile"
+                        disabled={isSaving}
+                        error={errors[field]?.message}
+                        onChange={(nextPath) => {
+                          setValue(field, nextPath, { shouldDirty: true })
+                          if (nextPath) clearErrors(field)
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </fieldset>
+
               {formError ? <p className="text-sm text-destructive sm:col-span-2">{formError}</p> : null}
-              <div className="sm:col-span-2">
-                <Button type="submit" disabled={isSubmitting || createMutation.isPending}>
-                  {isSubmitting || createMutation.isPending ? t('common.loading') : t('roommates.submitPost')}
+              <div className="flex flex-wrap gap-2 sm:col-span-2">
+                <Button type="submit" disabled={isSubmitting || isSaving}>
+                  {isSubmitting || isSaving
+                    ? t('common.loading')
+                    : editingPost
+                      ? t('roommates.saveChanges')
+                      : t('roommates.submitPost')}
                 </Button>
+                {editingPost ? (
+                  <Button type="button" variant="outline" disabled={isSaving} onClick={closePostForm}>
+                    {t('common.cancel')}
+                  </Button>
+                ) : null}
               </div>
             </form>
           </CardContent>
@@ -369,6 +480,8 @@ export function FindingRoommatesPage() {
           const activeHobbies = Object.entries(item.hobbies ?? {})
             .filter(([, value]) => value)
             .map(([key]) => t(`roommates.flags.${key}`, { defaultValue: key }))
+          const photos = (item.photos ?? []).flatMap((path) => resolvePublicUploadUrl(path) ?? [])
+          const isOwner = Boolean(user?.id && item.user?.id === user.id)
 
           return (
             <Card key={item.id}>
@@ -401,6 +514,19 @@ export function FindingRoommatesPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
+                {photos.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    {photos.map((src, index) => (
+                      <img
+                        key={src}
+                        src={src}
+                        alt={t('roommates.photoAlt', { name: item.user?.name ?? '', index: index + 1 })}
+                        loading="lazy"
+                        className="aspect-[4/3] w-full rounded-md border border-input object-cover"
+                      />
+                    ))}
+                  </div>
+                ) : null}
                 <p>{item.budgetCostSharing}</p>
                 <p className="text-muted-foreground">
                   {item.occupation?.name ??
@@ -424,11 +550,65 @@ export function FindingRoommatesPage() {
                     {activeHobbies.join(', ')}
                   </p>
                 ) : null}
+                {isOwner ? (
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => onEdit(item)}>
+                      <Pencil className="size-4" aria-hidden />
+                      {t('roommates.editAction')}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => {
+                        setDeleteError(null)
+                        setDeleteTarget(item)
+                      }}
+                    >
+                      <Trash2 className="size-4" aria-hidden />
+                      {t('roommates.deleteAction')}
+                    </Button>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
           )
         })}
       </div>
+
+      <MarketplaceDialog
+        open={deleteTarget !== null}
+        title={t('roommates.deleteConfirmTitle')}
+        description={t('roommates.deleteConfirmBody', { title: deleteTarget?.title ?? '' })}
+        icon={<Trash2 className="size-5" aria-hidden />}
+        tone="destructive"
+        busy={deleteMutation.isPending}
+        onDismiss={() => setDeleteTarget(null)}
+      >
+        <div className="space-y-3">
+          {deleteError ? (
+            <p className="text-sm text-destructive" role="alert">
+              {deleteError}
+            </p>
+          ) : null}
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button type="button" variant="outline" disabled={deleteMutation.isPending} onClick={() => setDeleteTarget(null)}>
+              {t('common.cancel')}
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleteMutation.isPending}
+              onClick={() => {
+                if (deleteTarget) deleteMutation.mutate(deleteTarget.id)
+              }}
+            >
+              {deleteMutation.isPending ? t('common.loading') : t('roommates.deleteAction')}
+            </Button>
+          </div>
+        </div>
+      </MarketplaceDialog>
     </div>
   )
 }

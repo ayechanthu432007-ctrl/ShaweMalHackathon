@@ -4,6 +4,7 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -96,6 +97,8 @@ export function MarketplaceSearchPage() {
 
   return (
     <div className="space-y-6">
+      {/* Filters live in the URL, so this goes straight to the marketplace instead of undoing the last filter. */}
+      <BackLink to="/marketplace" label={t('marketplace.backToMarketplace')} />
       <div className="space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight">
           {q

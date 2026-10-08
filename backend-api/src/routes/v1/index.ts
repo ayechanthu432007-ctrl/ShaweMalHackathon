@@ -19,6 +19,7 @@ import { publicMasterDataRouter } from './public-master-data.routes';
 import { registrationRouter } from './registration.routes';
 import { reviewsRouter } from './reviews.routes';
 import { roommatesRouter } from './roommates.routes';
+import { telegramRouter } from './telegram.routes';
 import { uploadsRouter } from './uploads.routes';
 import { wishlistRouter } from './wishlist.routes';
 
@@ -41,6 +42,7 @@ v1Router.use('/moving', movingRouter);
 v1Router.use('/marketplace', marketplaceRouter);
 v1Router.use('/uploads', uploadsRouter);
 v1Router.use('/files', filesRouter);
+v1Router.use('/telegram', telegramRouter);
 v1Router.use('/master-data', publicMasterDataRouter);
 v1Router.use('/admin/master-data', masterDataRouter);
 v1Router.use('/admin/marketplace', adminMarketplaceRouter);

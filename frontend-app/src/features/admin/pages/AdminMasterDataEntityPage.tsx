@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -163,14 +164,10 @@ export function AdminMasterDataEntityPage() {
 
   return (
     <section className="space-y-6">
+      <BackLink to="/admin/master-data" label={t('admin.masterData.back')} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-muted-foreground">
-            <Link to="/admin/master-data" className="underline-offset-4 hover:underline">
-              {t('admin.masterData.back')}
-            </Link>
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">
+          <h1 className="text-3xl font-semibold tracking-tight">
             {t(`admin.masterData.entities.${entity}`)}
           </h1>
           <p className="mt-2 text-muted-foreground">{t('admin.masterData.entitySubtitle')}</p>

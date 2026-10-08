@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { selectClassName, textareaClassName } from '@/features/marketplace/components/MarketplaceDialog'
@@ -72,6 +73,7 @@ export function AdminMarketplaceListingPage() {
   return (
     <section className="space-y-6">
       <AdminMarketplaceNav />
+      <BackButton fallback="/admin/marketplace/listings" />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">{listing.title}</h1>

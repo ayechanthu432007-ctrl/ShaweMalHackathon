@@ -17,6 +17,7 @@ export type RoommatePost = {
   occupation?: { id: string; name: string } | null
   preferences?: Record<string, boolean>
   hobbies?: Record<string, boolean>
+  photos?: string[]
   user?: { id: string; name: string; phone?: string | null; profilePicturePath?: string | null } | null
   house?: {
     id: string
@@ -53,4 +54,5 @@ export type RoommateCreateInput = {
   hobbyChillWithOthers?: boolean
   hobbyRelaxSilent?: boolean
   hobbyPlayingGym?: boolean
+  photos: string[]
 }

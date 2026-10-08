@@ -59,6 +59,27 @@ const uploadAllowedMime = (process.env.UPLOAD_ALLOWED_MIME ?? DEFAULT_UPLOAD_ALL
   .map((item) => item.trim())
   .filter(Boolean);
 
+const TELEGRAM_USERNAME_REGEX = /^[A-Za-z0-9_]{4,32}$/;
+const TELEGRAM_WEBHOOK_SECRET_REGEX = /^[A-Za-z0-9_-]{16,256}$/;
+
+/** Public Telegram accounts users are pointed to for questions the FAQ cannot answer. */
+const telegramSupportUsernames = (process.env.TELEGRAM_SUPPORT_USERNAMES ?? 'aye432007,sforshein')
+  .split(',')
+  .map((item) => item.trim().replace(/^@/, ''))
+  .filter(Boolean);
+if (telegramSupportUsernames.some((username) => !TELEGRAM_USERNAME_REGEX.test(username))) {
+  throw new Error('TELEGRAM_SUPPORT_USERNAMES must be a comma-separated list of Telegram usernames.');
+}
+
+const telegramWebhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET?.trim() || null;
+if (telegramWebhookSecret && !TELEGRAM_WEBHOOK_SECRET_REGEX.test(telegramWebhookSecret)) {
+  throw new Error('TELEGRAM_WEBHOOK_SECRET must be 16-256 characters of A-Z, a-z, 0-9, _ or -.');
+}
+
+/** Public website address used in Telegram link buttons; defaults to the first allowed frontend origin. */
+const firstCorsOrigin = (process.env.CORS_ORIGIN ?? '').split(',')[0]?.trim() ?? '';
+const websiteUrl = process.env.WEBSITE_URL?.trim() || (firstCorsOrigin && firstCorsOrigin !== '*' ? firstCorsOrigin : null);
+
 export const env = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: Number(process.env.PORT ?? 4000),
@@ -74,5 +95,10 @@ export const env = {
   blobStoreAccess,
   uploadRoot: resolveUploadRoot(),
   uploadMaxBytes: parsePositiveInt(process.env.UPLOAD_MAX_BYTES, 5 * 1024 * 1024, 'UPLOAD_MAX_BYTES'),
-  uploadAllowedMime
+  uploadAllowedMime,
+  // Server-side only. Never send these to the browser or write them to logs.
+  telegramBotToken: process.env.TELEGRAM_BOT_TOKEN?.trim() || null,
+  telegramWebhookSecret,
+  telegramSupportUsernames,
+  websiteUrl
 } as const;

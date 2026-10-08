@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiRequestError } from '@/lib/api/client'
@@ -159,6 +160,7 @@ export function MyMarketplacePage() {
 
   return (
     <div className="space-y-8">
+      <BackButton fallback="/marketplace" />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
           <h1 className="text-3xl font-semibold tracking-tight">{t('marketplace.myMarketplace')}</h1>
@@ -171,15 +173,6 @@ export function MyMarketplacePage() {
           </Link>
         </Button>
       </div>
-
-      {statusQuery.data && !statusQuery.data.canSell ? (
-        <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
-          {t('marketplace.my.phoneNotVerified')}{' '}
-          <Link to="/marketplace/sell" className="font-medium text-primary underline-offset-4 hover:underline">
-            {t('marketplace.sell.verifyRequest')}
-          </Link>
-        </p>
-      ) : null}
 
       <dl className="grid grid-cols-3 gap-3">
         {stats.map((stat) => (

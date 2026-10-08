@@ -5,6 +5,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { StarRating } from '@/features/reviews/components/StarRating'
@@ -64,6 +65,7 @@ export function SellerProfilePage() {
 
   return (
     <div className="space-y-8">
+      <BackButton fallback="/marketplace" />
       <Card>
         <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-start">
           <SellerAvatar name={seller.name} path={seller.profilePicturePath} size="lg" />

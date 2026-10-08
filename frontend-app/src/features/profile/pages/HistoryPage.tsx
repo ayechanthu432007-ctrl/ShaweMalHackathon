@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ServiceRatingForm } from '@/features/reviews/components/ServiceRatingForm'
@@ -52,14 +53,10 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-2xl font-semibold">{t('nav.history')}</h1>
-          <p className="text-sm text-muted-foreground">{t('profile.historySubtitle')}</p>
-        </div>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/profile">{t('nav.profile')}</Link>
-        </Button>
+      <BackLink to="/profile" label={t('nav.profile')} />
+      <div>
+        <h1 className="text-2xl font-semibold">{t('nav.history')}</h1>
+        <p className="text-sm text-muted-foreground">{t('profile.historySubtitle')}</p>
       </div>
 
       <Card>

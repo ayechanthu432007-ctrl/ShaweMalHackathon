@@ -112,8 +112,8 @@ describe('marketplace listings - seller', () => {
     expect(response.status).toBe(400);
   });
 
-  it('blocks selling until the phone number is verified', async () => {
-    db.user.findUnique.mockResolvedValue(activeUser('seller-1', { phoneVerifiedAt: null }));
+  it('still blocks suspended accounts from selling', async () => {
+    db.user.findUnique.mockResolvedValue(activeUser('seller-1', { accountStatus: 'SUSPENDED' }));
 
     const response = await request(app)
       .post('/api/v1/marketplace/me/listings')
@@ -121,7 +121,13 @@ describe('marketplace listings - seller', () => {
       .send(validListingBody);
 
     expect(response.status).toBe(403);
-    expect(response.body.errors.code).toBe('MARKETPLACE_PHONE_NOT_VERIFIED');
+    expect(response.body.errors.code).toBe('MARKETPLACE_ACCOUNT_RESTRICTED');
+  });
+
+  it('requires login to sell', async () => {
+    const response = await request(app).post('/api/v1/marketplace/me/listings').send(validListingBody);
+
+    expect(response.status).toBe(401);
   });
 
   const mockValidCatalog = () => {
@@ -162,8 +168,29 @@ describe('marketplace listings - seller', () => {
     ]);
   });
 
-  it('holds listings mentioning prohibited items for admin review', async () => {
+  it('lets a user without a verified phone publish immediately', async () => {
     mockValidCatalog();
+    db.user.findUnique.mockResolvedValue(activeUser('seller-1', { phoneVerifiedAt: null }));
+    db.listing.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
+      id: 'listing-3',
+      title: data.title,
+      status: data.status,
+      moderationStatus: data.moderationStatus
+    }));
+
+    const response = await request(app)
+      .post('/api/v1/marketplace/me/listings')
+      .set('Authorization', bearer('seller-1'))
+      .send(validListingBody);
+
+    expect(response.status).toBe(201);
+    expect(response.body.data.listing).toEqual({ id: 'listing-3', status: 'ACTIVE', moderationStatus: 'APPROVED' });
+    expect(db.listing.create.mock.calls[0][0].data.publishedAt).toBeInstanceOf(Date);
+  });
+
+  it('publishes listings mentioning prohibited items and flags them to admins', async () => {
+    mockValidCatalog();
+    db.user.findMany.mockResolvedValue([{ id: 'admin-1' }]);
     db.listing.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({
       id: 'listing-2',
       title: data.title,
@@ -177,8 +204,39 @@ describe('marketplace listings - seller', () => {
       .send({ ...validListingBody, title: 'Desk and a spare pistol' });
 
     expect(response.status).toBe(201);
-    expect(response.body.data.listing.moderationStatus).toBe('PENDING');
-    expect(db.listing.create.mock.calls[0][0].data.publishedAt).toBeNull();
+    expect(response.body.data.listing.moderationStatus).toBe('APPROVED');
+    expect(db.listing.create.mock.calls[0][0].data.publishedAt).toBeInstanceOf(Date);
+    expect(db.notification.createMany).toHaveBeenCalledWith({
+      data: [expect.objectContaining({ userId: 'admin-1', title: 'Marketplace listing flagged' })]
+    });
+  });
+
+  it("refuses to edit or delete another user's listing", async () => {
+    mockValidCatalog();
+    db.user.findUnique.mockResolvedValue(activeUser('intruder-1'));
+    db.listing.findUnique.mockResolvedValue({
+      id: 'listing-1',
+      sellerId: 'seller-1',
+      status: 'ACTIVE',
+      moderationStatus: 'APPROVED',
+      publishedAt: new Date(),
+      review: null
+    });
+
+    const edit = await request(app)
+      .put('/api/v1/marketplace/me/listings/listing-1')
+      .set('Authorization', bearer('intruder-1'))
+      .send(validListingBody);
+    expect(edit.status).toBe(403);
+    expect(edit.body.errors.code).toBe('LISTING_FORBIDDEN');
+
+    const remove = await request(app)
+      .delete('/api/v1/marketplace/me/listings/listing-1')
+      .set('Authorization', bearer('intruder-1'));
+    expect(remove.status).toBe(403);
+
+    expect(db.listing.update).not.toHaveBeenCalled();
+    expect(db.listing.delete).not.toHaveBeenCalled();
   });
 
   it('requires a subcategory from the chosen category', async () => {

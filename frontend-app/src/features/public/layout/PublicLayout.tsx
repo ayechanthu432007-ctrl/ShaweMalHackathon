@@ -1,9 +1,13 @@
-import { NavLink, Outlet } from 'react-router'
+import { useState } from 'react'
+import { Menu, X } from 'lucide-react'
+import { Link, NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { FloatingContactButtons } from '@/components/common/FloatingContactButtons'
 import { LanguageToggle } from '@/components/common/LanguageToggle'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
+import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
 import { UserMenu } from '@/features/public/components/UserMenu'
@@ -38,14 +42,15 @@ function buildPublicSubLinks(options: { isAgent: boolean; isDriver: boolean }) {
   ]
 }
 
-function NavItem({ to, label, end }: { to: string; label: string; end?: boolean }) {
+function NavItem({ to, label, end, onClick }: { to: string; label: string; end?: boolean; onClick?: () => void }) {
   return (
     <NavLink
       to={to}
       end={end}
+      onClick={onClick}
       className={({ isActive }) =>
         cn(
-          'rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
+          'shrink-0 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
           isActive && 'bg-accent text-accent-foreground font-medium',
         )
       }
@@ -62,25 +67,43 @@ export function PublicLayout() {
   const isAgent = Boolean(user?.roles?.includes('agent'))
   const isDriver = Boolean(user?.roles?.includes('driver'))
   const subLinks = buildPublicSubLinks({ isAgent, isDriver })
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-secondary text-secondary-foreground">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-          <div className="flex shrink-0 items-center gap-3">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-x-4 lg:flex-nowrap">
+          <Link
+            to="/"
+            onClick={() => setIsMenuOpen(false)}
+            className="flex shrink-0 items-center gap-2 rounded-md transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:gap-3"
+          >
             <img
               src={shawemalLogo}
               alt=""
               className="h-9 w-9 rounded-md object-cover"
             />
             <span className="text-xl font-bold tracking-tight">{t('common.appName')}</span>
-          </div>
-          <nav className="hidden min-w-0 flex-1 items-center justify-end gap-1 md:flex" aria-label="Primary">
+          </Link>
+          <nav
+            id="primary-nav"
+            className={cn(
+              'order-last w-full flex-col gap-1 lg:order-none lg:flex lg:w-auto lg:min-w-0 lg:flex-1 lg:flex-row lg:items-center lg:justify-end',
+              isMenuOpen ? 'flex' : 'hidden',
+            )}
+            aria-label="Primary"
+          >
             {topLinks.map((link) => (
-              <NavItem key={link.to} to={link.to} label={t(link.labelKey)} end={'end' in link ? link.end : false} />
+              <NavItem
+                key={link.to}
+                to={link.to}
+                label={t(link.labelKey)}
+                end={'end' in link ? link.end : false}
+                onClick={() => setIsMenuOpen(false)}
+              />
             ))}
           </nav>
-          <div className="flex shrink-0 items-center gap-2">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 lg:ml-0">
             {!isBootstrapping && isAuthenticated ? (
               <>
                 <NotificationsMenu />
@@ -89,6 +112,18 @@ export function PublicLayout() {
             ) : null}
             <LanguageToggle />
             <ThemeToggle />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="lg:hidden"
+              aria-label={t('nav.menu')}
+              aria-expanded={isMenuOpen}
+              aria-controls="primary-nav"
+              onClick={() => setIsMenuOpen((open) => !open)}
+            >
+              {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </Button>
           </div>
         </div>
         <Separator />
@@ -103,6 +138,7 @@ export function PublicLayout() {
       <main className="mx-auto max-w-6xl px-4 py-8">
         <Outlet />
       </main>
+      <FloatingContactButtons />
     </div>
   )
 }

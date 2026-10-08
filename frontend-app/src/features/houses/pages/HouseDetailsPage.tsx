@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ServiceRatingForm } from '@/features/reviews/components/ServiceRatingForm'
@@ -129,14 +130,11 @@ export function HouseDetailsPage() {
 
   return (
     <section className="space-y-6">
+      {/* History back keeps the Finding House filters, which live in the URL. */}
+      <BackButton fallback="/finding-house" />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-muted-foreground">
-            <Link to="/finding-house" className="underline-offset-4 hover:underline">
-              {t('houses.backToList')}
-            </Link>
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{house.title}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{house.title}</h1>
           <div className="mt-2">
             <HouseAvailabilityBadge availability={house.availability} />
           </div>

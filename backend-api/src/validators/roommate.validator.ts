@@ -1,6 +1,11 @@
-import { body, query } from 'express-validator';
+import { body, param, query } from 'express-validator';
+
+import { isValidUploadedPath, uploadedPathMessage } from '../utils/upload-path';
 
 const genderValues = ['MALE', 'FEMALE', 'ANY', 'male', 'female', 'any'];
+
+export const ROOMMATE_MIN_PHOTOS = 1;
+export const ROOMMATE_MAX_PHOTOS = 2;
 
 export const listRoommatesValidator = [
   query('gender').optional().isIn(genderValues).withMessage('gender must be one of MALE, FEMALE, ANY.'),
@@ -41,5 +46,20 @@ export const createRoommateValidator = [
   body('hobbyFoodie').optional().isBoolean().withMessage('hobbyFoodie must be boolean.'),
   body('hobbyChillWithOthers').optional().isBoolean().withMessage('hobbyChillWithOthers must be boolean.'),
   body('hobbyRelaxSilent').optional().isBoolean().withMessage('hobbyRelaxSilent must be boolean.'),
-  body('hobbyPlayingGym').optional().isBoolean().withMessage('hobbyPlayingGym must be boolean.')
+  body('hobbyPlayingGym').optional().isBoolean().withMessage('hobbyPlayingGym must be boolean.'),
+  body('photos')
+    .isArray({ min: ROOMMATE_MIN_PHOTOS, max: ROOMMATE_MAX_PHOTOS })
+    .withMessage(`photos must contain between ${ROOMMATE_MIN_PHOTOS} and ${ROOMMATE_MAX_PHOTOS} photos.`)
+    .bail()
+    .custom((value: unknown[]) => new Set(value).size === value.length)
+    .withMessage('The same photo was added twice.'),
+  body('photos.*')
+    .isString()
+    .bail()
+    .custom((value: string) => isValidUploadedPath(value, 'profile'))
+    .withMessage(uploadedPathMessage('profile'))
 ];
+
+export const roommateIdParamValidator = [param('id').trim().notEmpty().withMessage('id is required.')];
+
+export const updateRoommateValidator = [...roommateIdParamValidator, ...createRoommateValidator];

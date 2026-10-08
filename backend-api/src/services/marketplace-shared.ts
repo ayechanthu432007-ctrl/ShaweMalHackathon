@@ -199,8 +199,8 @@ export const buildContactLink = (method: ContactMethod, value: string): string =
 };
 
 /**
- * Keyword list for automatic moderation. A hit does not reject the listing outright;
- * it is held as PENDING until an admin reviews it.
+ * Keyword list for automatic moderation. A hit does not block or hide the listing;
+ * it is published and admins are notified so they can review it.
  */
 const PROHIBITED_KEYWORDS_EN = [
   'gun',
