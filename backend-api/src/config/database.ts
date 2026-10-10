@@ -47,7 +47,9 @@ export const toPrismaPgConfig = (
     connectionString: target === 'supabase' ? ensureSslMode(connectionString) : connectionString,
     max: isServerless ? 1 : 10,
     idleTimeoutMillis: isServerless ? 10_000 : 30_000,
-    connectionTimeoutMillis: 10_000
+    // With a single connection per serverless instance, simultaneous requests queue for it.
+    // Wait for the queue (the function limit is 30s) instead of failing after 10s.
+    connectionTimeoutMillis: isServerless ? 25_000 : 10_000
   };
 
   if (target === 'supabase') {

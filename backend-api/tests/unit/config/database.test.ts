@@ -56,7 +56,9 @@ describe('toPrismaPgConfig', () => {
     );
 
     expect(config.max).toBe(1);
-    expect(config.connectionTimeoutMillis).toBe(10_000);
+    // Requests queue for the single connection, so they wait longer than a local pool would.
+    expect(config.connectionTimeoutMillis).toBe(25_000);
+    expect(toPrismaPgConfig('postgresql://postgres:secret@localhost:5432/shawemal', 'local', {}).connectionTimeoutMillis).toBe(10_000);
   });
 
   it('enables ssl for supabase targets', () => {
