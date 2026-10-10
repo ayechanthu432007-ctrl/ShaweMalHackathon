@@ -24,7 +24,7 @@ describe('language toggle', () => {
     expect(await screen.findByText('Shawe MaL')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /language/i }))
-    await user.click(await screen.findByText(/myanmar/i))
+    await user.click(await screen.findByRole('menuitem', { name: /^myanmar$/i }))
 
     expect(await screen.findByText('ရွှေ့မယ်')).toBeInTheDocument()
     await i18n.changeLanguage('en')

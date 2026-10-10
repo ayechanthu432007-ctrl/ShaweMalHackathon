@@ -166,6 +166,9 @@ model User {
   listingReportsHandled ListingReport[] @relation("ListingReportAdmin")
   movingOutSales     MovingOutSale[]
   relocationPreference RelocationPreference?
+  agentSubscriptions AgentSubscription[]
+  paymentOrders      PaymentOrder[]
+  houseBoosts        HouseBoost[]
 
   @@index([accountStatus])
 }
@@ -584,6 +587,8 @@ model House {
   bookings           Booking[]
   wishlists          Wishlist[]
   roommatePosts      RoommatePost[]
+  boosts             HouseBoost[]
+  events             HouseEvent[]
 
   @@index([agentId])
   @@index([propertyTypeId])
@@ -896,4 +901,148 @@ model RelocationPreference {
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   originCity        City?            @relation("RelocationOrigin", fields: [originCityId], references: [id], onDelete: SetNull)
   destinationCity   City             @relation("RelocationDestination", fields: [destinationCityId], references: [id], onDelete: Restrict)
+}
+
+// --- Agent subscription plans, demo payments, boosts and listing analytics ---
+
+/// Plan catalogue. Prices are whole MMK. Rules live here, not in frontend code.
+model SubscriptionPlan {
+  id                  String              @id @default(cuid())
+  code                String              @unique
+  name                String
+  rank                Int                 @default(0)
+  monthlyPriceMmk     Int                 @default(0)
+  quarterlyPriceMmk   Int                 @default(0)
+  /// New listings allowed per calendar month (Asia/Yangon). Null means no plan-based limit.
+  monthlyListingLimit Int?
+  /// Free boost days granted once per purchased subscription period.
+  freeBoostDays       Int                 @default(0)
+  badgeEligible       Boolean             @default(false)
+  performanceLevel    String              @default("BASIC")
+  audienceInsights    Boolean             @default(false)
+  monthlyReport       Boolean             @default(false)
+  isActive            Boolean             @default(true)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  subscriptions       AgentSubscription[]
+  paymentOrders       PaymentOrder[]
+}
+
+/// One row per purchased period. The effective plan is the row whose period contains "now".
+model AgentSubscription {
+  id             String           @id @default(cuid())
+  userId         String
+  planId         String
+  billingMonths  Int
+  startsAt       DateTime
+  endsAt         DateTime
+  paymentOrderId String           @unique
+  createdAt      DateTime         @default(now())
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan           SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  paymentOrder   PaymentOrder     @relation(fields: [paymentOrderId], references: [id], onDelete: Restrict)
+  freeBoosts     HouseBoost[]
+
+  @@index([userId, endsAt])
+}
+
+/// A request to pay. Amount and contents are fixed by the server when the order is created.
+model PaymentOrder {
+  id            String               @id @default(cuid())
+  reference     String               @unique
+  userId        String
+  /// SUBSCRIPTION | BOOST
+  kind          String
+  planId        String?
+  billingMonths Int?
+  houseId       String?
+  boostDays     Int?
+  amountMmk     Int
+  currency      String               @default("MMK")
+  /// PENDING | PAID | FAILED | EXPIRED
+  status        String               @default("PENDING")
+  provider      String
+  /// Demo orders never represent real money and are kept apart from real payments.
+  isDemo        Boolean              @default(false)
+  expiresAt     DateTime
+  paidAt        DateTime?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan          SubscriptionPlan?    @relation(fields: [planId], references: [id], onDelete: Restrict)
+  transactions  PaymentTransaction[]
+  subscription  AgentSubscription?
+  boost         HouseBoost?
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+/// Every payment notification received for an order. eventId makes processing idempotent.
+model PaymentTransaction {
+  id        String       @id @default(cuid())
+  orderId   String
+  provider  String
+  eventId   String       @unique
+  /// SUCCESS | PENDING | FAILED
+  outcome   String
+  amountMmk Int
+  isDemo    Boolean      @default(false)
+  /// What the system did with the event: APPLIED | RECORDED | REJECTED
+  result    String
+  createdAt DateTime     @default(now())
+  order     PaymentOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+}
+
+model HouseBoost {
+  id             String             @id @default(cuid())
+  houseId        String
+  userId         String
+  /// FREE_ENTITLEMENT | PURCHASED
+  source         String
+  days           Int
+  startsAt       DateTime
+  endsAt         DateTime
+  cancelledAt    DateTime?
+  subscriptionId String?
+  paymentOrderId String?            @unique
+  createdAt      DateTime           @default(now())
+  house          House              @relation(fields: [houseId], references: [id], onDelete: Cascade)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription   AgentSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  paymentOrder   PaymentOrder?      @relation(fields: [paymentOrderId], references: [id], onDelete: SetNull)
+
+  @@index([houseId, endsAt])
+  @@index([userId, endsAt])
+  @@index([subscriptionId])
+}
+
+/// Listing analytics. One row per visitor, per listing, per type, per day; no personal data is stored.
+model HouseEvent {
+  id         String   @id @default(cuid())
+  houseId    String
+  agentId    String
+  /// VIEW | CALL | TELEGRAM | VIBER
+  type       String
+  /// Salted hash that changes daily; cannot be traced back to a person.
+  visitorKey String
+  /// Calendar day in Asia/Yangon, YYYY-MM-DD.
+  day        String
+  /// 0-23 in Asia/Yangon.
+  hour       Int
+  signedIn   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  house      House    @relation(fields: [houseId], references: [id], onDelete: Cascade)
+
+  @@unique([houseId, type, visitorKey, day])
+  @@index([agentId, day])
+  @@index([houseId, day])
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

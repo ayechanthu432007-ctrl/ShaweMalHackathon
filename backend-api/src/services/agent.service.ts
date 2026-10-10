@@ -2,6 +2,9 @@ import { HouseAvailabilityStatus, HousePostChannel, Prisma } from '@prisma/clien
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { LOCKED_TRANSACTION_OPTIONS, lockForTransaction } from '../utils/advisory-lock';
+import { cancelBoostsForHouse } from './boost.service';
+import { assertListingAllowance, LISTING_CREATED_ACTION } from './subscription.service';
 
 export interface AgentProfileInput {
   name: string;
@@ -198,45 +201,57 @@ export const upsertAgentProfile = async (userId: string, input: AgentProfileInpu
 export const createAgentHouse = async (userId: string, input: AgentHouseInput) => {
   await assertVerifiedAgent(userId);
 
-  const house = await prisma.house.create({
-    data: {
-      agentId: userId,
-      title: input.title,
-      description: input.description,
-      postChannel: input.postChannel,
-      propertyTypeId: input.propertyTypeId,
-      monthlyFees: new Prisma.Decimal(input.monthlyFees),
-      depositAmount: new Prisma.Decimal(input.depositAmount),
-      contractTypeId: input.contractTypeId,
-      areaSize: input.areaSize,
-      floorLevelId: input.floorLevelId,
-      bedrooms: input.bedrooms,
-      bathrooms: input.bathrooms,
-      houseRules: input.houseRules,
-      contactTelegram: input.contactTelegram,
-      contactViber: input.contactViber,
-      contactPhoneNumber: input.contactPhoneNumber,
-      cityId: input.cityId,
-      stateId: input.stateId,
-      streetAddress: input.streetAddress,
-      latitude: toOptionalDecimal(input.latitude),
-      longitude: toOptionalDecimal(input.longitude),
-      nearbyPlaces: input.nearbyPlaces,
-      availability: input.availability,
-      images: {
-        create: input.imagePaths.map((imagePath, index) => ({
-          imagePath,
-          sortOrder: index + 1
-        }))
+  // The allowance check, the insert and the usage record run under one per-agent lock,
+  // so simultaneous requests cannot all pass the check before any of them is counted.
+  const house = await prisma.$transaction(async (tx) => {
+    await lockForTransaction(tx, `listing-quota:${userId}`);
+    await assertListingAllowance(userId, new Date(), tx);
+
+    const created = await tx.house.create({
+      data: {
+        agentId: userId,
+        title: input.title,
+        description: input.description,
+        postChannel: input.postChannel,
+        propertyTypeId: input.propertyTypeId,
+        monthlyFees: new Prisma.Decimal(input.monthlyFees),
+        depositAmount: new Prisma.Decimal(input.depositAmount),
+        contractTypeId: input.contractTypeId,
+        areaSize: input.areaSize,
+        floorLevelId: input.floorLevelId,
+        bedrooms: input.bedrooms,
+        bathrooms: input.bathrooms,
+        houseRules: input.houseRules,
+        contactTelegram: input.contactTelegram,
+        contactViber: input.contactViber,
+        contactPhoneNumber: input.contactPhoneNumber,
+        cityId: input.cityId,
+        stateId: input.stateId,
+        streetAddress: input.streetAddress,
+        latitude: toOptionalDecimal(input.latitude),
+        longitude: toOptionalDecimal(input.longitude),
+        nearbyPlaces: input.nearbyPlaces,
+        availability: input.availability,
+        images: {
+          create: input.imagePaths.map((imagePath, index) => ({
+            imagePath,
+            sortOrder: index + 1
+          }))
+        },
+        amenities: {
+          create: input.amenityIds.map((amenityId) => ({
+            amenityId
+          }))
+        }
       },
-      amenities: {
-        create: input.amenityIds.map((amenityId) => ({
-          amenityId
-        }))
-      }
-    },
-    include: HOUSE_OWNER_INCLUDE
-  });
+      include: HOUSE_OWNER_INCLUDE
+    });
+
+    // Counted against the monthly listing allowance even if the listing is deleted later.
+    await tx.auditLog.create({ data: { actorUserId: userId, action: LISTING_CREATED_ACTION, targetType: 'House', targetId: created.id } });
+
+    return created;
+  }, LOCKED_TRANSACTION_OPTIONS);
 
   return normalizeHouse(house);
 };
@@ -322,6 +337,10 @@ export const updateAgentHouse = async (userId: string, houseId: string, input: A
       include: HOUSE_OWNER_INCLUDE
     });
   });
+
+  if (house.availability !== 'AVAILABLE') {
+    await cancelBoostsForHouse(house.id, 'listing no longer available');
+  }
 
   return normalizeHouse(house);
 };

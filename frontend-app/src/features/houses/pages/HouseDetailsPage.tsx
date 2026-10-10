@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -8,7 +8,9 @@ import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ServiceRatingForm } from '@/features/reviews/components/ServiceRatingForm'
+import { trackHouseEvent } from '@/features/agent/api/agent-plan-api'
 import { ApiRequestError } from '@/lib/api/client'
+import { telegramProfileLink, viberChatLink } from '@/lib/contact-links'
 import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 
 import { bookingsApi } from '../api/bookings-api'
@@ -41,6 +43,12 @@ export function HouseDetailsPage() {
     enabled: Boolean(id),
     queryFn: () => housesApi.getById(id),
   })
+
+  // One view per visit to this page; the server ignores repeats from the same visitor that day.
+  const loadedHouseId = detailsQuery.data?.item.id
+  useEffect(() => {
+    if (loadedHouseId) trackHouseEvent(loadedHouseId, 'VIEW')
+  }, [loadedHouseId])
 
   const myBookingsQuery = useQuery({
     queryKey: ['my-bookings'],
@@ -296,7 +304,37 @@ export function HouseDetailsPage() {
             {house.contact.phone ? (
               <p>
                 <span className="font-medium">{t('houses.contactPhone')}: </span>
-                {house.contact.phone}
+                <a
+                  href={`tel:${house.contact.phone.replace(/[^\d+]/g, '')}`}
+                  className="text-primary underline-offset-4 hover:underline"
+                  onClick={() => trackHouseEvent(house.id, 'CALL')}
+                >
+                  {house.contact.phone}
+                </a>
+              </p>
+            ) : null}
+            {telegramProfileLink(house.contact.telegram) || viberChatLink(house.contact.viber ?? '') ? (
+              <p className="flex flex-wrap gap-3">
+                {telegramProfileLink(house.contact.telegram) ? (
+                  <a
+                    href={telegramProfileLink(house.contact.telegram) as string}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary underline-offset-4 hover:underline"
+                    onClick={() => trackHouseEvent(house.id, 'TELEGRAM')}
+                  >
+                    Telegram
+                  </a>
+                ) : null}
+                {viberChatLink(house.contact.viber ?? '') ? (
+                  <a
+                    href={viberChatLink(house.contact.viber ?? '') as string}
+                    className="text-primary underline-offset-4 hover:underline"
+                    onClick={() => trackHouseEvent(house.id, 'VIBER')}
+                  >
+                    Viber
+                  </a>
+                ) : null}
               </p>
             ) : null}
             {myConfirmedBooking ? (

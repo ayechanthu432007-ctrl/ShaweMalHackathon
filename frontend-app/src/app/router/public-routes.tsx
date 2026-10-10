@@ -4,7 +4,12 @@ import { SignInPage } from '@/features/auth/pages/SignInPage'
 import { SignUpPage } from '@/features/auth/pages/SignUpPage'
 import { AgentHouseFormPage } from '@/features/agent/pages/AgentHouseFormPage'
 import { AgentHousesPage } from '@/features/agent/pages/AgentHousesPage'
+import { AgentDashboardLayout } from '@/features/agent/layout/AgentDashboardLayout'
 import { AgentBookingsPage } from '@/features/agent/pages/AgentBookingsPage'
+import { AgentDashboardPage } from '@/features/agent/pages/AgentDashboardPage'
+import { AgentPerformancePage } from '@/features/agent/pages/AgentPerformancePage'
+import { AgentBoostsPage, AgentInsightsPage, AgentReportsPage, AgentVerificationPage } from '@/features/agent/pages/AgentPremiumPages'
+import { AgentCheckoutPage, AgentSubscriptionPage } from '@/features/agent/pages/AgentSubscriptionPages'
 import { AgentRegisterPage } from '@/features/agent/pages/AgentRegisterPage'
 import { DriverJobsPage } from '@/features/driver/pages/DriverJobsPage'
 import { DriverRegisterPage } from '@/features/driver/pages/DriverRegisterPage'
@@ -38,10 +43,26 @@ export const publicRoutes: RouteObject = {
     { index: true, element: <HomePage /> },
     { path: 'about-us', element: <AboutUsPage /> },
     { path: 'agent-register', element: <AgentRegisterPage /> },
-    { path: 'agent/houses', element: <AgentHousesPage /> },
-    { path: 'agent/houses/new', element: <AgentHouseFormPage /> },
-    { path: 'agent/houses/:id/edit', element: <AgentHouseFormPage /> },
-    { path: 'agent/bookings', element: <AgentBookingsPage /> },
+    {
+      // One shared dashboard shell for every agent page; existing addresses are unchanged.
+      path: 'agent',
+      element: <AgentDashboardLayout />,
+      children: [
+        { index: true, element: <AgentDashboardPage /> },
+        { path: 'dashboard', element: <AgentDashboardPage /> },
+        { path: 'houses', element: <AgentHousesPage /> },
+        { path: 'houses/new', element: <AgentHouseFormPage /> },
+        { path: 'houses/:id/edit', element: <AgentHouseFormPage /> },
+        { path: 'bookings', element: <AgentBookingsPage /> },
+        { path: 'performance', element: <AgentPerformancePage /> },
+        { path: 'boosts', element: <AgentBoostsPage /> },
+        { path: 'verification', element: <AgentVerificationPage /> },
+        { path: 'insights', element: <AgentInsightsPage /> },
+        { path: 'reports', element: <AgentReportsPage /> },
+        { path: 'subscription', element: <AgentSubscriptionPage /> },
+        { path: 'checkout/:reference', element: <AgentCheckoutPage /> },
+      ],
+    },
     { path: 'driver-register', element: <DriverRegisterPage /> },
     { path: 'sign-up', element: <SignUpPage /> },
     { path: 'sign-in', element: <SignInPage /> },

@@ -10,6 +10,13 @@ const authHeader = (userId: string, rolesList: string[]) => {
 
 jest.mock('../../src/prisma/client', () => {
   const prisma: any = {
+    $executeRaw: jest.fn(async () => 1),
+    // Plans and boosts are covered by subscriptions.test.ts; here every agent is on an unlimited plan with no boosts.
+    houseBoost: { findMany: jest.fn(async () => []), updateMany: jest.fn(async () => ({ count: 0 })) },
+    agentSubscription: { findMany: jest.fn(async () => []) },
+    subscriptionPlan: {
+      findUnique: jest.fn(async () => ({ id: 'plan_free', code: 'FREE', name: 'Free Basic', rank: 0, monthlyListingLimit: null, freeBoostDays: 0, badgeEligible: false, performanceLevel: 'BASIC', audienceInsights: false, monthlyReport: false }))
+    },
     user: {
       findUnique: jest.fn(async ({ where, include }: { where: { id: string }; include?: unknown }) => {
         if (where.id !== 'user-normal') {

@@ -21,6 +21,12 @@ export function telegramBotLink(username: string): string | null {
   return /^[A-Za-z0-9_]{4,32}$/.test(username) ? `https://t.me/${username}?start=web` : null
 }
 
+/** Link to a person's Telegram profile from a stored username or t.me address. */
+export function telegramProfileLink(value: string | null | undefined): string | null {
+  const username = (value ?? '').trim().replace(/^https?:\/\/t\.me\//i, '').replace(/^@/, '')
+  return /^[A-Za-z0-9_]{4,32}$/.test(username) ? `https://t.me/${username}` : null
+}
+
 export function viberChatLink(phone: string): string | null {
   const international = toInternationalPhone(phone)
   return /^\+\d{8,15}$/.test(international) ? `viber://chat?number=${encodeURIComponent(international)}` : null

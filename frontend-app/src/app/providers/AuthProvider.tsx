@@ -11,6 +11,7 @@ import {
 
 import { authApi } from '@/features/auth/api/auth-api'
 import type { AuthUser, LoginInput, RegisterInput } from '@/features/auth/types'
+import { refreshAccessToken } from '@/lib/api/client'
 import { setUnauthorizedHandler } from '@/lib/api/interceptors'
 import { isJwtExpired } from '@/lib/auth/jwt'
 import { tokenStorage } from '@/lib/auth/token-storage'
@@ -46,7 +47,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     enabled: hasToken,
     queryFn: async () => {
       const token = tokenStorage.getAccessToken()
-      if (!token || isJwtExpired(token)) {
+      // An expired access token is renewed with the refresh token before giving up on the session.
+      if (!token || (isJwtExpired(token) && !(await refreshAccessToken()))) {
         clearSession()
         throw new Error('TOKEN_EXPIRED')
       }
@@ -89,7 +91,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     }
     clearSession()
-  }, [clearSession])
+    // Drop everything fetched for this account, so the next person to sign in on this
+    // browser never sees the previous user's listings, orders or plan, even for a moment.
+    queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'auth' })
+  }, [clearSession, queryClient])
 
   const refreshSession = useCallback(async () => {
     const refreshToken = tokenStorage.getRefreshToken()

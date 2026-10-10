@@ -57,6 +57,9 @@ export function UserMenu() {
         {user?.roles?.includes('agent') ? (
           <>
             <DropdownMenuItem asChild>
+              <Link to="/agent/dashboard">{t('nav.agentDashboard')}</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link to="/agent/houses">{t('nav.agentHouses')}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>

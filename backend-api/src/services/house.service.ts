@@ -2,6 +2,7 @@ import { Prisma, HouseAvailabilityStatus, HousePostChannel } from '@prisma/clien
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { pickBoostedHouseIds } from './boost.service';
 
 interface ListHousesInput {
   city?: string;
@@ -123,9 +124,12 @@ const HOUSE_DETAIL_INCLUDE = {
 } as const;
 
 const mapHouseListItem = (
-  house: Prisma.HouseGetPayload<{ include: typeof HOUSE_LIST_INCLUDE }>
+  house: Prisma.HouseGetPayload<{ include: typeof HOUSE_LIST_INCLUDE }>,
+  isBoosted = false
 ) => ({
   id: house.id,
+  // True for paid/entitled placements, so the UI can label them "Boosted".
+  isBoosted,
   title: house.title,
   postChannel: house.postChannel,
   availability: house.availability,
@@ -223,7 +227,13 @@ export const listHouses = async (input: ListHousesInput) => {
   const where = buildHouseFilters(input);
   const skip = (input.page - 1) * input.pageSize;
 
-  const [items, total] = await Promise.all([
+  // Boosted listings lead the first page only, and only when they match the visitor's filters.
+  const boostedIds = input.page === 1 ? await pickBoostedHouseIds(where) : [];
+
+  const [boosted, regular, total] = await Promise.all([
+    boostedIds.length > 0
+      ? prisma.house.findMany({ where: { AND: [where, { id: { in: boostedIds } }] }, include: HOUSE_LIST_INCLUDE })
+      : Promise.resolve([]),
     prisma.house.findMany({
       where,
       include: HOUSE_LIST_INCLUDE,
@@ -236,8 +246,15 @@ export const listHouses = async (input: ListHousesInput) => {
     prisma.house.count({ where })
   ]);
 
+  const boostedOrdered = boostedIds.flatMap((id) => boosted.find((house) => house.id === id) ?? []);
+  const boostedSet = new Set(boostedOrdered.map((house) => house.id));
+  const items = [
+    ...boostedOrdered.map((house) => mapHouseListItem(house, true)),
+    ...regular.filter((house) => !boostedSet.has(house.id)).map((house) => mapHouseListItem(house))
+  ].slice(0, input.pageSize);
+
   return {
-    items: items.map(mapHouseListItem),
+    items,
     page: input.page,
     pageSize: input.pageSize,
     total,

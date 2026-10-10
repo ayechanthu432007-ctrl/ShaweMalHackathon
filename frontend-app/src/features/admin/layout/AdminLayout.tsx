@@ -15,6 +15,7 @@ const navItems = [
   { to: '/admin/users', labelKey: 'admin.nav.users' },
   { to: '/admin/jobs-assign', labelKey: 'admin.nav.jobsAssign' },
   { to: '/admin/marketplace', labelKey: 'admin.nav.marketplace' },
+  { to: '/admin/subscriptions', labelKey: 'admin.nav.subscriptions' },
   { to: '/admin/reports/moving', labelKey: 'admin.nav.movingReport' },
   { to: '/admin/reports/bookings', labelKey: 'admin.nav.bookingReport' },
   { to: '/admin/reports', labelKey: 'admin.nav.reports' },

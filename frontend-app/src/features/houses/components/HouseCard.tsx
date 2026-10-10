@@ -16,7 +16,7 @@ import { useWishlist } from '../hooks/useWishlist'
 type HouseCardProps = {
   house: Pick<
     HouseListItem,
-    'id' | 'title' | 'monthlyFees' | 'propertyType' | 'city' | 'thumbnail' | 'bedrooms' | 'bathrooms' | 'availability'
+    'id' | 'title' | 'monthlyFees' | 'propertyType' | 'city' | 'thumbnail' | 'bedrooms' | 'bathrooms' | 'availability' | 'isBoosted'
   >
   className?: string
 }
@@ -67,6 +67,11 @@ export function HouseCard({ house, className }: HouseCardProps) {
             </div>
           )}
           <HouseAvailabilityBadge availability={house.availability} className="absolute left-2 top-2 shadow-sm" />
+          {house.isBoosted ? (
+            <span className="absolute bottom-2 left-2 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground shadow-sm">
+              {t('houses.boosted')}
+            </span>
+          ) : null}
           <Button
             type="button"
             size="icon"

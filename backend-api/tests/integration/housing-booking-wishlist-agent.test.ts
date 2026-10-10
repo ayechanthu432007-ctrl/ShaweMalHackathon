@@ -252,6 +252,13 @@ const filterHouses = (where?: any) => {
 
 jest.mock('../../src/prisma/client', () => {
   const prisma: any = {
+    $executeRaw: jest.fn(async () => 1),
+    // Plans and boosts are covered by subscriptions.test.ts; here every agent is on an unlimited plan with no boosts.
+    houseBoost: { findMany: jest.fn(async () => []), updateMany: jest.fn(async () => ({ count: 0 })) },
+    agentSubscription: { findMany: jest.fn(async () => []) },
+    subscriptionPlan: {
+      findUnique: jest.fn(async () => ({ id: 'plan_free', code: 'FREE', name: 'Free Basic', rank: 0, monthlyListingLimit: null, freeBoostDays: 0, badgeEligible: false, performanceLevel: 'BASIC', audienceInsights: false, monthlyReport: false }))
+    },
     user: {
       findUnique: jest.fn(async ({ where }: { where: { id: string } }) => {
         const user = users.get(where.id);
@@ -486,7 +493,7 @@ jest.mock('../../src/prisma/client', () => {
     },
     role: { upsert: jest.fn(), findMany: jest.fn() },
     userRole: { deleteMany: jest.fn(), createMany: jest.fn() },
-    auditLog: { create: jest.fn() },
+    auditLog: { create: jest.fn(), count: jest.fn(async () => 0) },
     refreshSession: { create: jest.fn(), findUnique: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
     propertyType: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
     state: { findMany: jest.fn(), findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },

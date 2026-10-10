@@ -42,6 +42,39 @@ type RequestOptions = Omit<RequestInit, 'body'> & {
   auth?: boolean
 }
 
+let refreshInFlight: Promise<boolean> | null = null
+
+/**
+ * Exchanges the stored refresh token for a new pair. The server replaces the refresh token
+ * on every use, so concurrent callers share one request instead of racing each other.
+ */
+export function refreshAccessToken(): Promise<boolean> {
+  if (refreshInFlight) return refreshInFlight
+
+  const refreshToken = tokenStorage.getRefreshToken()
+  if (!refreshToken) return Promise.resolve(false)
+
+  // Keep the session where the user chose to keep it ("Remember me" = localStorage).
+  const rememberMe = Boolean(localStorage.getItem('shwemal.refreshToken'))
+  refreshInFlight = fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  })
+    .then(async (response) => {
+      const payload = (await response.json().catch(() => null)) as ApiSuccess<{ accessToken: string; refreshToken?: string }> | null
+      if (!response.ok || !payload?.data?.accessToken) return false
+      tokenStorage.setTokens(payload.data.accessToken, payload.data.refreshToken ?? refreshToken, rememberMe)
+      return true
+    })
+    .catch(() => false)
+    .finally(() => {
+      refreshInFlight = null
+    })
+
+  return refreshInFlight
+}
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const headers = new Headers(options.headers)
   const isFormData = typeof FormData !== 'undefined' && options.body instanceof FormData
@@ -51,28 +84,38 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
     headers.set('Content-Type', 'application/json')
   }
 
-  if (options.auth !== false) {
-    const token = tokenStorage.getAccessToken()
+  const usesSession = options.auth !== false
+  const send = () => {
+    const token = usesSession ? tokenStorage.getAccessToken() : null
     if (token) {
       headers.set('Authorization', `Bearer ${token}`)
     }
+
+    return fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers,
+      body:
+        options.body === undefined
+          ? undefined
+          : isFormData
+            ? (options.body as FormData)
+            : JSON.stringify(options.body),
+    })
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers,
-    body:
-      options.body === undefined
-        ? undefined
-        : isFormData
-          ? (options.body as FormData)
-          : JSON.stringify(options.body),
-  })
+  let response = await send()
+
+  // Access tokens are short-lived. When one has expired, get a new one with the refresh
+  // token and repeat the request once, so the user is not signed out mid-task.
+  if (response.status === 401 && usesSession && tokenStorage.getAccessToken() && (await refreshAccessToken())) {
+    response = await send()
+  }
 
   const payload = (await response.json().catch(() => null)) as ApiSuccess<T> | ApiFailure | null
 
   if (!response.ok) {
-    if (response.status === 401) {
+    // Only a rejected session ends the session; a wrong password on the sign-in form does not.
+    if (response.status === 401 && usesSession) {
       unauthorizedHandler?.()
     }
 

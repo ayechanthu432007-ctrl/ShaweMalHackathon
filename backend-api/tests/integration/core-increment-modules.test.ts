@@ -191,6 +191,7 @@ const hydrateReview = (item: MockReview) => {
 
 jest.mock('../../src/prisma/client', () => {
   const prisma: any = {
+    $executeRaw: jest.fn(async () => 1),
     user: {
       findUnique: jest.fn(async ({ where, include }: { where: { id: string }; include?: any }) => {
         const user = users.get(where.id);

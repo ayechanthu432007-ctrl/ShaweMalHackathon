@@ -16,7 +16,9 @@ import {
 } from '../../controllers/admin.controller';
 import { adminHouseBookingReportController } from '../../controllers/booking.controller';
 import { adminMovingRequestReportController } from '../../controllers/moving.controller';
+import { adminSubscriptionsOverviewController, adminUpdatePlanController } from '../../controllers/agent-plan.controller';
 import { requireAdmin, requireAuth } from '../../middleware/auth.middleware';
+import { adminPlanUpdateValidator } from '../../validators/agent-plan.validator';
 import { validateMiddleware } from '../../middleware/validate.middleware';
 import { asyncHandler } from '../../utils/async-handler';
 import {
@@ -34,6 +36,9 @@ import {
 const adminRouter = Router();
 
 adminRouter.use(requireAuth, requireAdmin);
+
+adminRouter.get('/subscriptions', asyncHandler(adminSubscriptionsOverviewController));
+adminRouter.patch('/subscriptions/plans/:code', adminPlanUpdateValidator, validateMiddleware, asyncHandler(adminUpdatePlanController));
 
 adminRouter.post('/users', adminCreateUserValidator, validateMiddleware, asyncHandler(adminCreateUserController));
 adminRouter.patch('/users/:id/roles', adminUpdateRolesValidator, validateMiddleware, asyncHandler(adminUpdateUserRolesController));

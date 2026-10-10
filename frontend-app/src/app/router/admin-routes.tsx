@@ -17,6 +17,7 @@ import { AdminReportsPage } from '@/features/admin/pages/AdminReportsPage'
 import { AdminHouseBookingReportPage } from '@/features/admin/pages/AdminHouseBookingReportPage'
 import { AdminMovingRequestDetailPage } from '@/features/admin/pages/AdminMovingRequestDetailPage'
 import { AdminMovingRequestReportPage } from '@/features/admin/pages/AdminMovingRequestReportPage'
+import { AdminSubscriptionsPage } from '@/features/admin/pages/AdminSubscriptionsPage'
 import { AdminUsersPage } from '@/features/admin/pages/AdminUsersPage'
 import { AdminVerificationDetailPage } from '@/features/admin/pages/AdminVerificationDetailPage'
 import { AdminVerificationQueuePage } from '@/features/admin/pages/AdminVerificationQueuePage'
@@ -47,6 +48,7 @@ export const adminRoutes: RouteObject[] = [
           { path: 'verifications/drivers', element: <AdminVerificationQueuePage kind="driver" /> },
           { path: 'verifications/drivers/:userId', element: <AdminVerificationDetailPage kind="driver" /> },
           { path: 'users', element: <AdminUsersPage /> },
+          { path: 'subscriptions', element: <AdminSubscriptionsPage /> },
           { path: 'jobs-assign', element: <AdminMovingAssignPage /> },
           { path: 'moving-assign', element: <Navigate to="/admin/jobs-assign" replace /> },
           { path: 'master-data', element: <AdminMasterDataPage /> },

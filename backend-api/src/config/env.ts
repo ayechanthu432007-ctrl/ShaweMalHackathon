@@ -97,6 +97,8 @@ export const env = {
   uploadMaxBytes: parsePositiveInt(process.env.UPLOAD_MAX_BYTES, 5 * 1024 * 1024, 'UPLOAD_MAX_BYTES'),
   uploadAllowedMime,
   // Server-side only. Never send these to the browser or write them to logs.
+  // Simulated checkout for demos. Ignored in production even when set.
+  demoPaymentsEnabled: process.env.DEMO_PAYMENTS_ENABLED === 'true' && (process.env.NODE_ENV ?? 'development') !== 'production',
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN?.trim() || null,
   telegramWebhookSecret,
   telegramSupportUsernames,

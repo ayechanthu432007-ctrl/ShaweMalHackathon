@@ -23,7 +23,7 @@ describe('house filter form', () => {
     await user.selectOptions(screen.getByLabelText(/property type/i), 'Condo')
     await user.type(screen.getByLabelText(/minimum budget/i), '100000')
     await user.type(screen.getByLabelText(/maximum budget/i), '500000')
-    await user.click(screen.getByRole('button', { name: /apply filters/i }))
+    await user.click(screen.getByRole('button', { name: /^search$/i }))
 
     expect(onSubmit).toHaveBeenCalledWith({
       city: 'Yangon',

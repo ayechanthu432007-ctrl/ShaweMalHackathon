@@ -17,6 +17,8 @@ export type HouseListItem = {
   state?: NamedRef | null
   thumbnail?: string | null
   createdAt?: string
+  /** Paid or entitled placement; shown with a "Boosted" label. */
+  isBoosted?: boolean
 }
 
 export type HouseDetails = {

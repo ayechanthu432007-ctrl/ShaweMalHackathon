@@ -8,6 +8,19 @@ import {
   updateAgentHouseController,
   upsertAgentProfileController
 } from '../../controllers/agent.controller';
+import {
+  agentBoostsController,
+  agentDashboardController,
+  agentInsightsController,
+  agentMonthlyReportController,
+  agentOrderController,
+  agentOrdersController,
+  agentPerformanceController,
+  applyFreeBoostController,
+  createBoostOrderController,
+  createSubscriptionOrderController,
+  simulateDemoPaymentController
+} from '../../controllers/agent-plan.controller';
 import { requireAuth, requireRole } from '../../middleware/auth.middleware';
 import { validateMiddleware } from '../../middleware/validate.middleware';
 import { asyncHandler } from '../../utils/async-handler';
@@ -17,6 +30,14 @@ import {
   agentHouseUpdateValidator,
   agentProfileUpsertValidator
 } from '../../validators/agent.validator';
+import {
+  boostOrderValidator,
+  demoPaymentValidator,
+  monthlyReportQueryValidator,
+  orderReferenceValidator,
+  performanceQueryValidator,
+  subscriptionOrderValidator
+} from '../../validators/agent-plan.validator';
 
 const agentRouter = Router();
 
@@ -27,5 +48,18 @@ agentRouter.get('/houses', asyncHandler(listAgentHousesController));
 agentRouter.get('/bookings', asyncHandler(listAgentBookingsController));
 agentRouter.patch('/houses/:id', agentHouseUpdateValidator, validateMiddleware, asyncHandler(updateAgentHouseController));
 agentRouter.delete('/houses/:id', agentHouseIdParamValidator, validateMiddleware, asyncHandler(deleteAgentHouseController));
+
+// Dashboard, plans, demo checkout, boosts and analytics. Plan limits are enforced in the services.
+agentRouter.get('/dashboard', asyncHandler(agentDashboardController));
+agentRouter.get('/performance', performanceQueryValidator, validateMiddleware, asyncHandler(agentPerformanceController));
+agentRouter.get('/insights', asyncHandler(agentInsightsController));
+agentRouter.get('/reports/monthly', monthlyReportQueryValidator, validateMiddleware, asyncHandler(agentMonthlyReportController));
+agentRouter.get('/boosts', asyncHandler(agentBoostsController));
+agentRouter.post('/boosts/free', boostOrderValidator, validateMiddleware, asyncHandler(applyFreeBoostController));
+agentRouter.post('/boosts/orders', boostOrderValidator, validateMiddleware, asyncHandler(createBoostOrderController));
+agentRouter.post('/subscription/orders', subscriptionOrderValidator, validateMiddleware, asyncHandler(createSubscriptionOrderController));
+agentRouter.get('/payments/orders', asyncHandler(agentOrdersController));
+agentRouter.get('/payments/orders/:reference', orderReferenceValidator, validateMiddleware, asyncHandler(agentOrderController));
+agentRouter.post('/payments/orders/:reference/demo', demoPaymentValidator, validateMiddleware, asyncHandler(simulateDemoPaymentController));
 
 export { agentRouter };
