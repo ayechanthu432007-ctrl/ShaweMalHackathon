@@ -55,7 +55,7 @@ export function HireMovingPage() {
     if (!isBootstrapping && !isAuthenticated) {
       navigate('/sign-in', {
         replace: true,
-        state: { from: `${location.pathname}${location.search}` },
+        state: { from: `${location.pathname}${location.search}`, authPrompt: 'moving' },
       })
     }
   }, [isAuthenticated, isBootstrapping, location.pathname, location.search, navigate])

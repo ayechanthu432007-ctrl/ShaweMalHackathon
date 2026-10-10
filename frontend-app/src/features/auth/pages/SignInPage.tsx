@@ -103,6 +103,9 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
         {authPrompt === 'wishlist' ? (
           <p className="text-sm text-muted-foreground">{t('auth.wishlistLoginPrompt')}</p>
         ) : null}
+        {authPrompt === 'moving' ? (
+          <p className="text-sm text-muted-foreground">{t('auth.movingLoginPrompt')}</p>
+        ) : null}
       </CardHeader>
       <CardContent>
         <form className="space-y-4" onSubmit={onSubmit} noValidate>

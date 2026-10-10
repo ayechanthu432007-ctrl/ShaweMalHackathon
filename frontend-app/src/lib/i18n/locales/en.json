@@ -90,7 +90,8 @@
     "registerFailed": "Registration failed. Please try again.",
     "registerSuccess": "Registration successful. You can sign in now.",
     "adminRequired": "Admin role is required to access the admin portal.",
-    "wishlistLoginPrompt": "Sign in or create an account to save houses to your wishlist."
+    "wishlistLoginPrompt": "Sign in or create an account to save houses to your wishlist.",
+    "movingLoginPrompt": "Sign in to book a moving service. You will return to the booking form afterwards."
   },
   "admin": {
     "title": "Admin Portal",
