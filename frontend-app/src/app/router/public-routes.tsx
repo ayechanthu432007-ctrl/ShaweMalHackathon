@@ -1,5 +1,6 @@
 import type { RouteObject } from 'react-router'
 
+import { NotFoundPage } from '@/components/common/NotFoundPage'
 import { SignInPage } from '@/features/auth/pages/SignInPage'
 import { SignUpPage } from '@/features/auth/pages/SignUpPage'
 import { AgentHouseFormPage } from '@/features/agent/pages/AgentHouseFormPage'
@@ -88,5 +89,6 @@ export const publicRoutes: RouteObject = {
     { path: 'profile/history', element: <HistoryPage /> },
     { path: 'driver/jobs', element: <DriverJobsPage /> },
     { path: 'driver/jobs/:id', element: <DriverJobsPage /> },
+    { path: '*', element: <NotFoundPage /> },
   ],
 }

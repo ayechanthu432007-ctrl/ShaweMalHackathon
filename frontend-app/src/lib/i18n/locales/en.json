@@ -1,5 +1,8 @@
 {
   "common": {
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you are looking for does not exist or has moved.",
+    "notFoundHome": "Back to Home",
     "back": "Back",
     "discardChanges": "You have unsaved changes. Leave this page and discard them?",
     "appName": "Shawe MaL",
