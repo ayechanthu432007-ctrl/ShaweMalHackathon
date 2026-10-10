@@ -99,6 +99,25 @@ describe('Completion increment modules', () => {
     expect(response.body.data.serviceReviews).toBeDefined();
   });
 
+  it('marks only admin-verified agents on a badge plan as verified on the home page', async () => {
+    const { prisma } = jest.requireMock('../../src/prisma/client');
+    const profile = { verificationStatus: 'VERIFIED', city: null, serviceRegion: null };
+    const plan = (code: string, rank: number, badgeEligible: boolean) => ({ plan: { code, rank, badgeEligible } });
+    // The first user.findMany call is the agent list; the driver list keeps the default empty result.
+    prisma.user.findMany.mockResolvedValueOnce([
+      { id: 'agent-free', name: 'Free Agent', phone: null, agentProfile: profile, agentSubscriptions: [] },
+      { id: 'agent-silver', name: 'Silver Agent', phone: null, agentProfile: profile, agentSubscriptions: [plan('SILVER', 1, true)] }
+    ]);
+
+    const response = await request(app).get('/api/v1/home');
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.verifiedAgents.map((agent: { id: string; hasVerifiedBadge: boolean }) => [agent.id, agent.hasVerifiedBadge])).toEqual([
+      ['agent-silver', true],
+      ['agent-free', false]
+    ]);
+  });
+
   it('returns active public master data', async () => {
     const response = await request(app).get('/api/v1/master-data/property-types');
 

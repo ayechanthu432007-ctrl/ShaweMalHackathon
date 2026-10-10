@@ -2,9 +2,13 @@ import { HouseAvailabilityStatus } from '@prisma/client';
 
 import { prisma } from '../prisma/client';
 import { listHouses } from './house.service';
+import { hasVerifiedBadge } from './subscription.service';
+
+const HOME_AGENT_LIMIT = 8;
 
 export const getHomePageContent = async () => {
-  const [featuredHouses, verifiedAgents, serviceReviews] = await Promise.all([
+  const now = new Date();
+  const [featuredHouses, approvedAgents, serviceReviews] = await Promise.all([
     listHouses({
       page: 1,
       pageSize: 6
@@ -45,9 +49,13 @@ export const getHomePageContent = async () => {
               }
             }
           }
+        },
+        agentSubscriptions: {
+          where: { startsAt: { lte: now }, endsAt: { gt: now } },
+          select: { plan: true }
         }
       },
-      take: 8,
+      take: 50,
       orderBy: {
         createdAt: 'desc'
       }
@@ -152,6 +160,15 @@ export const getHomePageContent = async () => {
     }
   });
 
+  // Admin approval lets an agent publish; the public Verified Badge also needs a plan that includes it.
+  const verifiedAgents = approvedAgents
+    .map((agent) => {
+      const plan = agent.agentSubscriptions.map((item) => item.plan).sort((a, b) => b.rank - a.rank)[0];
+      return { ...agent, hasVerifiedBadge: plan ? hasVerifiedBadge(agent.agentProfile?.verificationStatus, plan) : false };
+    })
+    .sort((a, b) => Number(b.hasVerifiedBadge) - Number(a.hasVerifiedBadge))
+    .slice(0, HOME_AGENT_LIMIT);
+
   return {
     featuredHouses: featuredHouses.items,
     popularRecommended: popularHouses.map((house) => ({
@@ -167,6 +184,7 @@ export const getHomePageContent = async () => {
       name: agent.name,
       phone: agent.phone,
       verificationStatus: agent.agentProfile?.verificationStatus ?? 'PENDING',
+      hasVerifiedBadge: agent.hasVerifiedBadge,
       agentProfile: agent.agentProfile
         ? {
             city: agent.agentProfile.city,

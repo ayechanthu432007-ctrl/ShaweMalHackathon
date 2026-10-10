@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Banknote, Bell, CircleCheck, Home, Lock, Search, Truck, Users, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, Banknote, Bell, CircleCheck, Home, Lock, Search, Truck, Users, type LucideIcon } from 'lucide-react'
 import { type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
@@ -135,7 +135,15 @@ export function HomePage() {
                 {homeQuery.data.verifiedAgents.map((agent) => (
                   <Card key={agent.id}>
                     <CardContent className="space-y-1 p-4">
-                      <p className="font-medium">{agent.name}</p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-medium">{agent.name}</p>
+                        {agent.hasVerifiedBadge ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+                            <BadgeCheck className="size-3.5" aria-hidden />
+                            {t('home.verifiedBadge')}
+                          </span>
+                        ) : null}
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {agent.agentProfile?.city?.name ?? t('houses.locationUnknown')}
                       </p>

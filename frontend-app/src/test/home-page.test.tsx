@@ -17,7 +17,10 @@ const homePayload = {
     },
   ],
   popularRecommended: [],
-  verifiedAgents: [{ id: 'a1', name: 'Agent A', agentProfile: { city: { id: 'c1', name: 'Yangon' } } }],
+  verifiedAgents: [
+    { id: 'a1', name: 'Agent A', hasVerifiedBadge: true, agentProfile: { city: { id: 'c1', name: 'Yangon' } } },
+    { id: 'a2', name: 'Agent B', hasVerifiedBadge: false, agentProfile: { city: { id: 'c1', name: 'Yangon' } } },
+  ],
   partnerMovingServices: [],
   serviceReviews: [],
   newsUpdates: [{ id: 'n1', title: 'Welcome to ShweMal', summary: 'Hello', publishedAt: '2026-08-12' }],
@@ -66,6 +69,12 @@ describe('home page', () => {
     expect(screen.getByText('Stay Updated')).toBeInTheDocument()
     expect(screen.getByText('Welcome to ShweMal')).toBeInTheDocument()
     expect(screen.getByText('Agent A')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Housing agents' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /verified housing agents/i })).not.toBeInTheDocument()
+    // Only the agent holding the badge is marked as verified.
+    expect(screen.getAllByText('Verified')).toHaveLength(1)
+    expect(screen.getByText('Agent A').parentElement).toHaveTextContent('Verified')
+    expect(screen.getByText('Agent B').parentElement).not.toHaveTextContent('Verified')
     expect(screen.queryByLabelText(/search houses by city/i)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /search houses/i })).not.toBeInTheDocument()
   })

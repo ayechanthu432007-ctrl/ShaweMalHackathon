@@ -5,6 +5,8 @@ export type HomeVerifiedAgent = {
   name: string
   phone?: string | null
   verificationStatus?: string
+  /** Admin-verified and on a plan that includes the public Verified Badge. */
+  hasVerifiedBadge?: boolean
   agentProfile?: {
     city?: NamedRef | null
     serviceRegion?: NamedRef | null
