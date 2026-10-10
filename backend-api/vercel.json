@@ -1,6 +1,7 @@
 {
   "version": 2,
   "framework": null,
+  "regions": ["hnd1"],
   "buildCommand": "",
   "outputDirectory": null,
   "rewrites": [{ "source": "/(.*)", "destination": "/api" }],
