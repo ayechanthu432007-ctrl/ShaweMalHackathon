@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
@@ -69,10 +69,23 @@ export function PublicLayout() {
   const subLinks = buildPublicSubLinks({ isAgent, isDriver })
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+  useEffect(() => {
+    if (!isMenuOpen) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsMenuOpen(false)
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [isMenuOpen])
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b bg-secondary text-secondary-foreground">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-x-4 lg:flex-nowrap">
+        {isMenuOpen ? (
+          // Tapping anywhere outside the open menu closes it.
+          <div className="fixed inset-0 z-40 lg:hidden" aria-hidden onClick={() => setIsMenuOpen(false)} />
+        ) : null}
+        <div className="relative mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-x-4 lg:flex-nowrap">
           <Link
             to="/"
             onClick={() => setIsMenuOpen(false)}
@@ -88,7 +101,10 @@ export function PublicLayout() {
           <nav
             id="primary-nav"
             className={cn(
-              'order-last w-full flex-col gap-1 lg:order-none lg:flex lg:w-auto lg:min-w-0 lg:flex-1 lg:flex-row lg:items-center lg:justify-end',
+              // Phones and tablets: a compact dropdown under the menu button, over the page.
+              'absolute right-4 top-full z-50 -mt-1 w-56 flex-col gap-1 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg',
+              // Desktop: the links sit in the header row.
+              'lg:static lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:min-w-0 lg:flex-1 lg:flex-row lg:items-center lg:justify-end lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:text-inherit lg:shadow-none',
               isMenuOpen ? 'flex' : 'hidden',
             )}
             aria-label="Primary"
