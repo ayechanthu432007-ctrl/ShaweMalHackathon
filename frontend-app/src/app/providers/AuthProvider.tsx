@@ -28,6 +28,9 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
+/** Other tabs answer within a few milliseconds; a signed-out visitor never waits longer than this. */
+const OTHER_TABS_WAIT_MS = 150
+
 type AuthProviderProps = {
   children: ReactNode
 }
@@ -35,6 +38,8 @@ type AuthProviderProps = {
 export function AuthProvider({ children }: AuthProviderProps) {
   const queryClient = useQueryClient()
   const [hasToken, setHasToken] = useState(() => Boolean(tokenStorage.getAccessToken()))
+  // A tab opened signed out first asks the other tabs of this browser for their session.
+  const [isAskingOtherTabs, setIsAskingOtherTabs] = useState(() => !tokenStorage.getAccessToken() && tokenStorage.canAskOtherTabs())
 
   const clearSession = useCallback(() => {
     tokenStorage.clear()
@@ -57,6 +62,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     },
     retry: false,
   })
+
+  useEffect(() => {
+    const unsubscribe = tokenStorage.subscribe((change) => {
+      setIsAskingOtherTabs(false)
+      if (change === 'received') {
+        setHasToken(true)
+        void queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+      } else {
+        // Another tab signed out: this tab's copy of the session is gone too.
+        setHasToken(false)
+        queryClient.setQueryData(['auth', 'me'], null)
+        queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'auth' })
+      }
+    })
+    if (!isAskingOtherTabs) return unsubscribe
+
+    tokenStorage.requestFromOtherTabs()
+    const timer = window.setTimeout(() => setIsAskingOtherTabs(false), OTHER_TABS_WAIT_MS)
+    return () => {
+      window.clearTimeout(timer)
+      unsubscribe()
+    }
+    // Asked once, when the tab opens.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryClient])
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
@@ -120,13 +150,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     () => ({
       user: meQuery.data ?? null,
       isAuthenticated: Boolean(meQuery.data),
-      isBootstrapping: hasToken && meQuery.isLoading,
+      isBootstrapping: (hasToken && meQuery.isLoading) || isAskingOtherTabs,
       login,
       register,
       logout,
       refreshSession,
     }),
-    [hasToken, login, logout, meQuery.data, meQuery.isLoading, refreshSession, register],
+    [hasToken, isAskingOtherTabs, login, logout, meQuery.data, meQuery.isLoading, refreshSession, register],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
