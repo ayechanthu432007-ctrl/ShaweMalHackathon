@@ -1,4 +1,4 @@
-import { Heart } from 'lucide-react'
+import { Heart, Star } from 'lucide-react'
 import type { MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
@@ -66,12 +66,16 @@ export function HouseCard({ house, className }: HouseCardProps) {
               {t('houses.noPhoto')}
             </div>
           )}
-          <HouseAvailabilityBadge availability={house.availability} className="absolute left-2 top-2 shadow-sm" />
-          {house.isBoosted ? (
-            <span className="absolute bottom-2 left-2 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground shadow-sm">
-              {t('houses.boosted')}
-            </span>
-          ) : null}
+          <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1.5">
+            <HouseAvailabilityBadge availability={house.availability} className="shadow-sm" />
+            {/* Paid placement is always disclosed to visitors, in the wording listing sites commonly use. */}
+            {house.isBoosted ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-xs font-medium text-foreground shadow-sm">
+                <Star className="size-3 fill-amber-400 text-amber-400" aria-hidden />
+                {t('houses.boosted')}
+              </span>
+            ) : null}
+          </div>
           <Button
             type="button"
             size="icon"
