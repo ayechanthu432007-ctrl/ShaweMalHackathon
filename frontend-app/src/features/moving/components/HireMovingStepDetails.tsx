@@ -10,6 +10,7 @@ import type { InventoryCatalogItem } from '../constants/inventory-catalog'
 import { INVENTORY_CATEGORY_ORDER } from '../constants/inventory-catalog'
 import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import { HireMovingField } from './HireMovingField'
+import { InventoryItemRow } from './InventoryItemRow'
 
 const textareaClassName =
   'flex min-h-20 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
@@ -102,26 +103,11 @@ export function HireMovingStepDetails({
         {catalogByCategory.map(({ category, items }) => (
           <div key={category} className="space-y-2 rounded-md border p-4">
             <h3 className="font-medium">{t(`moving.categories.${category}`)}</h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {items.map((item) => (
-                <label key={item.id} className="flex items-center justify-between gap-2 text-sm">
-                  <span>
-                    {item.itemName}
-                    <span className="ml-1 text-xs text-muted-foreground">({item.points} pts)</span>
-                  </span>
-                  <Input
-                    type="number"
-                    min={0}
-                    className="w-20"
-                    value={inventoryCounts[item.id] ?? 0}
-                    onChange={(event) => {
-                      const next = Math.max(0, Number(event.target.value) || 0)
-                      onInventoryChange(item.id, next)
-                    }}
-                  />
-                </label>
+                <InventoryItemRow key={item.id} item={item} count={inventoryCounts[item.id] ?? 0} onChange={onInventoryChange} />
               ))}
-            </div>
+            </ul>
           </div>
         ))}
       </section>
