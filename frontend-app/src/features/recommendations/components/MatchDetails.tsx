@@ -17,10 +17,10 @@ export function MatchScore({ match, className }: { match: MatchSummary; classNam
 
   return (
     <div className={cn('space-y-1', className)}>
-      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-        <span className="text-sm font-semibold">{t('match.score', { score: match.score })}</span>
+      <div className="flex items-center justify-between gap-2">
+        <span className="shrink-0 text-sm font-semibold">{t('match.score', { score: match.score })}</span>
         {match.confidence !== 'HIGH' ? (
-          <span className="rounded-full border border-input px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+          <span className="truncate rounded-full border border-input px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
             {t(`match.confidence.${match.confidence}`)}
           </span>
         ) : null}
@@ -45,17 +45,19 @@ type MatchReasonsProps = {
   limit?: number
   /** Which wording to use for the sentence: a home for a person, or two people. */
   subject: 'house' | 'roommate' | 'tenant'
+  /** Small cards keep the sentence for screen readers and show only the chips. */
+  compact?: boolean
 }
 
 /** Why the score is what it is: what matched, and what conflicts. */
-export function MatchReasons({ match, limit = 3, subject }: MatchReasonsProps) {
+export function MatchReasons({ match, limit = 3, subject, compact = false }: MatchReasonsProps) {
   const { t } = useTranslation()
   const label = (key: string) => t(`match.factors.${key}`, { defaultValue: key })
   const matched = match.matched.slice(0, limit)
 
   return (
     <div className="space-y-1.5 text-xs">
-      <p className="text-muted-foreground">
+      <p className={compact && (matched.length > 0 || match.conflicts.length > 0) ? 'sr-only' : 'text-muted-foreground'}>
         {matched.length > 0
           ? t(`match.why.${subject}`, { factors: matched.map(label).join(', ') })
           : t(match.confidence === 'INCOMPLETE' ? 'match.whyIncomplete' : 'match.whyNone')}

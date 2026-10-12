@@ -86,29 +86,30 @@ export function RecommendedHouses() {
             return (
               <li key={house.id} className="w-64 shrink-0 snap-start lg:w-auto">
                 <Card className="flex h-full flex-col overflow-hidden">
-                  <div className="aspect-[16/10] bg-muted">
+                  <div className="aspect-[2/1] bg-muted">
                     {thumbnail ? (
                       <img src={thumbnail} alt={house.title} loading="lazy" className="h-full w-full object-cover" />
                     ) : (
                       <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{t('houses.noPhoto')}</div>
                     )}
                   </div>
-                  <CardContent className="flex flex-1 flex-col gap-2 p-3">
+                  <CardContent className="flex flex-1 flex-col gap-1.5 p-3">
                     <MatchScore match={match} />
-                    <h3 className="line-clamp-2 text-sm font-semibold leading-snug">{house.title}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {[house.city?.name, house.propertyType?.name].filter(Boolean).join(' · ') || t('houses.locationUnknown')}
+                    <h3 className="line-clamp-1 text-sm font-semibold leading-snug" title={house.title}>
+                      {house.title}
+                    </h3>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {[house.city?.name, house.propertyType?.name, t('match.houses.bedrooms', { count: house.bedrooms })].filter(Boolean).join(' · ')}
                     </p>
-                    <p className="text-sm font-medium text-primary">{t('houses.monthlyFees', { amount: formatFees(house.monthlyFees) })}</p>
-                    <p className="text-xs text-muted-foreground">{t('match.houses.bedrooms', { count: house.bedrooms })}</p>
+                    <p className="text-sm font-semibold text-primary">{t('houses.monthlyFees', { amount: formatFees(house.monthlyFees) })}</p>
                     {house.amenities.length > 0 ? (
-                      <p className="line-clamp-2 text-xs text-muted-foreground">
-                        {house.amenities.slice(0, 4).join(' · ')}
-                        {house.amenities.length > 4 ? ` +${house.amenities.length - 4}` : ''}
+                      <p className="truncate text-xs text-muted-foreground">
+                        {house.amenities.slice(0, 3).join(' · ')}
+                        {house.amenities.length > 3 ? ` +${house.amenities.length - 3}` : ''}
                       </p>
                     ) : null}
-                    <MatchReasons match={match} subject="house" />
-                    <Button asChild size="sm" variant="outline" className="mt-auto w-full">
+                    <MatchReasons match={match} subject="house" compact />
+                    <Button asChild size="sm" variant="outline" className="mt-auto h-8 w-full">
                       <Link to={`/houses/${house.id}`}>{t('match.viewDetails')}</Link>
                     </Button>
                   </CardContent>
