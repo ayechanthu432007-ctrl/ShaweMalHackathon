@@ -12,6 +12,7 @@ export type HouseListItem = {
   depositAmount?: number
   bedrooms?: number
   bathrooms?: number
+  areaSize?: string | null
   propertyType?: NamedRef | null
   city?: NamedRef | null
   state?: NamedRef | null

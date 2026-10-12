@@ -1,4 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  Banknote,
+  Bath,
+  BedDouble,
+  Building2,
+  CalendarClock,
+  CircleCheck,
+  Heart,
+  Layers,
+  MapPin,
+  Ruler,
+  Wallet,
+  type LucideIcon,
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
@@ -10,20 +24,37 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ServiceRatingForm } from '@/features/reviews/components/ServiceRatingForm'
 import { trackHouseEvent } from '@/features/agent/api/agent-plan-api'
 import { ApiRequestError } from '@/lib/api/client'
-import { telegramProfileLink, viberChatLink } from '@/lib/contact-links'
-import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
+import { cn } from '@/lib/utils'
 
 import { bookingsApi } from '../api/bookings-api'
 import { housesApi } from '../api/houses-api'
+import { AgentContactCard } from '../components/AgentContactCard'
 import { BookHouseDialog } from '../components/BookHouseDialog'
 import { CancelBookingDialog } from '../components/CancelBookingDialog'
 import { HouseAvailabilityBadge } from '../components/HouseAvailabilityBadge'
+import { HouseGallery } from '../components/HouseGallery'
+import { amenityIcon, amenityLabel, nearbyPlaceIcon, splitNearbyPlaces } from '../components/house-icons'
 import { HouseLocationMap } from '../components/HouseLocationMap'
 import { useWishlist } from '../hooks/useWishlist'
 import { isHouseAvailable } from '../lib/availability'
 
 function formatFees(value: number) {
   return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(value)} MMK`
+}
+
+/** One labelled fact with its icon, used in the overview and details grids. */
+function HouseFact({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string | number }) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border bg-background p-3">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+        <Icon className="size-4" aria-hidden />
+      </span>
+      <div className="min-w-0">
+        <dt className="text-xs text-muted-foreground">{label}</dt>
+        <dd className="truncate text-sm font-semibold">{value}</dd>
+      </div>
+    </div>
+  )
 }
 
 export function HouseDetailsPage() {
@@ -136,29 +167,29 @@ export function HouseDetailsPage() {
     )
   }
 
+  const locationLine = [house.location.streetAddress, house.location.city?.name, house.location.state?.name].filter(Boolean).join(', ')
+  const nearbyPlaces = splitNearbyPlaces(house.location.nearbyPlaces)
+
   return (
     <section className="space-y-6">
       {/* History back keeps the Finding House filters, which live in the URL. */}
       <BackButton fallback="/finding-house" />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{house.title}</h1>
-          <div className="mt-2">
-            <HouseAvailabilityBadge availability={house.availability} />
-          </div>
-          <p className="mt-1 text-muted-foreground">
-            {[
-              house.location.streetAddress,
-              house.location.city?.name,
-              house.location.state?.name,
-              house.propertyType?.name,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0 space-y-2">
+          <HouseAvailabilityBadge availability={house.availability} />
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{house.title}</h1>
+          <p className="flex items-start gap-1.5 text-muted-foreground">
+            <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>{locationLine || t('houses.locationUnknown')}</span>
+          </p>
+          <p className="text-2xl font-bold text-primary">
+            {formatFees(house.monthlyFees)}
+            <span className="ml-1.5 text-sm font-normal text-muted-foreground">{t('houses.perMonth')}</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant="outline" disabled={isToggling} onClick={() => void onToggleWishlist()}>
+          <Button type="button" variant="outline" disabled={isToggling} aria-pressed={isWishlisted} onClick={() => void onToggleWishlist()}>
+            <Heart className={cn(isWishlisted && 'fill-primary text-primary')} aria-hidden />
             {isWishlisted ? t('houses.removeWishlist') : t('houses.addWishlist')}
           </Button>
           {myActiveBooking ? (
@@ -206,137 +237,95 @@ export function HouseDetailsPage() {
         }}
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {house.images.length > 0 ? (
-          house.images.map((image) => {
-            const src = resolvePublicUploadUrl(image.imagePath) ?? image.imagePath
-            return (
-              <div key={image.id ?? image.imagePath} className="aspect-[16/10] overflow-hidden rounded-xl bg-muted">
-                <img src={src} alt={house.title} className="h-full w-full object-cover" />
-              </div>
-            )
-          })
-        ) : (
-          <div className="flex aspect-[16/10] items-center justify-center rounded-xl bg-muted text-sm text-muted-foreground">
-            {t('houses.noPhoto')}
-          </div>
-        )}
-      </div>
+      <HouseGallery title={house.title} images={house.images} />
 
-      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+      <div className="grid items-start gap-4 lg:grid-cols-[2fr_1fr]">
         <Card>
           <CardHeader>
             <CardTitle>{t('houses.details')}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4 text-sm">
-            <p className="whitespace-pre-wrap text-muted-foreground">
-              {house.description?.trim() || t('houses.noDescription')}
-            </p>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <p>
-                <span className="font-medium">{t('houses.availability')}: </span>
-                {isHouseAvailable(house.availability) ? t('houses.available') : t('houses.notAvailable')}
+          <CardContent className="space-y-6 text-sm">
+            <section className="space-y-3" aria-label={t('houses.overview')}>
+              <h3 className="text-sm font-semibold">{t('houses.overview')}</h3>
+              <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <HouseFact icon={BedDouble} label={t('houses.bedrooms')} value={house.bedrooms} />
+                <HouseFact icon={Bath} label={t('houses.bathrooms')} value={house.bathrooms} />
+                {house.areaSize ? <HouseFact icon={Ruler} label={t('houses.areaSize')} value={house.areaSize} /> : null}
+                {house.propertyType?.name ? (
+                  <HouseFact icon={Building2} label={t('houses.propertyType')} value={house.propertyType.name} />
+                ) : null}
+              </dl>
+            </section>
+
+            <section className="space-y-3" aria-label={t('houses.costsAndTerms')}>
+              <h3 className="text-sm font-semibold">{t('houses.costsAndTerms')}</h3>
+              <dl className="grid gap-2 sm:grid-cols-2">
+                <HouseFact icon={Banknote} label={t('houses.monthlyFeesLabel')} value={formatFees(house.monthlyFees)} />
+                <HouseFact icon={Wallet} label={t('houses.depositLabel')} value={formatFees(house.depositAmount)} />
+                {house.contractType?.name ? (
+                  <HouseFact icon={CalendarClock} label={t('houses.contractType')} value={house.contractType.name} />
+                ) : null}
+                {house.floorLevel?.name ? <HouseFact icon={Layers} label={t('houses.floorLevel')} value={house.floorLevel.name} /> : null}
+                <HouseFact
+                  icon={CircleCheck}
+                  label={t('houses.availability')}
+                  value={isHouseAvailable(house.availability) ? t('houses.available') : t('houses.notAvailable')}
+                />
+              </dl>
+            </section>
+
+            <section className="space-y-2" aria-label={t('houses.description')}>
+              <h3 className="text-sm font-semibold">{t('houses.description')}</h3>
+              <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground">
+                {house.description?.trim() || t('houses.noDescription')}
               </p>
-              <p>
-                <span className="font-medium">{t('houses.monthlyFeesLabel')}: </span>
-                {formatFees(house.monthlyFees)}
-              </p>
-              <p>
-                <span className="font-medium">{t('houses.depositLabel')}: </span>
-                {formatFees(house.depositAmount)}
-              </p>
-              <p>
-                <span className="font-medium">{t('houses.bedrooms')}: </span>
-                {house.bedrooms}
-              </p>
-              <p>
-                <span className="font-medium">{t('houses.bathrooms')}: </span>
-                {house.bathrooms}
-              </p>
-              {house.areaSize ? (
-                <p>
-                  <span className="font-medium">{t('houses.areaSize')}: </span>
-                  {house.areaSize}
-                </p>
-              ) : null}
-              {house.contractType?.name ? (
-                <p>
-                  <span className="font-medium">{t('houses.contractType')}: </span>
-                  {house.contractType.name}
-                </p>
-              ) : null}
-            </div>
+            </section>
+
             {house.amenities.length > 0 ? (
-              <div>
-                <p className="mb-2 font-medium">{t('houses.amenities')}</p>
+              <section className="space-y-3" aria-label={t('houses.amenities')}>
+                <h3 className="text-sm font-semibold">{t('houses.amenities')}</h3>
                 <ul className="flex flex-wrap gap-2">
-                  {house.amenities.map((amenity) => (
-                    <li key={amenity.id} className="rounded-md bg-muted px-2 py-1 text-xs">
-                      {amenity.name}
-                    </li>
-                  ))}
+                  {house.amenities.map((amenity) => {
+                    const Icon = amenityIcon(amenity.name)
+                    return (
+                      <li key={amenity.id} className="inline-flex items-center gap-1.5 rounded-full border bg-background px-3 py-1.5 text-xs font-medium">
+                        <Icon className="size-3.5 text-primary" aria-hidden />
+                        {amenityLabel(amenity.name)}
+                      </li>
+                    )
+                  })}
                 </ul>
-              </div>
+              </section>
             ) : null}
-            {house.location.nearbyPlaces ? (
-              <p>
-                <span className="font-medium">{t('houses.nearbyPlaces')}: </span>
-                {house.location.nearbyPlaces}
-              </p>
+
+            {nearbyPlaces.length > 0 ? (
+              <section className="space-y-3" aria-label={t('houses.nearbyPlaces')}>
+                <h3 className="text-sm font-semibold">{t('houses.nearbyPlaces')}</h3>
+                <ul className="flex flex-wrap gap-2">
+                  {nearbyPlaces.map((place) => {
+                    const Icon = nearbyPlaceIcon(place)
+                    return (
+                      <li key={place} className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1.5 text-xs font-medium">
+                        <Icon className="size-3.5 text-muted-foreground" aria-hidden />
+                        {place}
+                      </li>
+                    )
+                  })}
+                </ul>
+              </section>
             ) : null}
+
             {house.houseRules ? (
-              <p className="whitespace-pre-wrap">
-                <span className="font-medium">{t('houses.houseRules')}: </span>
-                {house.houseRules}
-              </p>
+              <section className="space-y-2" aria-label={t('houses.houseRules')}>
+                <h3 className="text-sm font-semibold">{t('houses.houseRules')}</h3>
+                <p className="whitespace-pre-wrap leading-relaxed text-muted-foreground">{house.houseRules}</p>
+              </section>
             ) : null}
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('houses.agentDetails')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p className="font-medium">{house.agent.name}</p>
-            {house.agent.phone ? <p>{house.agent.phone}</p> : null}
-            {house.agent.email ? <p>{house.agent.email}</p> : null}
-            {house.contact.phone ? (
-              <p>
-                <span className="font-medium">{t('houses.contactPhone')}: </span>
-                <a
-                  href={`tel:${house.contact.phone.replace(/[^\d+]/g, '')}`}
-                  className="text-primary underline-offset-4 hover:underline"
-                  onClick={() => trackHouseEvent(house.id, 'CALL')}
-                >
-                  {house.contact.phone}
-                </a>
-              </p>
-            ) : null}
-            {telegramProfileLink(house.contact.telegram) || viberChatLink(house.contact.viber ?? '') ? (
-              <p className="flex flex-wrap gap-3">
-                {telegramProfileLink(house.contact.telegram) ? (
-                  <a
-                    href={telegramProfileLink(house.contact.telegram) as string}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary underline-offset-4 hover:underline"
-                    onClick={() => trackHouseEvent(house.id, 'TELEGRAM')}
-                  >
-                    Telegram
-                  </a>
-                ) : null}
-                {viberChatLink(house.contact.viber ?? '') ? (
-                  <a
-                    href={viberChatLink(house.contact.viber ?? '') as string}
-                    className="text-primary underline-offset-4 hover:underline"
-                    onClick={() => trackHouseEvent(house.id, 'VIBER')}
-                  >
-                    Viber
-                  </a>
-                ) : null}
-              </p>
-            ) : null}
+        <div className="lg:sticky lg:top-4">
+          <AgentContactCard house={house}>
             {myConfirmedBooking ? (
               <ServiceRatingForm
                 className="border-t border-border pt-4"
@@ -346,8 +335,8 @@ export function HouseDetailsPage() {
                 existing={myConfirmedBooking.myReview}
               />
             ) : null}
-          </CardContent>
-        </Card>
+          </AgentContactCard>
+        </div>
       </div>
 
       <Card>
@@ -358,9 +347,12 @@ export function HouseDetailsPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {house.location.streetAddress ? (
-            <p className="text-sm">
-              <span className="font-medium">{t('houses.streetAddress')}: </span>
-              {house.location.streetAddress}
+            <p className="flex items-start gap-2 text-sm">
+              <MapPin className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+              <span>
+                <span className="block text-xs text-muted-foreground">{t('houses.streetAddress')}</span>
+                <span className="font-medium">{house.location.streetAddress}</span>
+              </span>
             </p>
           ) : null}
           <HouseLocationMap

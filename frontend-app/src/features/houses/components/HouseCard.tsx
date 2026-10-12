@@ -1,4 +1,4 @@
-import { Heart, Star } from 'lucide-react'
+import { Bath, BedDouble, Building2, Heart, MapPin, Ruler, Star } from 'lucide-react'
 import type { MouseEvent } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
@@ -16,7 +16,17 @@ import { useWishlist } from '../hooks/useWishlist'
 type HouseCardProps = {
   house: Pick<
     HouseListItem,
-    'id' | 'title' | 'monthlyFees' | 'propertyType' | 'city' | 'thumbnail' | 'bedrooms' | 'bathrooms' | 'availability' | 'isBoosted'
+    | 'id'
+    | 'title'
+    | 'monthlyFees'
+    | 'propertyType'
+    | 'city'
+    | 'thumbnail'
+    | 'bedrooms'
+    | 'bathrooms'
+    | 'areaSize'
+    | 'availability'
+    | 'isBoosted'
   >
   className?: string
 }
@@ -50,15 +60,25 @@ export function HouseCard({ house, className }: HouseCardProps) {
     await add(house.id)
   }
 
+  // Only facts the listing actually has are shown.
+  const facts = [
+    typeof house.bedrooms === 'number' ? { key: 'bed', icon: BedDouble, text: t('houses.bedCount', { count: house.bedrooms }) } : null,
+    typeof house.bathrooms === 'number' ? { key: 'bath', icon: Bath, text: t('houses.bathCount', { count: house.bathrooms }) } : null,
+    house.areaSize ? { key: 'area', icon: Ruler, text: house.areaSize } : null,
+  ].flatMap((fact) => (fact ? [fact] : []))
+
   return (
-    <Card className={cn('overflow-hidden transition-shadow hover:shadow-md', className)}>
-      <Link to={`/houses/${house.id}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        <div className="relative aspect-[16/10] bg-muted">
+    <Card className={cn('group overflow-hidden transition-shadow duration-200 hover:shadow-lg', className)}>
+      <Link
+        to={`/houses/${house.id}`}
+        className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           {thumbnailSrc ? (
             <img
               src={thumbnailSrc}
               alt={house.title}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none"
               loading="lazy"
             />
           ) : (
@@ -80,30 +100,42 @@ export function HouseCard({ house, className }: HouseCardProps) {
             type="button"
             size="icon"
             variant="secondary"
-            className="absolute right-2 top-2 h-9 w-9 rounded-full bg-background/90"
+            className="absolute right-2 top-2 h-9 w-9 rounded-full bg-background/90 shadow-sm"
             aria-label={isWishlisted ? t('houses.removeWishlist') : t('houses.addWishlist')}
             aria-pressed={isWishlisted}
             disabled={isToggling}
             onClick={onToggleWishlist}
           >
-            <Heart className={cn('size-4', isWishlisted && 'fill-primary text-primary')} />
+            <Heart className={cn('size-4 transition-colors', isWishlisted && 'fill-primary text-primary')} />
           </Button>
         </div>
-        <CardContent className="space-y-2 p-4">
+        <CardContent className="flex flex-1 flex-col gap-2 p-4">
+          <p className="text-lg font-bold leading-tight text-primary">
+            {formatFees(house.monthlyFees)}
+            <span className="ml-1 text-xs font-normal text-muted-foreground">{t('houses.perMonth')}</span>
+          </p>
           <h3 className="line-clamp-2 text-base font-semibold leading-snug">{house.title}</h3>
-          <p className="text-sm text-muted-foreground">
-            {[house.city?.name, house.propertyType?.name].filter(Boolean).join(' · ') || t('houses.locationUnknown')}
-          </p>
-          <p className="text-sm font-medium text-primary">
-            {t('houses.monthlyFees', { amount: formatFees(house.monthlyFees) })}
-          </p>
-          {typeof house.bedrooms === 'number' || typeof house.bathrooms === 'number' ? (
-            <p className="text-xs text-muted-foreground">
-              {t('houses.roomsSummary', {
-                bedrooms: house.bedrooms ?? '—',
-                bathrooms: house.bathrooms ?? '—',
-              })}
+          <div className="space-y-1 text-sm text-muted-foreground">
+            <p className="flex items-center gap-1.5">
+              <MapPin className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{house.city?.name ?? t('houses.locationUnknown')}</span>
             </p>
+            {house.propertyType?.name ? (
+              <p className="flex items-center gap-1.5">
+                <Building2 className="size-4 shrink-0" aria-hidden />
+                <span className="truncate">{house.propertyType.name}</span>
+              </p>
+            ) : null}
+          </div>
+          {facts.length > 0 ? (
+            <ul className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-3 text-sm">
+              {facts.map((fact) => (
+                <li key={fact.key} className="flex items-center gap-1.5">
+                  <fact.icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                  {fact.text}
+                </li>
+              ))}
+            </ul>
           ) : null}
         </CardContent>
       </Link>

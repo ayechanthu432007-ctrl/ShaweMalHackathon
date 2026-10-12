@@ -73,7 +73,7 @@ describe('house details location map', () => {
 
     expect(await screen.findByRole('heading', { name: 'Inya Garden Flat' })).toBeInTheDocument()
     expect(screen.getAllByText('Available').length).toBeGreaterThan(0)
-    expect(screen.getByText(/availability:/i)).toBeInTheDocument()
+    expect(screen.getByText(/^availability$/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /location map/i })).toBeInTheDocument()
     expect(screen.getByTestId('house-location-map')).toHaveTextContent('42 Inya Road · Kamayut Township')
 

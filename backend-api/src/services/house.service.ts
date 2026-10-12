@@ -137,6 +137,7 @@ const mapHouseListItem = (
   depositAmount: toNumber(house.depositAmount),
   bedrooms: house.bedrooms,
   bathrooms: house.bathrooms,
+  areaSize: house.areaSize,
   propertyType: house.propertyType,
   city: house.city,
   state: house.state,
