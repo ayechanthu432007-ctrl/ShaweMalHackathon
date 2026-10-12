@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ChevronRight, PackageOpen } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -10,7 +10,6 @@ import { marketplaceApi } from '../api/marketplace-api'
 import { ListingCard, ListingGrid } from '../components/ListingCard'
 import { MarketplaceSearchBar } from '../components/MarketplaceSearchBar'
 import { MovingOutSaleCard } from '../components/MovingOutSaleCard'
-import { MovingRouteCard } from '../components/MovingRouteCard'
 import { SellerAvatar } from '../components/SellerAvatar'
 import { SellerBadges } from '../components/SellerBadges'
 import { categoryLabel } from '../lib/marketplace-format'
@@ -29,22 +28,14 @@ function Section({ title, action, children }: { title: string; action?: ReactNod
 
 export function MarketplaceHomePage() {
   const { t, i18n } = useTranslation()
-  const [guestDestination, setGuestDestination] = useState<string | null>(null)
 
   const homeQuery = useQuery({
     queryKey: ['marketplace', 'home'],
     queryFn: () => marketplaceApi.home(),
   })
 
-  const guestRecommendations = useQuery({
-    queryKey: ['marketplace', 'recommendations', guestDestination],
-    enabled: Boolean(guestDestination),
-    queryFn: () => marketplaceApi.recommendations(guestDestination ?? undefined),
-  })
-
   const home = homeQuery.data
-  const recommended = guestDestination ? (guestRecommendations.data?.items ?? []) : (home?.recommended ?? [])
-  const hasDestination = Boolean(guestDestination ?? home?.recommendedForDestinationCityId)
+  const recommended = home?.recommended ?? []
 
   return (
     <div className="space-y-8">
@@ -89,9 +80,7 @@ export function MarketplaceHomePage() {
             </ul>
           </Section>
 
-          <MovingRouteCard onGuestDestination={setGuestDestination} />
-
-          <Section title={hasDestination ? t('marketplace.recommendedForMove') : t('marketplace.recommendedTitle')}>
+          <Section title={t('marketplace.recommendedTitle')}>
             {recommended.length > 0 ? (
               <ListingGrid>
                 {recommended.map((listing) => (

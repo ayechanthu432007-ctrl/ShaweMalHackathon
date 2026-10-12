@@ -1,7 +1,6 @@
 import { Router } from 'express';
 
 import {
-  clearRelocationController,
   createMovingOutSaleController,
   createMyListingController,
   createReportController,
@@ -9,7 +8,6 @@ import {
   deleteMovingOutSaleController,
   deleteMyListingController,
   getMyListingController,
-  getRelocationController,
   interestedBuyersController,
   listingDetailController,
   listMovingOutSalesController,
@@ -21,7 +19,6 @@ import {
   recommendationsController,
   requestPhoneVerificationController,
   revealContactController,
-  saveRelocationController,
   searchListingsController,
   sellerProfileController,
   updateMovingOutSaleController,
@@ -41,7 +38,6 @@ import {
   movingOutSaleIdParamValidator,
   myListingsValidator,
   recommendationsValidator,
-  relocationBodyValidator,
   revealContactValidator,
   searchListingsValidator,
   sellerContactValidator,
@@ -116,9 +112,6 @@ meRouter.delete(
   validateMiddleware,
   asyncHandler(deleteMovingOutSaleController)
 );
-meRouter.get('/relocation', asyncHandler(getRelocationController));
-meRouter.put('/relocation', relocationBodyValidator, validateMiddleware, asyncHandler(saveRelocationController));
-meRouter.delete('/relocation', asyncHandler(clearRelocationController));
 
 marketplaceRouter.use('/me', meRouter);
 

@@ -1143,8 +1143,7 @@
     "backToMarketplace": "Back to marketplace",
     "viewAll": "View all",
     "categoriesTitle": "Categories",
-    "recommendedTitle": "Recommended for you",
-    "recommendedForMove": "Recommended for your move",
+    "recommendedTitle": "Recommended for you",
     "recommendedEmpty": "No recommendations yet. Check back soon.",
     "recentTitle": "Recently listed",
     "verifiedSellersTitle": "Verified sellers",
@@ -1215,16 +1214,10 @@
       "emptyTitle": "No items match your search",
       "emptyHint": "Try different keywords or remove some filters.",
       "pageStatus": "Page {{page}} of {{total}}"
-    },
+    },
     "route": {
-      "title": "Moving soon?",
-      "subtitle": "Tell us where you're moving and we'll suggest furniture and essentials near your new place.",
-      "savedSummary": "Your move: {{from}} → {{to}}. Recommendations below are picked for your new area.",
       "from": "Moving from",
-      "to": "Moving to",
-      "anywhere": "Anywhere",
-      "chooseDestination": "Choose township",
-      "showItems": "Show items"
+      "to": "Moving to"
     },
     "detail": {
       "notFound": "This item could not be found.",

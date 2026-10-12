@@ -106,16 +106,7 @@ export const searchListings = async (input: SearchListingsInput) => {
 };
 
 export const getRecommendedListings = async (options: { userId?: string; destinationCityId?: string; limit: number }) => {
-  let destinationCityId = options.destinationCityId;
-  if (!destinationCityId && options.userId) {
-    const preference = await prisma.relocationPreference.findUnique({
-      where: { userId: options.userId },
-      select: { destinationCityId: true, status: true }
-    });
-    if (preference && preference.status !== 'SETTLED') {
-      destinationCityId = preference.destinationCityId;
-    }
-  }
+  const destinationCityId = options.destinationCityId;
 
   const baseWhere: Prisma.ListingWhereInput = {
     AND: [

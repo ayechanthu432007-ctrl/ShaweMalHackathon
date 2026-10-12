@@ -15,8 +15,6 @@ import type {
   MovingOutSaleSummary,
   MyMarketplaceDashboard,
   Paginated,
-  Relocation,
-  RelocationInput,
   ReportReason,
   SavedListing,
   SellerContactSettings,
@@ -44,11 +42,6 @@ export const marketplaceApi = {
   },
   search(params: ListingSearchParams) {
     return apiRequest<Paginated<ListingCard>>(`/marketplace/listings${toListingQuery(params)}`, { auth: false })
-  },
-  recommendations(destinationCityId?: string) {
-    return apiRequest<{ destinationCityId: string | null; items: ListingCard[] }>(
-      `/marketplace/recommendations${toListingQuery({ destinationCityId, limit: 12 })}`,
-    )
   },
   getListing(id: string) {
     return apiRequest<{ item: ListingDetail }>(`/marketplace/listings/${id}`)
@@ -127,15 +120,6 @@ export const marketplaceApi = {
   },
   deleteMovingOutSale(saleId: string) {
     return apiRequest<{ ok: boolean }>(`/marketplace/me/moving-out-sales/${saleId}`, { method: 'DELETE' })
-  },
-  getRelocation() {
-    return apiRequest<{ relocation: Relocation | null }>('/marketplace/me/relocation')
-  },
-  saveRelocation(input: RelocationInput) {
-    return apiRequest<{ relocation: Relocation }>('/marketplace/me/relocation', { method: 'PUT', body: input })
-  },
-  clearRelocation() {
-    return apiRequest<{ ok: boolean }>('/marketplace/me/relocation', { method: 'DELETE' })
   },
 
   listSaved() {

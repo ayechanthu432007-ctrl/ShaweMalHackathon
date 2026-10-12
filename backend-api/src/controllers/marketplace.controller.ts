@@ -1,19 +1,16 @@
-import { ListingCondition, ListingPickupMethod, ListingReportReason, RelocationStatus } from '@prisma/client';
+import { ListingCondition, ListingPickupMethod, ListingReportReason } from '@prisma/client';
 import { Request, Response } from 'express';
 
 import {
-  clearMyRelocation,
   createMyListing,
   deleteMyListing,
   deleteMyMovingOutSale,
   getMyListingForEdit,
   getMyMarketplaceDashboard,
-  getMyRelocation,
   getMySellerStatus,
   listInterestedBuyers,
   requestPhoneVerification,
   saveMyMovingOutSale,
-  saveMyRelocation,
   updateMyListing,
   updateMyListingStatus,
   updateMySellerContact,
@@ -261,22 +258,3 @@ export const deleteMovingOutSaleController = async (req: Request, res: Response)
   sendSuccess(res, 200, 'Moving-out sale deleted', { ok: true });
 };
 
-export const getRelocationController = async (req: Request, res: Response): Promise<void> => {
-  const relocation = await getMyRelocation(requireActor(req));
-  sendSuccess(res, 200, 'Moving plan fetched successfully', { relocation });
-};
-
-export const saveRelocationController = async (req: Request, res: Response): Promise<void> => {
-  const relocation = await saveMyRelocation(requireActor(req), {
-    originCityId: optionalNullable(req.body.originCityId) ?? null,
-    destinationCityId: String(req.body.destinationCityId),
-    moveDate: optionalNullable(req.body.moveDate) ?? null,
-    status: (req.body.status as RelocationStatus | undefined) ?? 'PLANNING'
-  });
-  sendSuccess(res, 200, 'Moving plan saved', { relocation });
-};
-
-export const clearRelocationController = async (req: Request, res: Response): Promise<void> => {
-  await clearMyRelocation(requireActor(req));
-  sendSuccess(res, 200, 'Moving plan cleared', { ok: true });
-};

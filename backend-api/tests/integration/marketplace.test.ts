@@ -38,7 +38,6 @@ jest.mock('../../src/prisma/client', () => {
       auditLog: model(),
       wishlist: model(),
       movingOutSale: model(),
-      relocationPreference: model(),
       refreshSession: model(),
       $transaction: jest.fn()
     }

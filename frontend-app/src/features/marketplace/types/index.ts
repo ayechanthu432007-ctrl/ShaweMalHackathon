@@ -18,9 +18,6 @@ export const REPORT_REASONS = [
 ] as const
 export type ReportReason = (typeof REPORT_REASONS)[number]
 
-export const RELOCATION_STATUSES = ['PLANNING', 'MOVING', 'SETTLED'] as const
-export type RelocationStatus = (typeof RELOCATION_STATUSES)[number]
-
 export type ListingStatus = 'ACTIVE' | 'SOLD'
 export type ModerationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'REMOVED'
 export type AccountStatus = 'ACTIVE' | 'SUSPENDED' | 'BANNED'
@@ -236,21 +233,6 @@ export type InterestedBuyer = {
   name: string
   profilePicturePath: string | null
   contactedAt: string
-}
-
-export type Relocation = {
-  originCity: NamedRef | null
-  destinationCity: NamedRef
-  moveDate: string | null
-  status: RelocationStatus
-  updatedAt: string
-}
-
-export type RelocationInput = {
-  originCityId: string | null
-  destinationCityId: string
-  moveDate: string | null
-  status: RelocationStatus
 }
 
 export type SavedListing = {

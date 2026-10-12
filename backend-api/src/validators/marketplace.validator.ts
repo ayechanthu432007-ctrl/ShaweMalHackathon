@@ -17,7 +17,6 @@ export const LISTING_REPORT_REASONS = [
   'SUSPICIOUS_PAYMENT',
   'OTHER'
 ] as const;
-export const RELOCATION_STATUSES = ['PLANNING', 'MOVING', 'SETTLED'] as const;
 
 const MAX_PRICE = 9_999_999_999;
 
@@ -159,9 +158,3 @@ export const movingOutSaleBodyValidator = [
 
 export const movingOutSaleIdParamValidator = [idParam('saleId')];
 
-export const relocationBodyValidator = [
-  body('originCityId').optional({ values: 'null' }).isString(),
-  body('destinationCityId').isString().trim().notEmpty().withMessage('Destination township is required.'),
-  optionalNullableDate('moveDate'),
-  body('status').optional().isIn(RELOCATION_STATUSES).withMessage('status is invalid.')
-];

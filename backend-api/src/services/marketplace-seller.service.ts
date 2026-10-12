@@ -1,4 +1,4 @@
-import { ListingCondition, ListingPickupMethod, Prisma, RelocationStatus } from '@prisma/client';
+import { ListingCondition, ListingPickupMethod, Prisma } from '@prisma/client';
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
@@ -551,51 +551,4 @@ export const deleteMyMovingOutSale = async (userId: string, saleId: string) => {
 
   // Listings stay published; they are simply detached from the sale (onDelete: SetNull).
   await prisma.movingOutSale.delete({ where: { id: saleId } });
-};
-
-const RELOCATION_INCLUDE = {
-  originCity: { select: { id: true, name: true } },
-  destinationCity: { select: { id: true, name: true } }
-} as const;
-
-const mapRelocation = (preference: Prisma.RelocationPreferenceGetPayload<{ include: typeof RELOCATION_INCLUDE }> | null) =>
-  preference
-    ? {
-        originCity: preference.originCity,
-        destinationCity: preference.destinationCity,
-        moveDate: preference.moveDate,
-        status: preference.status,
-        updatedAt: preference.updatedAt
-      }
-    : null;
-
-export const getMyRelocation = async (userId: string) => {
-  return mapRelocation(await prisma.relocationPreference.findUnique({ where: { userId }, include: RELOCATION_INCLUDE }));
-};
-
-export const saveMyRelocation = async (
-  userId: string,
-  input: { originCityId?: string | null; destinationCityId: string; moveDate?: string | null; status: RelocationStatus }
-) => {
-  await assertCities([input.originCityId, input.destinationCityId]);
-
-  const data = {
-    originCityId: input.originCityId ?? null,
-    destinationCityId: input.destinationCityId,
-    moveDate: input.moveDate ? new Date(input.moveDate) : null,
-    status: input.status
-  };
-
-  return mapRelocation(
-    await prisma.relocationPreference.upsert({
-      where: { userId },
-      update: data,
-      create: { userId, ...data },
-      include: RELOCATION_INCLUDE
-    })
-  );
-};
-
-export const clearMyRelocation = async (userId: string) => {
-  await prisma.relocationPreference.deleteMany({ where: { userId } });
 };

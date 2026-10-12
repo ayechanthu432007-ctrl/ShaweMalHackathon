@@ -175,6 +175,7 @@ describe('marketplace home page', () => {
     expect(screen.getByText('Used refrigerator')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Recently listed' })).toBeInTheDocument()
     expect(screen.getByText('Queen mattress')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Moving soon?' })).toBeInTheDocument()
+    // The "Moving soon?" card was removed from the marketplace.
+    expect(screen.queryByRole('heading', { name: 'Moving soon?' })).not.toBeInTheDocument()
   })
 })
