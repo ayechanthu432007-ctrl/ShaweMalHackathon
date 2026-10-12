@@ -9,6 +9,7 @@ export const registerController = async (req: Request, res: Response): Promise<v
     name: req.body.name,
     email: req.body.email,
     phone: req.body.phone,
+    occupationId: req.body.occupationId,
     password: req.body.password
   });
 

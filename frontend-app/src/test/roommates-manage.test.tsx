@@ -55,6 +55,7 @@ function setup() {
       if (url.includes('/auth/verify')) {
         return json({ user: { id: 'u1', name: 'Alice User', email: 'alice@example.com', roles: ['user'] } })
       }
+      if (url.includes('/recommendations/')) return json({ userName: 'Me', hasPreferences: true, total: 0, page: 1, pageSize: 6, items: [] })
       if (url.includes('/master-data/occupations')) return json({ items: [{ id: 'occ1', name: 'Engineer' }] })
       if (url.includes('/master-data/cities')) return json({ items: [{ id: 'c1', name: 'Yangon', stateId: 's1' }] })
       if (url.includes('/master-data/states')) return json({ items: [{ id: 's1', name: 'Yangon Region' }] })

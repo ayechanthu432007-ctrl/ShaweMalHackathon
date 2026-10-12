@@ -1,3 +1,4 @@
+import { TenantCompatibility } from '@/features/recommendations/components/TenantCompatibility'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
@@ -131,6 +132,16 @@ export function AgentHouseFormPage() {
   const image3 = watch('image3')
   const image4 = watch('image4')
   const image5 = watch('image5')
+  // The listing as typed so far, for the tenant compatibility analysis above the Post button.
+  const [draftFees, draftBedrooms, draftPropertyTypeId, draftContractTypeId, draftAmenityIds, draftNearbyPlaces, draftDescription] = watch([
+    'monthlyFees',
+    'bedrooms',
+    'propertyTypeId',
+    'contractTypeId',
+    'amenityIds',
+    'nearbyPlaces',
+    'description',
+  ])
   const imagePaths = useMemo(
     () => [image1, image2, image3, image4, image5].map((path) => path.trim()).filter(Boolean),
     [image1, image2, image3, image4, image5],
@@ -611,6 +622,22 @@ export function AgentHouseFormPage() {
               </div>
               
             </div>
+
+            {verified ? (
+              <TenantCompatibility
+                draft={{
+                  monthlyFees: Number(draftFees) || 0,
+                  cityId: selectedCityId,
+                  stateId: selectedStateId,
+                  propertyTypeId: draftPropertyTypeId,
+                  contractTypeId: draftContractTypeId,
+                  bedrooms: Number(draftBedrooms) || 0,
+                  amenityIds: draftAmenityIds ?? [],
+                  nearbyPlaces: draftNearbyPlaces,
+                  description: draftDescription,
+                }}
+              />
+            ) : null}
 
             {formError ? (
               <p className="text-sm text-destructive" role="alert">

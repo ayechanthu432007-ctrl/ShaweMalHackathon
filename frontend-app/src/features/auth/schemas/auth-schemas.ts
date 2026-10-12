@@ -8,6 +8,7 @@ export type RegisterFormValues = {
   name: string
   email: string
   phone: string
+  occupationId: string
   password: string
   confirmPassword: string
 }
@@ -45,6 +46,10 @@ export function validateRegisterForm(values: RegisterFormValues, t: (key: string
 
   if (!values.phone.trim()) {
     errors.phone = t('auth.required')
+  }
+
+  if (!values.occupationId) {
+    errors.occupationId = t('auth.required')
   }
 
   if (!values.password) {

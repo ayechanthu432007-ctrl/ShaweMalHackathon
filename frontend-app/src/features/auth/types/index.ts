@@ -25,6 +25,7 @@ export type RegisterInput = {
   name: string
   email: string
   phone: string
+  occupationId: string
   password: string
   confirmPassword: string
 }

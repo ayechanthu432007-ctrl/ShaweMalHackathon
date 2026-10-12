@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
@@ -9,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { validateRegisterForm, type RegisterFormValues } from '@/features/auth/schemas/auth-schemas'
+import { masterDataApi } from '@/features/master-data/api/master-data-api'
 
 type SignUpPageProps = {
   redirectTo?: string
@@ -21,6 +23,10 @@ export function SignUpPage({ redirectTo = '/sign-in', titleKey = 'public.signUpT
   const { register: registerUser } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const occupationsQuery = useQuery({
+    queryKey: ['master-data', 'occupations'],
+    queryFn: () => masterDataApi.list('occupations'),
+  })
 
   const {
     register,
@@ -32,6 +38,7 @@ export function SignUpPage({ redirectTo = '/sign-in', titleKey = 'public.signUpT
       name: '',
       email: '',
       phone: '',
+      occupationId: '',
       password: '',
       confirmPassword: '',
     },
@@ -84,6 +91,24 @@ export function SignUpPage({ redirectTo = '/sign-in', titleKey = 'public.signUpT
             <Label htmlFor="phone">{t('auth.phone')}</Label>
             <Input id="phone" autoComplete="tel" {...register('phone')} />
             {errors.phone ? <p className="text-sm text-destructive">{errors.phone.message}</p> : null}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="occupationId">{t('auth.occupation')}</Label>
+            <select
+              id="occupationId"
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={occupationsQuery.isLoading}
+              {...register('occupationId')}
+            >
+              <option value="">{t('auth.occupationPlaceholder')}</option>
+              {(occupationsQuery.data?.items ?? []).map((occupation) => (
+                <option key={occupation.id} value={occupation.id}>
+                  {occupation.name}
+                </option>
+              ))}
+            </select>
+            {errors.occupationId ? <p className="text-sm text-destructive">{errors.occupationId.message}</p> : null}
+            {occupationsQuery.isError ? <p className="text-sm text-destructive">{t('auth.occupationLoadError')}</p> : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">{t('auth.password')}</Label>

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
+import { RecommendedHouses } from '@/features/recommendations/components/RecommendedHouses'
 
 import { housesApi } from '../api/houses-api'
 import { FeatureHouses } from '../components/FeatureHouses'
@@ -92,6 +93,8 @@ export function FindingHousePage() {
         isLoadingOptions={citiesQuery.isLoading || propertyTypesQuery.isLoading}
         onSubmit={applyFilters}
       />
+
+      <RecommendedHouses />
 
       {housesQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
 

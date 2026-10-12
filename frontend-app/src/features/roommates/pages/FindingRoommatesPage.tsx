@@ -6,6 +6,7 @@ import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { RecommendedRoommates } from '@/features/recommendations/components/RecommendedRoommates'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -472,6 +473,9 @@ export function FindingRoommatesPage() {
         <p className="text-sm text-muted-foreground">{t('roommates.empty')}</p>
       ) : null}
 
+      <RecommendedRoommates />
+
+      <h2 className="text-xl font-semibold tracking-tight">{t('roommates.allPosts')}</h2>
       <div className="grid gap-4 md:grid-cols-2">
         {(roommatesQuery.data?.items ?? []).map((item) => {
           const activePrefs = Object.entries(item.preferences ?? {})

@@ -9,12 +9,14 @@ import {
   revokeAllUserSessions,
   revokeRefreshSession
 } from './session.service';
+import { assertOccupation } from './recommendation.service';
 import { createUserWithDefaultRole, getUserByEmail, getUserById, toSafeUser, updateUserPassword } from './user.service';
 
 interface RegisterInput {
   name: string;
   email: string;
   phone: string;
+  occupationId: string;
   password: string;
 }
 
@@ -34,6 +36,8 @@ export const register = async (input: RegisterInput) => {
     throw new ApiError(409, 'AUTH_EMAIL_EXISTS', 'Email is already registered.');
   }
 
+  await assertOccupation(input.occupationId);
+
   const passwordHash = await hashPassword(input.password);
 
   try {
@@ -41,6 +45,7 @@ export const register = async (input: RegisterInput) => {
       name: input.name,
       email: input.email,
       phone: input.phone,
+      occupationId: input.occupationId,
       passwordHash
     });
 

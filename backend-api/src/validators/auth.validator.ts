@@ -17,6 +17,7 @@ export const registerValidator = [
     .withMessage('Phone is required.')
     .isLength({ min: 7, max: 20 })
     .withMessage('Phone length must be between 7 and 20.'),
+  body('occupationId').isString().withMessage('Occupation is required.').trim().notEmpty().withMessage('Occupation is required.'),
   body('password')
     .notEmpty()
     .withMessage('Password is required.')

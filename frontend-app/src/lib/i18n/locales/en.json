@@ -90,6 +90,9 @@
     "registerFailed": "Registration failed. Please try again.",
     "registerSuccess": "Registration successful. You can sign in now.",
     "adminRequired": "Admin role is required to access the admin portal.",
+    "occupation": "Occupation",
+    "occupationPlaceholder": "Select your occupation",
+    "occupationLoadError": "Occupations could not be loaded. Please refresh the page.",
     "wishlistLoginPrompt": "Sign in or create an account to save houses to your wishlist.",
     "movingLoginPrompt": "Sign in to book a moving service. You will return to the booking form afterwards."
   },
@@ -594,6 +597,7 @@
     "openInOsm": "Open in OpenStreetMap",
     "houseRules": "House Rules",
     "agentDetails": "Agent Details",
+    "allPosts": "All roommate posts",
     "contactPhone": "Contact phone",
     "bookNow": "Book house",
     "bookDialogTitle": "Book this house?",
@@ -1638,5 +1642,155 @@
     "print": "Print",
     "change": "Change",
     "newListings": "New listings"
+  },
+  "match": {
+    "score": "{{score}}% match",
+    "scoreLabel": "Compatibility score",
+    "confidence": {
+      "LOW": "Low confidence",
+      "INCOMPLETE": "Incomplete profile"
+    },
+    "conflict": "Conflict",
+    "why": {
+      "house": "Recommended because it fits your {{factors}}.",
+      "roommate": "You match on {{factors}}.",
+      "tenant": "This listing fits their {{factors}}."
+    },
+    "whyNone": "No stated requirement is fully met.",
+    "whyIncomplete": "Not enough information to compare yet.",
+    "notCompared": "Not compared (no information): {{factors}}.",
+    "notStated": "Not stated",
+    "months": "{{count}} months",
+    "disclaimer": "Scores are calculated from the details people entered. They show how well requirements line up, not a guarantee.",
+    "loadError": "Recommendations could not be loaded.",
+    "completeProfile": "Add your housing preferences to get accurate recommendations.",
+    "setPreferences": "Set preferences",
+    "viewDetails": "View Details",
+    "viewProfile": "View Profile",
+    "hideProfile": "Hide Profile",
+    "contact": "Contact",
+    "factors": {
+      "budget": "budget",
+      "location": "location",
+      "preferences": "stated preferences",
+      "room": "room type and size",
+      "amenities": "internet",
+      "lease": "lease and move-in date",
+      "occupation": "occupation",
+      "smoking": "smoking preference",
+      "social": "social lifestyle",
+      "noise": "noise level",
+      "sleep": "sleep schedule",
+      "cleanliness": "cleanliness",
+      "guests": "guests",
+      "chores": "shared chores",
+      "timing": "lease and move-in date"
+    },
+    "houses": {
+      "title": "Recommended Houses for You",
+      "titleFor": "Recommended Houses for {{name}}",
+      "subtitle": "The best matches for your occupation, budget and preferences.",
+      "signIn": "Sign in to see houses matched to your budget and preferences.",
+      "empty": "No available house matches your requirements yet. Try widening your budget or location.",
+      "bedrooms": "{{count}} bedrooms"
+    },
+    "roommates": {
+      "title": "Best Roommate Matches for You",
+      "subtitle": "Ranked by lifestyle, budget and location, most compatible first.",
+      "signIn": "Sign in to see the roommates most compatible with you.",
+      "empty": "There are no roommate posts to compare yet.",
+      "location": "Location",
+      "budget": "Budget",
+      "home": "Home: {{title}}"
+    },
+    "tenants": {
+      "title": "Potential Tenant Compatibility",
+      "subtitle": "People looking for a home like this one, based on the details above. You can post whatever the result.",
+      "needDetails": "Enter the monthly rent and city to see who this listing would suit.",
+      "analysing": "Analysing the listing…",
+      "loadError": "The analysis could not be loaded. You can still post the listing.",
+      "empty": "No strong matches yet. You can still post the listing.",
+      "count": "Showing {{shown}} of {{total}} people who chose to be suggested to agents.",
+      "upTo": "Up to {{amount}} MMK",
+      "wantsCity": "Preferred city",
+      "wantsBudget": "Budget",
+      "wantsType": "Property type",
+      "wantsBedrooms": "Bedrooms (min)",
+      "wantsMoveIn": "Move-in date",
+      "wantsLease": "Lease",
+      "privacy": "Contact details stay private. Interested people reach you through the listing."
+    },
+    "preferences": {
+      "title": "Housing preferences",
+      "intro": "Tell us what you are looking for. House and roommate recommendations are calculated from these answers; leave anything blank that does not matter to you.",
+      "homeSection": "The home",
+      "lifestyleSection": "Living with others",
+      "notSet": "Not set",
+      "noPreference": "No preference",
+      "yes": "Yes",
+      "no": "No",
+      "city": "Preferred city",
+      "budgetMin": "Minimum budget (MMK / month)",
+      "budgetMax": "Maximum budget (MMK / month)",
+      "budgetRange": "Maximum budget must not be lower than the minimum.",
+      "propertyType": "Property type",
+      "bedroomsMin": "Bedrooms (at least)",
+      "moveInDate": "Move-in date",
+      "leaseMonths": "Lease length",
+      "wantsFurnished": "Must be furnished",
+      "needsInternet": "Must have internet",
+      "needsQuiet": "I need a quiet place",
+      "roomArrangement": "Room arrangement",
+      "cleanliness": "Cleanliness",
+      "sleepSchedule": "Sleep schedule",
+      "smoking": "Smoking",
+      "noiseTolerance": "Noise tolerance",
+      "socialLevel": "Social lifestyle",
+      "guests": "Guests and visitors",
+      "sharesChores": "Shares household chores",
+      "visibleToAgents": "Suggest me to housing agents",
+      "visibleToAgentsHelp": "Agents writing a matching listing can see your name, photo, occupation and these housing requirements. Your phone number and email are never shown.",
+      "save": "Save preferences",
+      "saved": "Preferences saved. Your recommendations have been updated.",
+      "saveError": "Preferences could not be saved. Please try again.",
+      "loadError": "Preferences could not be loaded."
+    },
+    "choices": {
+      "roomArrangement": {
+        "PRIVATE": "Private room",
+        "SHARED": "Shared room",
+        "ANY": "Either"
+      },
+      "cleanliness": {
+        "RELAXED": "Relaxed",
+        "TIDY": "Tidy",
+        "VERY_TIDY": "Very tidy"
+      },
+      "sleepSchedule": {
+        "EARLY": "Early to bed",
+        "LATE": "Night owl",
+        "FLEXIBLE": "Flexible"
+      },
+      "smoking": {
+        "NON_SMOKER": "Non-smoking home",
+        "SMOKER": "Smoking is fine for me",
+        "ANY": "No preference"
+      },
+      "noiseTolerance": {
+        "LOW": "I need quiet",
+        "MEDIUM": "Some noise is fine",
+        "HIGH": "Noise does not bother me"
+      },
+      "socialLevel": {
+        "QUIET": "Keep to myself",
+        "BALANCED": "Balanced",
+        "SOCIAL": "Very social"
+      },
+      "guests": {
+        "RARELY": "Rarely",
+        "SOMETIMES": "Sometimes",
+        "OFTEN": "Often"
+      }
+    }
   }
 }

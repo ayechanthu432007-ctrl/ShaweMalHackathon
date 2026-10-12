@@ -6,6 +6,8 @@ interface CreateUserInput {
   email: string;
   phone: string;
   passwordHash: string;
+  /** Chosen at sign-up; accounts created by an admin may not have one. */
+  occupationId?: string;
   roles?: string[];
 }
 
@@ -108,6 +110,7 @@ export const createUserWithDefaultRole = async (input: CreateUserInput) => {
         email: input.email,
         phone: input.phone,
         passwordHash: input.passwordHash,
+        ...(input.occupationId ? { occupationId: input.occupationId } : {}),
         userRoles: {
           create: roles.map((role) => ({ roleId: role.id }))
         }

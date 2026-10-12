@@ -1,3 +1,4 @@
+import { HousingPreferencesCard } from '@/features/recommendations/components/HousingPreferencesCard'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -220,6 +221,8 @@ export function ProfilePage() {
           </form>
         </CardContent>
       </Card>
+
+      <HousingPreferencesCard />
 
       <Card>
         <CardHeader>

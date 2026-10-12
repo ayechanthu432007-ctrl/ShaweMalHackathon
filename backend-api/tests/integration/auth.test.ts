@@ -225,7 +225,13 @@ jest.mock('../../src/prisma/client', () => {
     vehicleType: { findMany: jest.fn(async () => []), findUnique: jest.fn(async () => null), create: jest.fn(), update: jest.fn() },
     serviceRegion: { findMany: jest.fn(async () => []), findUnique: jest.fn(async () => null), create: jest.fn(), update: jest.fn() },
     floorLevel: { findMany: jest.fn(async () => []), findUnique: jest.fn(async () => null), create: jest.fn(), update: jest.fn() },
-    occupation: { findMany: jest.fn(async () => []), findUnique: jest.fn(async () => null), create: jest.fn(), update: jest.fn() },
+    occupation: {
+      findMany: jest.fn(async () => []),
+      findUnique: jest.fn(async () => null),
+      findFirst: jest.fn(async ({ where }: { where: { id: string } }) => (where.id === 'occ-student' ? { id: where.id } : null)),
+      create: jest.fn(),
+      update: jest.fn()
+    },
     amenity: { findMany: jest.fn(async () => []), findUnique: jest.fn(async () => null), create: jest.fn(), update: jest.fn() },
     statusCode: { findMany: jest.fn(async () => []), findUnique: jest.fn(async () => null), create: jest.fn(), update: jest.fn() },
     $transaction: jest.fn(async (callback: (tx: unknown) => Promise<unknown>): Promise<unknown> => callback(prisma))
@@ -240,13 +246,25 @@ describe('Auth and profile routes', () => {
     refreshSessions.clear();
   });
 
+  it('refuses to register without an occupation, or with one that does not exist', async () => {
+    const account = { name: 'No Job', email: 'nojob@example.com', phone: '0911111111', password: 'Passw0rd!', confirmPassword: 'Passw0rd!' };
+
+    const missing = await request(app).post('/api/v1/auth/register').send(account);
+    const unknown = await request(app).post('/api/v1/auth/register').send({ ...account, occupationId: 'occ-unknown' });
+
+    expect(missing.status).toBe(400);
+    expect(unknown.status).toBe(400);
+    expect(unknown.body.errors.code).toBe('OCCUPATION_INVALID');
+  });
+
   it('registers successfully and returns refresh token', async () => {
     const response = await request(app).post('/api/v1/auth/register').send({
       name: 'John Doe',
       email: 'john@example.com',
       phone: '0912345678',
       password: 'Passw0rd!',
-      confirmPassword: 'Passw0rd!'
+      confirmPassword: 'Passw0rd!',
+      occupationId: 'occ-student'
     });
 
     expect(response.status).toBe(201);
@@ -262,7 +280,8 @@ describe('Auth and profile routes', () => {
       email: 'token@example.com',
       phone: '0977777777',
       password: 'Passw0rd!',
-      confirmPassword: 'Passw0rd!'
+      confirmPassword: 'Passw0rd!',
+      occupationId: 'occ-student'
     });
 
     const refreshToken = registerResponse.body.data.refreshToken as string;
@@ -281,7 +300,8 @@ describe('Auth and profile routes', () => {
       email: 'logout@example.com',
       phone: '0988888888',
       password: 'Passw0rd!',
-      confirmPassword: 'Passw0rd!'
+      confirmPassword: 'Passw0rd!',
+      occupationId: 'occ-student'
     });
 
     const refreshToken = registerResponse.body.data.refreshToken as string;
@@ -301,7 +321,8 @@ describe('Auth and profile routes', () => {
       email: 'me@example.com',
       phone: '0966666666',
       password: 'Passw0rd!',
-      confirmPassword: 'Passw0rd!'
+      confirmPassword: 'Passw0rd!',
+      occupationId: 'occ-student'
     });
 
     const token = registerResponse.body.data.accessToken as string;
@@ -319,7 +340,8 @@ describe('Auth and profile routes', () => {
       email: 'pw@example.com',
       phone: '0955555555',
       password: 'Passw0rd!',
-      confirmPassword: 'Passw0rd!'
+      confirmPassword: 'Passw0rd!',
+      occupationId: 'occ-student'
     });
 
     const token = registerResponse.body.data.accessToken as string;
