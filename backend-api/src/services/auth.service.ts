@@ -10,7 +10,7 @@ import {
   revokeRefreshSession
 } from './session.service';
 import { assertOccupation } from './recommendation.service';
-import { createUserWithDefaultRole, getUserByEmail, getUserById, toSafeUser, updateUserPassword } from './user.service';
+import { createUserWithDefaultRole, getUserByEmail, getUserById, isPhoneRegistered, toSafeUser, updateUserPassword } from './user.service';
 
 interface RegisterInput {
   name: string;
@@ -26,14 +26,20 @@ interface LoginInput {
   rememberMe: boolean;
 }
 
-const hasPrismaDuplicateError = (error: unknown): error is { code: string } => {
+const hasPrismaDuplicateError = (error: unknown): error is { code: string; meta?: { target?: unknown } } => {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === 'P2002';
 };
 
+const emailExistsError = () => new ApiError(409, 'AUTH_EMAIL_EXISTS', 'This email is already registered. Sign in instead.');
+const phoneExistsError = () => new ApiError(409, 'AUTH_PHONE_EXISTS', 'This phone number is already used by another account.');
+
 export const register = async (input: RegisterInput) => {
-  const existing = await getUserByEmail(input.email);
-  if (existing) {
-    throw new ApiError(409, 'AUTH_EMAIL_EXISTS', 'Email is already registered.');
+  // Say which detail is taken, so the person knows what to change (or that they should sign in).
+  if (await getUserByEmail(input.email)) {
+    throw emailExistsError();
+  }
+  if (await isPhoneRegistered(input.phone)) {
+    throw phoneExistsError();
   }
 
   await assertOccupation(input.occupationId);
@@ -77,7 +83,8 @@ export const register = async (input: RegisterInput) => {
     };
   } catch (error) {
     if (hasPrismaDuplicateError(error)) {
-      throw new ApiError(409, 'AUTH_DUPLICATE_FIELD', 'Email or phone already exists.');
+      // Two sign-ups at the same moment: the database reports which unique field collided.
+      throw JSON.stringify(error.meta?.target ?? '').includes('phone') ? phoneExistsError() : emailExistsError();
     }
 
     throw error;

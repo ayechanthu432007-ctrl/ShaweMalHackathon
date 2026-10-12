@@ -1,5 +1,6 @@
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { emailLookupCandidates, normalizeEmailAddress } from '../utils/email';
 
 interface CreateUserInput {
   name: string;
@@ -64,11 +65,30 @@ export const toSafeUser = (user: UserWithRoles) => ({
   driverVerificationStatus: user.driverProfile?.verificationStatus ?? null
 });
 
+/**
+ * Finds an account by e-mail however the address was typed: capital letters do not matter,
+ * and accounts stored in the older rewritten form are still found.
+ */
 export const getUserByEmail = async (email: string) => {
-  return prisma.user.findUnique({
-    where: { email },
-    include: USER_WITH_ROLES_INCLUDE
+  const candidates = emailLookupCandidates(email);
+
+  for (const candidate of candidates) {
+    const user = await prisma.user.findUnique({ where: { email: candidate }, include: USER_WITH_ROLES_INCLUDE });
+    if (user) return user;
+  }
+
+  if (candidates.length === 0) return null;
+
+  // Accounts stored with capital letters (created before addresses were lower-cased).
+  return prisma.user.findFirst({
+    where: { OR: candidates.map((candidate) => ({ email: { equals: candidate, mode: 'insensitive' as const } })) },
+    include: USER_WITH_ROLES_INCLUDE,
+    orderBy: { createdAt: 'asc' }
   });
+};
+
+export const isPhoneRegistered = async (phone: string): Promise<boolean> => {
+  return Boolean(await prisma.user.findUnique({ where: { phone }, select: { id: true } }));
 };
 
 export const getUserById = async (userId: string) => {
@@ -107,7 +127,7 @@ export const createUserWithDefaultRole = async (input: CreateUserInput) => {
     return transaction.user.create({
       data: {
         name: input.name,
-        email: input.email,
+        email: normalizeEmailAddress(input.email),
         phone: input.phone,
         passwordHash: input.passwordHash,
         ...(input.occupationId ? { occupationId: input.occupationId } : {}),

@@ -1,6 +1,8 @@
 import { MovingRequestStatus } from '@prisma/client';
 import { body, param, query } from 'express-validator';
 
+import { normalizeEmailAddress } from '../utils/email';
+
 const movingRequestStatusQueryValues = [
   ...Object.values(MovingRequestStatus),
   ...Object.values(MovingRequestStatus).map((status) => status.toLowerCase())
@@ -13,7 +15,13 @@ const userIdParamValidator = [param('userId').trim().notEmpty().withMessage('use
 
 export const adminCreateUserValidator = [
   body('name').trim().notEmpty().withMessage('Name is required.'),
-  body('email').trim().notEmpty().withMessage('Email is required.').isEmail().withMessage('Email is invalid.'),
+  body('email')
+    .trim()
+    .notEmpty()
+    .withMessage('Email is required.')
+    .isEmail()
+    .withMessage('Email is invalid.')
+    .customSanitizer(normalizeEmailAddress),
   body('phone')
     .trim()
     .notEmpty()

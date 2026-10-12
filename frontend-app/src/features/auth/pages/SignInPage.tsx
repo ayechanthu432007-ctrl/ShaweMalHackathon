@@ -50,6 +50,12 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
       ? String((location.state as { authPrompt?: string }).authPrompt ?? '')
       : ''
 
+  // Arriving straight from sign-up: confirm the account exists and fill in its address.
+  const registeredEmail =
+    location.state && typeof location.state === 'object' && 'registeredEmail' in location.state
+      ? String((location.state as { registeredEmail?: string }).registeredEmail ?? '')
+      : ''
+
   const {
     register,
     handleSubmit,
@@ -57,7 +63,7 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
     formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>({
     defaultValues: {
-      email: '',
+      email: registeredEmail,
       password: '',
       rememberMe: false,
     },
@@ -90,7 +96,13 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
       navigate(nextPath, { replace: true })
     } catch (error) {
       // Only an answer from the server means the credentials were rejected; anything else is a connection problem.
-      setFormError(error instanceof ApiRequestError ? t('auth.loginFailed') : t('auth.serverUnreachable'))
+      if (!(error instanceof ApiRequestError)) {
+        setFormError(t('auth.serverUnreachable'))
+      } else if (error.code === 'AUTH_ACCOUNT_BANNED' || error.code === 'AUTH_ACCOUNT_SUSPENDED') {
+        setFormError(t('auth.accountBlocked'))
+      } else {
+        setFormError(t('auth.loginFailed'))
+      }
     }
   })
 
@@ -100,6 +112,11 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
         <CardTitle>
           <h1 className="text-2xl">{t(titleKey)}</h1>
         </CardTitle>
+        {registeredEmail ? (
+          <p className="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm" role="status">
+            {t('auth.accountCreated', { email: registeredEmail })}
+          </p>
+        ) : null}
         {authPrompt === 'wishlist' ? (
           <p className="text-sm text-muted-foreground">{t('auth.wishlistLoginPrompt')}</p>
         ) : null}

@@ -1,5 +1,7 @@
 import { body } from 'express-validator';
 
+import { normalizeEmailAddress } from '../utils/email';
+
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const registerValidator = [
@@ -10,7 +12,8 @@ export const registerValidator = [
     .withMessage('Email is required.')
     .matches(EMAIL_REGEX)
     .withMessage('Email format is invalid.')
-    .normalizeEmail(),
+    // Lower-cased only: the address is never rewritten, so what was registered is what signs in.
+    .customSanitizer(normalizeEmailAddress),
   body('phone')
     .trim()
     .notEmpty()
@@ -37,7 +40,8 @@ export const loginValidator = [
     .withMessage('Email is required.')
     .matches(EMAIL_REGEX)
     .withMessage('Email format is invalid.')
-    .normalizeEmail(),
+    // Lower-cased only: the address is never rewritten, so what was registered is what signs in.
+    .customSanitizer(normalizeEmailAddress),
   body('password').notEmpty().withMessage('Password is required.'),
   body('rememberMe').optional().isBoolean().withMessage('Remember me must be boolean.')
 ];

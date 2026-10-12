@@ -29,7 +29,7 @@ interface MockRefreshSession {
 }
 
 interface FindUniqueUserArgs {
-  where: { id?: string; email?: string };
+  where: { id?: string; email?: string; phone?: string };
 }
 
 const users = new Map<string, MockUser>();
@@ -64,7 +64,18 @@ jest.mock('../../src/prisma/client', () => {
           return byId ? cloneUser(byId) : null;
         }
 
+        if (where.phone) {
+          const byPhone = Array.from(users.values()).find((item) => item.phone === where.phone);
+          return byPhone ? cloneUser(byPhone) : null;
+        }
+
         return null;
+      }),
+      // The capital-letter fallback: matches stored addresses whatever their case.
+      findFirst: jest.fn(async ({ where }: { where: { OR: Array<{ email: { equals: string } }> } }) => {
+        const wanted = where.OR.map((item) => item.email.equals.toLowerCase());
+        const found = Array.from(users.values()).find((item) => wanted.includes(item.email.toLowerCase()));
+        return found ? cloneUser(found) : null;
       }),
       create: jest.fn(
         async ({
@@ -255,6 +266,61 @@ describe('Auth and profile routes', () => {
     expect(missing.status).toBe(400);
     expect(unknown.status).toBe(400);
     expect(unknown.body.errors.code).toBe('OCCUPATION_INVALID');
+  });
+
+  describe('signing in after signing up', () => {
+    const account = { name: 'Aye Chan', phone: '0955555555', password: 'Passw0rd!', confirmPassword: 'Passw0rd!', occupationId: 'occ-student' };
+    const signIn = (email: string, password = 'Passw0rd!') => request(app).post('/api/v1/auth/login').send({ email, password });
+    const storeAccount = async (email: string) => {
+      users.set('stored-1', {
+        id: 'stored-1',
+        name: 'Stored User',
+        email,
+        phone: '0944444444',
+        passwordHash: await bcrypt.hash('Passw0rd!', 4),
+        verificationStatus: 'VERIFIED',
+        userRoles: [{ role: { id: 'role-normal', name: 'normal' } }]
+      });
+    };
+
+    it('keeps the address exactly as registered, apart from capital letters, and signs in with it', async () => {
+      const registered = await request(app).post('/api/v1/auth/register').send({ ...account, email: 'Aye.Chan+shop@Gmail.com' });
+
+      expect(registered.status).toBe(201);
+      // Dots and "+tags" are part of the address; they used to be silently removed.
+      expect(registered.body.data.user.email).toBe('aye.chan+shop@gmail.com');
+      expect((await signIn('Aye.Chan+shop@Gmail.com')).status).toBe(200);
+      expect((await signIn('  aye.chan+shop@gmail.com ')).status).toBe(200);
+      expect((await signIn('aye.chan+shop@gmail.com', 'wrong-password')).status).toBe(401);
+    });
+
+    it('says which detail is already taken instead of a generic failure', async () => {
+      await request(app).post('/api/v1/auth/register').send({ ...account, email: 'first@example.com' });
+
+      const sameEmail = await request(app).post('/api/v1/auth/register').send({ ...account, email: 'FIRST@example.com', phone: '0966666666' });
+      const samePhone = await request(app).post('/api/v1/auth/register').send({ ...account, email: 'second@example.com' });
+
+      expect(sameEmail.status).toBe(409);
+      expect(sameEmail.body.errors.code).toBe('AUTH_EMAIL_EXISTS');
+      expect(samePhone.status).toBe(409);
+      expect(samePhone.body.errors.code).toBe('AUTH_PHONE_EXISTS');
+    });
+
+    it('still signs in accounts stored in the older rewritten form', async () => {
+      await storeAccount('ayechan@gmail.com');
+
+      expect((await signIn('aye.chan@gmail.com')).status).toBe(200);
+      expect((await signIn('ayechan@gmail.com')).status).toBe(200);
+      // The same mailbox cannot be registered a second time under another spelling.
+      const again = await request(app).post('/api/v1/auth/register').send({ ...account, email: 'aye.chan@gmail.com' });
+      expect(again.body.errors.code).toBe('AUTH_EMAIL_EXISTS');
+    });
+
+    it('signs in an account that was stored with capital letters', async () => {
+      await storeAccount('Created.ByAdmin@Example.com');
+
+      expect((await signIn('created.byadmin@example.com')).status).toBe(200);
+    });
   });
 
   it('registers successfully and returns refresh token', async () => {

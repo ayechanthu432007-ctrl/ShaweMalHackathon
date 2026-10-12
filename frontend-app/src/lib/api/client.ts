@@ -123,7 +123,9 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
       payload && 'message' in payload && payload.message
         ? payload.message
         : `Request failed with status ${response.status}`
-    const code = payload && 'code' in payload ? payload.code : undefined
+    // The API reports its error code under `errors.code`.
+    const nested = payload && 'errors' in payload && payload.errors && typeof payload.errors === 'object' ? (payload.errors as { code?: unknown }).code : undefined
+    const code = payload && 'code' in payload && payload.code ? payload.code : typeof nested === 'string' ? nested : undefined
     throw new ApiRequestError(message, response.status, code, payload)
   }
 

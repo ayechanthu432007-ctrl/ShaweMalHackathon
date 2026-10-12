@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { validateRegisterForm, type RegisterFormValues } from '@/features/auth/schemas/auth-schemas'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
+import { ApiRequestError } from '@/lib/api/client'
 
 type SignUpPageProps = {
   redirectTo?: string
@@ -62,9 +63,21 @@ export function SignUpPage({ redirectTo = '/sign-in', titleKey = 'public.signUpT
     try {
       await registerUser(values)
       setSuccessMessage(t('auth.registerSuccess'))
-      navigate(redirectTo)
-    } catch {
-      setFormError(t('auth.registerFailed'))
+      // The sign-in form confirms the account exists and already holds the address just registered.
+      navigate(redirectTo, { state: { registeredEmail: values.email.trim() } })
+    } catch (error) {
+      if (!(error instanceof ApiRequestError)) {
+        setFormError(t('auth.serverUnreachable'))
+      } else if (error.code === 'AUTH_EMAIL_EXISTS') {
+        // Say exactly what is taken: a generic failure leaves people guessing which details were registered.
+        setError('email', { type: 'server', message: t('auth.emailExists') })
+      } else if (error.code === 'AUTH_PHONE_EXISTS') {
+        setError('phone', { type: 'server', message: t('auth.phoneExists') })
+      } else if (error.code === 'OCCUPATION_INVALID') {
+        setError('occupationId', { type: 'server', message: t('auth.required') })
+      } else {
+        setFormError(error.status === 400 && error.message ? t('auth.registerRejected', { reason: error.message }) : t('auth.registerFailed'))
+      }
     }
   })
 
