@@ -51,7 +51,7 @@ function HouseFact({ icon: Icon, label, value }: { icon: LucideIcon; label: stri
       </span>
       <div className="min-w-0">
         <dt className="text-xs text-muted-foreground">{label}</dt>
-        <dd className="truncate text-sm font-semibold">{value}</dd>
+        <dd className="break-words text-sm font-semibold leading-tight">{value}</dd>
       </div>
     </div>
   )
