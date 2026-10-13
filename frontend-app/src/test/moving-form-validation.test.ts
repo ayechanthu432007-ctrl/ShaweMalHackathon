@@ -30,7 +30,7 @@ function baseValues(overrides: Partial<MovingRequestFormValues> = {}): MovingReq
     dropoffLongitude: '96.17',
     pickupFloorLevelId: 'floor-1',
     dropoffFloorLevelId: 'floor-2',
-    moveInDate: '2026-09-01',
+    moveInDate: '2999-09-01',
     vehicleTypeId: 'vt1',
     remarks: '',
     damageChecklist: '',

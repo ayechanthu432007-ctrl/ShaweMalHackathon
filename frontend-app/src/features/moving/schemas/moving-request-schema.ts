@@ -132,12 +132,19 @@ export function validateMovingStep2(
   return errors
 }
 
+/** Today in the visitor's own time zone, in the YYYY-MM-DD form a date input uses. */
+export function todayDateInputValue(now = new Date()): string {
+  const pad = (value: number) => String(value).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
 export function validateMovingStep3(
   values: Pick<MovingRequestFormValues, 'moveInDate' | 'vehicleTypeId'>,
   t: (key: string) => string,
 ) {
   const errors: Partial<Record<'moveInDate' | 'vehicleTypeId', string>> = {}
   if (!values.moveInDate.trim()) errors.moveInDate = t('auth.required')
+  else if (values.moveInDate < todayDateInputValue()) errors.moveInDate = t('moving.moveInDatePast')
   if (!values.vehicleTypeId.trim()) errors.vehicleTypeId = t('auth.required')
   return errors
 }
