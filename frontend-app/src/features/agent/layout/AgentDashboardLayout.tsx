@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   ChartNoAxesCombined,
   CreditCard,
+  Crown,
   Eye,
   FileChartColumn,
   House,
@@ -36,7 +37,15 @@ export function useAgentDashboard() {
   })
 }
 
-type NavItem = { to: string; labelKey: string; icon: LucideIcon; show?: (dashboard: AgentDashboard) => boolean; end?: boolean }
+type NavItem = {
+  to: string
+  labelKey: string
+  icon: LucideIcon
+  show?: (dashboard: AgentDashboard) => boolean
+  end?: boolean
+  /** Account items sit below a divider, apart from the day-to-day tools. */
+  group?: 'account'
+}
 
 // Premium items are listed only when the server says the plan includes them.
 const NAV_ITEMS: NavItem[] = [
@@ -50,8 +59,8 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/agent/verification', labelKey: 'agentDash.nav.badge', icon: ShieldCheck },
   { to: '/agent/insights', labelKey: 'agentDash.nav.insights', icon: Users, show: (d) => d.features.audienceInsights },
   { to: '/agent/reports', labelKey: 'agentDash.nav.reports', icon: FileChartColumn, show: (d) => d.features.monthlyReport },
-  { to: '/agent/subscription', labelKey: 'agentDash.nav.subscription', icon: CreditCard },
-  { to: '/profile', labelKey: 'agentDash.nav.settings', icon: Settings },
+  { to: '/agent/subscription', labelKey: 'agentDash.nav.subscription', icon: CreditCard, group: 'account' },
+  { to: '/profile', labelKey: 'agentDash.nav.settings', icon: Settings, group: 'account' },
 ]
 
 export function AgentDashboardLayout() {
@@ -72,14 +81,18 @@ export function AgentDashboardLayout() {
   }
 
   const items = NAV_ITEMS.filter((item) => !item.show || (dashboard ? item.show(dashboard) : false))
+  const isGold = dashboard?.plan.code === 'GOLD'
 
   return (
     <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
-      <aside className="min-w-0 space-y-3">
+      <aside className="min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
         {dashboard ? (
-          <div className="rounded-xl border bg-card p-4 text-sm">
+          <div className={cn('rounded-xl border p-4 text-sm shadow-sm', isGold ? 'border-amber-300/70 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10' : 'bg-card')}>
             <p className="text-xs text-muted-foreground">{t('agentDash.currentPlan')}</p>
-            <p className="text-lg font-semibold">{dashboard.plan.name}</p>
+            <p className="flex items-center gap-1.5 text-lg font-semibold">
+              {isGold ? <Crown className="size-4 text-amber-500" aria-hidden /> : null}
+              {dashboard.plan.name}
+            </p>
             {dashboard.subscription.status === 'ACTIVE' ? (
               <p className="text-xs text-muted-foreground">{t('agentDash.validUntil', { date: formatDate(dashboard.subscription.endsAt) })}</p>
             ) : null}
@@ -94,22 +107,27 @@ export function AgentDashboardLayout() {
           </div>
         ) : null}
 
-        <nav aria-label={t('agentDash.navLabel')} className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:pb-0">
-          {items.map((item) => {
+        <nav
+          aria-label={t('agentDash.navLabel')}
+          className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:rounded-xl lg:border lg:bg-card lg:p-2 lg:shadow-sm"
+        >
+          {items.map((item, index) => {
             const Icon = item.icon
             // Items that differ only by query string are matched on the full address.
             const isActive = item.to.includes('?') ? current === item.to : item.end ? current === item.to : location.pathname === item.to || location.pathname.startsWith(`${item.to}/`)
+            const startsAccountGroup = item.group === 'account' && items[index - 1]?.group !== 'account'
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'flex shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-                  isActive && 'bg-accent font-medium text-accent-foreground',
+                  'flex shrink-0 items-center gap-3 whitespace-nowrap rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  isActive && 'bg-primary/10 font-medium text-primary hover:bg-primary/10 hover:text-primary',
+                  startsAccountGroup && 'lg:mt-2 lg:border-t lg:pt-3 lg:rounded-t-none',
                 )}
               >
-                <Icon className="size-4 shrink-0" aria-hidden />
+                <Icon className="size-[18px] shrink-0" aria-hidden />
                 {t(item.labelKey)}
               </NavLink>
             )
