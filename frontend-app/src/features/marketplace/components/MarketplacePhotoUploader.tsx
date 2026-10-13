@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { ApiRequestError } from '@/lib/api/client'
-import { uploadFiles } from '@/lib/api/uploads-api'
+import { MAX_UPLOAD_REQUEST_BYTES, uploadFiles } from '@/lib/api/uploads-api'
 import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 import { cn } from '@/lib/utils'
 
@@ -14,8 +14,8 @@ export const MARKETPLACE_MAX_PHOTOS = 10
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 /** Hard stop before compression; anything bigger is almost certainly not a phone photo. */
 const MAX_SOURCE_BYTES = 25 * 1024 * 1024
-/** Server limit after compression. */
-const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+/** One photo must fit in a single upload request after compression. */
+const MAX_UPLOAD_BYTES = MAX_UPLOAD_REQUEST_BYTES
 
 type MarketplacePhotoUploaderProps = {
   photos: string[]

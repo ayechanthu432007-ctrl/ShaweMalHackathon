@@ -10,7 +10,8 @@ import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 import { cn } from '@/lib/utils'
 
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
-const MAX_BYTES = 5 * 1024 * 1024
+// The hosting platform refuses request bodies over 4.5 MB, so one file must stay below that.
+const MAX_BYTES = 4 * 1024 * 1024
 
 export type SingleImageUploadFieldProps = {
   path: string
