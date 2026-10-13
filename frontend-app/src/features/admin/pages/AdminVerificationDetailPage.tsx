@@ -1,3 +1,4 @@
+import { UserAvatar } from '@/components/common/UserAvatar'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useParams } from 'react-router'
@@ -44,9 +45,15 @@ function AgentDocsPreview({ registration }: { registration: AdminAgentRegistrati
   const { profile } = registration
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
-      <ProtectedDocImage path={profile.nrcFrontPhotoPath} label={t('agent.nrcFrontPhotoPath')} />
-      <ProtectedDocImage path={profile.nrcBackPhotoPath} label={t('agent.nrcBackPhotoPath')} />
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        <UserAvatar path={profile.profilePhotoPath} name={profile.name} className="size-16" />
+        <p className="text-sm font-medium">{t('agent.profilePhoto')}</p>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <ProtectedDocImage path={profile.nrcFrontPhotoPath} label={t('agent.nrcFrontPhotoPath')} />
+        <ProtectedDocImage path={profile.nrcBackPhotoPath} label={t('agent.nrcBackPhotoPath')} />
+      </div>
     </div>
   )
 }

@@ -5,6 +5,8 @@ export type AgentRegistrationInput = {
   nrc: string
   nrcFrontPhotoPath: string
   nrcBackPhotoPath: string
+  /** Optional; saved as the account's profile picture. */
+  profilePhotoPath?: string
   email: string
   phone: string
   telegram?: string

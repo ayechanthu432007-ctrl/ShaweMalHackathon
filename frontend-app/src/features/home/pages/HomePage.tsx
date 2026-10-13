@@ -5,6 +5,7 @@ import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
 
 import shawemalLogo from '@/assets/shawemal-logo.jpg'
+import { UserAvatar } from '@/components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StarRating } from '@/features/reviews/components/StarRating'
@@ -130,7 +131,9 @@ export function HomePage() {
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {homeQuery.data.verifiedAgents.map((agent) => (
                   <Card key={agent.id}>
-                    <CardContent className="space-y-1 p-4">
+                    <CardContent className="flex items-center gap-3 p-4">
+                      <UserAvatar path={agent.profilePicturePath} name={agent.name} className="size-11" />
+                      <div className="min-w-0 space-y-1">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-medium">{agent.name}</p>
                         {agent.hasVerifiedBadge ? (
@@ -143,6 +146,7 @@ export function HomePage() {
                       <p className="text-sm text-muted-foreground">
                         {agent.agentProfile?.city?.name ?? t('houses.locationUnknown')}
                       </p>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

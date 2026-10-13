@@ -1,6 +1,6 @@
 import { body, param } from 'express-validator';
 
-import { uploadedPathArrayItemValidator, uploadedPathValidator } from './upload-path.validator';
+import { optionalUploadedPathValidator, uploadedPathArrayItemValidator, uploadedPathValidator } from './upload-path.validator';
 
 const postChannelValues = ['agent', 'roommate'];
 const availabilityValues = ['available', 'not_available'];
@@ -17,6 +17,7 @@ export const agentProfileUpsertValidator = [
   body('nrc').trim().isLength({ min: 15, max: 15 }).withMessage('nrc must be exactly 15 characters.'),
   uploadedPathValidator('nrcFrontPhotoPath', 'docs'),
   uploadedPathValidator('nrcBackPhotoPath', 'docs'),
+  optionalUploadedPathValidator('profilePhotoPath', 'profile'),
   body('email').trim().isEmail().withMessage('email is invalid.'),
   body('phone').trim().notEmpty().withMessage('phone is required.'),
   body('telegram').optional().isString().withMessage('telegram must be a string.'),

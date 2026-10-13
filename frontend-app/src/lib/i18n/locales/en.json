@@ -667,6 +667,8 @@
     "subtitle": "Submit your agent profile for admin verification.",
     "nrc": "NRC",
     "nrcLength": "NRC must be exactly 15 characters",
+    "profilePhoto": "Profile Photo",
+    "profilePhotoHint": "Optional. A clear photo of you, shown to customers on your listings. JPG, PNG or WebP, 4 MB or smaller.",
     "nrcFrontPhotoPath": "NRC front photo",
     "nrcBackPhotoPath": "NRC back photo",
     "pathPlaceholder": "e.g. uploads/nrc-front.jpg",
@@ -1098,8 +1100,8 @@
     "wishlistItemsEmpty": "You haven't saved any marketplace items yet."
   },
   "uploads": {
-    "addPhotos": "Add photos",
-    "addPhoto": "Add photo",
+    "addPhotos": "Upload Photos",
+    "addPhoto": "Upload Photo",
     "replacePhoto": "Replace photo",
     "remove": "Remove photo",
     "uploading": "Uploading…",

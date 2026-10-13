@@ -27,6 +27,8 @@ export type AdminAgentRegistration = {
     nrc: string
     nrcFrontPhotoPath: string
     nrcBackPhotoPath: string
+    /** The agent's account profile picture, when they uploaded one. */
+    profilePhotoPath?: string | null
     email: string
     phone: string
     telegram?: string | null

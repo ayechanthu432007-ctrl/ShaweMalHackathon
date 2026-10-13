@@ -21,6 +21,8 @@ export interface AgentProfileInput {
   stateId: string;
   serviceRegionId: string;
   hasRentingExperience: boolean;
+  /** Optional photo of the agent. It is stored as the account's profile picture, not as a second field. */
+  profilePhotoPath?: string | null;
 }
 
 interface AgentHouseInput {
@@ -184,18 +186,27 @@ const normalizeHouse = (
 });
 
 export const upsertAgentProfile = async (userId: string, input: AgentProfileInput) => {
-  return prisma.agentProfile.upsert({
+  const { profilePhotoPath, ...profileInput } = input;
+
+  const profile = await prisma.agentProfile.upsert({
     where: {
       userId
     },
     update: {
-      ...input
+      ...profileInput
     },
     create: {
       userId,
-      ...input
+      ...profileInput
     }
   });
+
+  // The agent's photo is the account's profile picture, so it shows everywhere the account does.
+  if (typeof profilePhotoPath === 'string' && profilePhotoPath.trim()) {
+    await prisma.user.update({ where: { id: userId }, data: { profilePicturePath: profilePhotoPath.trim() } });
+  }
+
+  return profile;
 };
 
 export const createAgentHouse = async (userId: string, input: AgentHouseInput) => {

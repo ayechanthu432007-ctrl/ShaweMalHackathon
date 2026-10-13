@@ -2,6 +2,7 @@ import { Mail, MessageCircle, Phone, Send } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { UserAvatar } from '@/components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { trackHouseEvent } from '@/features/agent/api/agent-plan-api'
@@ -40,9 +41,7 @@ export function AgentContactCard({ house, children }: AgentContactCardProps) {
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         <div className="flex items-center gap-3">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary" aria-hidden>
-            {agent.name.trim().charAt(0).toUpperCase() || '?'}
-          </div>
+          <UserAvatar path={agent.profilePicturePath} name={agent.name} />
           <div className="min-w-0">
             <p className="truncate text-base font-semibold">{agent.name}</p>
             <p className="text-xs text-muted-foreground">{t('houses.listingAgent')}</p>

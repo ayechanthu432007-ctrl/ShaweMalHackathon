@@ -88,7 +88,8 @@ export const upsertAgentProfileController = async (req: Request, res: Response):
     cityId: String(req.body.cityId),
     stateId: String(req.body.stateId),
     serviceRegionId: String(req.body.serviceRegionId),
-    hasRentingExperience: Boolean(req.body.hasRentingExperience)
+    hasRentingExperience: Boolean(req.body.hasRentingExperience),
+    profilePhotoPath: typeof req.body.profilePhotoPath === 'string' ? req.body.profilePhotoPath : undefined
   });
 
   sendSuccess(res, 200, 'Agent profile saved successfully', { profile });

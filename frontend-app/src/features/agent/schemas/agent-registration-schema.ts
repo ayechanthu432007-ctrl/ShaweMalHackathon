@@ -3,6 +3,7 @@ export type AgentRegistrationFormValues = {
   nrc: string
   nrcFrontPhotoPath: string
   nrcBackPhotoPath: string
+  profilePhotoPath: string
   email: string
   phone: string
   telegram: string

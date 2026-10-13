@@ -68,6 +68,7 @@ export function AgentRegisterPage() {
       nrc: '',
       nrcFrontPhotoPath: '',
       nrcBackPhotoPath: '',
+      profilePhotoPath: '',
       email: user?.email ?? '',
       phone: user?.phone ?? '',
       telegram: '',
@@ -88,7 +89,7 @@ export function AgentRegisterPage() {
     return items.filter((city) => !city.stateId || city.stateId === selectedStateId)
   }, [citiesQuery.data?.items, selectedStateId])
 
-  const setPhotoPath = (field: 'nrcFrontPhotoPath' | 'nrcBackPhotoPath', path: string) => {
+  const setPhotoPath = (field: 'nrcFrontPhotoPath' | 'nrcBackPhotoPath' | 'profilePhotoPath', path: string) => {
     setValue(field, path, { shouldDirty: true, shouldTouch: true })
     if (path.trim()) clearErrors(field)
   }
@@ -114,6 +115,7 @@ export function AgentRegisterPage() {
         nrc: values.nrc.trim(),
         nrcFrontPhotoPath: values.nrcFrontPhotoPath.trim(),
         nrcBackPhotoPath: values.nrcBackPhotoPath.trim(),
+        profilePhotoPath: values.profilePhotoPath.trim() || undefined,
         email: values.email.trim(),
         phone: values.phone.trim(),
         telegram: values.telegram.trim() || undefined,
@@ -151,6 +153,7 @@ export function AgentRegisterPage() {
         <form className="grid gap-4 sm:grid-cols-2" onSubmit={onSubmit} noValidate>
           <input type="hidden" {...register('nrcFrontPhotoPath')} />
           <input type="hidden" {...register('nrcBackPhotoPath')} />
+          <input type="hidden" {...register('profilePhotoPath')} />
 
           <Field label={t('auth.name')} error={errors.name?.message}>
             <Input {...register('name')} />
@@ -173,6 +176,15 @@ export function AgentRegisterPage() {
               category="docs"
               error={errors.nrcBackPhotoPath?.message}
             />
+          </Field>
+          <Field label={t('agent.profilePhoto')} error={errors.profilePhotoPath?.message} className="sm:col-span-2">
+            <SingleImageUploadField
+              path={watch('profilePhotoPath')}
+              onChange={(path) => setPhotoPath('profilePhotoPath', path)}
+              category="profile"
+              error={errors.profilePhotoPath?.message}
+            />
+            <p className="text-xs text-muted-foreground">{t('agent.profilePhotoHint')}</p>
           </Field>
           <Field label={t('auth.email')} error={errors.email?.message}>
             <Input type="email" {...register('email')} />

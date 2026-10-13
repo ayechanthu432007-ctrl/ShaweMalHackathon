@@ -57,6 +57,7 @@ export type HouseDetails = {
     name: string
     phone?: string | null
     email?: string | null
+    profilePicturePath?: string | null
     verificationStatus?: string
   }
   createdAt?: string

@@ -4,6 +4,7 @@ export type HomeVerifiedAgent = {
   id: string
   name: string
   phone?: string | null
+  profilePicturePath?: string | null
   verificationStatus?: string
   /** Admin-verified and on a plan that includes the public Verified Badge. */
   hasVerifiedBadge?: boolean

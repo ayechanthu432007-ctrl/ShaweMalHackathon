@@ -146,4 +146,52 @@ describe('Completion increment modules', () => {
     expect(response.status).toBe(201);
     expect(response.body.data.profile.userId).toBe('user-normal');
   });
+
+  describe('agent profile photo', () => {
+    const application = {
+      name: 'Agent Applicant',
+      nrc: '12/YGN(N)123456',
+      nrcFrontPhotoPath: 'uploads/docs/nrc-front.jpg',
+      nrcBackPhotoPath: 'uploads/docs/nrc-back.jpg',
+      email: 'agent@example.com',
+      phone: '099999999',
+      address1: 'Street 1',
+      cityId: 'city-1',
+      stateId: 'state-1',
+      serviceRegionId: 'region-1',
+      hasRentingExperience: true
+    };
+    const { prisma } = jest.requireMock('../../src/prisma/client');
+    const submit = (extra: Record<string, unknown>) =>
+      request(app).post('/api/v1/registrations/agent').set('Authorization', authHeader('user-normal', ['normal'])).send({ ...application, ...extra });
+
+    beforeEach(() => {
+      prisma.user.update.mockClear();
+      prisma.agentProfile.upsert.mockClear();
+    });
+
+    it("saves the photo as the account's profile picture, not on the agent profile", async () => {
+      const response = await submit({ profilePhotoPath: 'uploads/profile/agent-face.jpg' });
+
+      expect(response.status).toBe(201);
+      expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 'user-normal' }, data: { profilePicturePath: 'uploads/profile/agent-face.jpg' } });
+      expect(prisma.agentProfile.upsert.mock.calls[0][0].create).not.toHaveProperty('profilePhotoPath');
+    });
+
+    it('leaves the profile picture alone when no photo is sent', async () => {
+      const response = await submit({});
+
+      expect(response.status).toBe(201);
+      expect(prisma.user.update.mock.calls.filter(([args]: [{ data: Record<string, unknown> }]) => 'profilePicturePath' in args.data)).toHaveLength(0);
+    });
+
+    it('rejects a photo path that is not a profile upload', async () => {
+      const outside = await submit({ profilePhotoPath: 'https://example.com/face.jpg' });
+      const wrongFolder = await submit({ profilePhotoPath: 'uploads/docs/nrc-front.jpg' });
+
+      expect(outside.status).toBe(400);
+      expect(wrongFolder.status).toBe(400);
+      expect(prisma.agentProfile.upsert).not.toHaveBeenCalled();
+    });
+  });
 });

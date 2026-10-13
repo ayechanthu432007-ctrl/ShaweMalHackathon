@@ -53,7 +53,7 @@ describe('sell an item', () => {
     expect(screen.getByRole('heading', { name: 'Contact' })).toBeInTheDocument()
 
     // Fields from every former step are on screen at once.
-    expect(screen.getByRole('button', { name: 'Add photos' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Upload Photos' })).toBeInTheDocument()
     expect(screen.getByLabelText('Title')).toBeInTheDocument()
     expect(screen.getByLabelText('Township')).toBeInTheDocument()
     expect(await screen.findByLabelText('Phone')).toBeInTheDocument()

@@ -33,6 +33,7 @@ export const getHomePageContent = async () => {
         id: true,
         name: true,
         phone: true,
+        profilePicturePath: true,
         agentProfile: {
           select: {
             verificationStatus: true,
@@ -183,6 +184,7 @@ export const getHomePageContent = async () => {
       id: agent.id,
       name: agent.name,
       phone: agent.phone,
+      profilePicturePath: agent.profilePicturePath ?? null,
       verificationStatus: agent.agentProfile?.verificationStatus ?? 'PENDING',
       hasVerifiedBadge: agent.hasVerifiedBadge,
       agentProfile: agent.agentProfile

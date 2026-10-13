@@ -388,6 +388,7 @@ export const getAdminAgentRegistration = async (userId: string) => {
       nrc: user.agentProfile.nrc,
       nrcFrontPhotoPath: user.agentProfile.nrcFrontPhotoPath,
       nrcBackPhotoPath: user.agentProfile.nrcBackPhotoPath,
+      profilePhotoPath: user.profilePicturePath,
       email: user.agentProfile.email,
       phone: user.agentProfile.phone,
       telegram: user.agentProfile.telegram,
