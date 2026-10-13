@@ -96,7 +96,8 @@ export function HouseGallery({ title, images }: HouseGalleryProps) {
                 preview.length === 1 && 'max-h-[30rem] sm:min-h-0 sm:aspect-[16/9]',
                 preview.length === 2 && 'col-span-1 aspect-[4/3] sm:row-span-1 sm:min-h-0 sm:aspect-[4/3]',
                 preview.length === 3 && index > 0 && 'sm:col-span-2',
-                preview.length === 4 && index === 3 && 'sm:col-span-2',
+                // With four photos the last one fills its row, so no cell is left empty.
+                preview.length === 4 && index === 3 && 'col-span-2 aspect-[16/9] sm:aspect-auto',
               )}
             >
               <img
