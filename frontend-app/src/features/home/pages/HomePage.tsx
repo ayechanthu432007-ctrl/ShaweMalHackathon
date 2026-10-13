@@ -7,10 +7,10 @@ import { Trans, useTranslation } from 'react-i18next'
 import shawemalLogo from '@/assets/shawemal-logo.jpg'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { HouseCard } from '@/features/houses/components/HouseCard'
 import { StarRating } from '@/features/reviews/components/StarRating'
 
 import { homeApi } from '../api/home-api'
+import { HouseCarousel } from '../components/HouseCarousel'
 
 const newPlaceItems: { icon: LucideIcon; titleKey: string; bodyKey: string }[] = [
   { icon: Home, titleKey: 'home.newPlaceItem1Title', bodyKey: 'home.newPlaceItem1Body' },
@@ -96,18 +96,7 @@ export function HomePage() {
             {homeQuery.data.popularRecommended.length === 0 ? (
               <EmptyHint text={t('home.emptyPopular')} />
             ) : (
-              // One row that scrolls sideways (swipe on phones); the scrollbar itself is hidden.
-              <ul
-                aria-label={t('home.popularTitle')}
-                tabIndex={0}
-                className="-mx-1 flex snap-x gap-4 overflow-x-auto scroll-smooth px-1 py-1 [scrollbar-width:none] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-scrollbar]:hidden"
-              >
-                {homeQuery.data.popularRecommended.map((house) => (
-                  <li key={house.id} className="w-[80%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
-                    <HouseCard house={house} className="h-full" />
-                  </li>
-                ))}
-              </ul>
+              <HouseCarousel houses={homeQuery.data.popularRecommended} label={t('home.popularTitle')} />
             )}
           </HomeSection>
 
