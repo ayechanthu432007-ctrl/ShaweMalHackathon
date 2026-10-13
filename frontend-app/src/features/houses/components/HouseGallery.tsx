@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Images, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -10,16 +10,15 @@ type HouseGalleryProps = {
   images: Array<{ id?: string; imagePath: string }>
 }
 
-/** How many photos the page shows before the rest are behind "all photos". */
-const PREVIEW_COUNT = 5
-
 /**
- * A large first photo with smaller ones beside it. Choosing any photo opens the full-screen
- * viewer, which has previous/next buttons, arrow-key and swipe navigation and a position counter.
+ * One large photo with previous/next arrows and a strip of thumbnails under it. Choosing the
+ * large photo opens the full-screen viewer, which has previous/next buttons, arrow-key and
+ * swipe navigation and a position counter.
  */
 export function HouseGallery({ title, images }: HouseGalleryProps) {
   const { t } = useTranslation()
   const [openAt, setOpenAt] = useState<number | null>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
   const [failed, setFailed] = useState<Set<string>>(new Set())
   const touchStartX = useRef<number | null>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
@@ -60,8 +59,8 @@ export function HouseGallery({ title, images }: HouseGalleryProps) {
   }
 
   const onPhotoError = (key: string) => setFailed((previous) => new Set(previous).add(key))
-  const preview = photos.slice(0, PREVIEW_COUNT)
-  const hiddenCount = total - preview.length
+  const active = Math.min(activeIndex, total - 1)
+  const slide = (delta: number) => setActiveIndex((active + delta + total) % total)
 
   const onTouchEnd = (event: TouchEvent) => {
     const start = touchStartX.current
@@ -73,56 +72,66 @@ export function HouseGallery({ title, images }: HouseGalleryProps) {
 
   return (
     <>
-      <div
-        className={cn(
-          'grid gap-2 overflow-hidden rounded-xl',
-          preview.length === 1 && 'grid-cols-1',
-          preview.length === 2 && 'grid-cols-2',
-          preview.length >= 3 && 'grid-cols-2 sm:grid-cols-4 sm:grid-rows-2',
-        )}
-      >
-        {preview.map((photo, index) => {
-          const isLast = index === preview.length - 1
-          return (
+      <div className="relative overflow-hidden rounded-2xl bg-muted">
+        <button
+          type="button"
+          onClick={() => setOpenAt(active)}
+          aria-label={t('houses.openPhoto', { index: active + 1, total })}
+          className="block aspect-[4/3] w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:aspect-[16/9]"
+        >
+          <img
+            key={photos[active]?.key}
+            src={photos[active]?.src}
+            alt={title}
+            onError={() => onPhotoError(photos[active]?.key ?? '')}
+            className="h-full w-full object-cover"
+          />
+        </button>
+        {total > 1 ? (
+          <>
             <button
-              key={photo.key}
               type="button"
-              onClick={() => setOpenAt(index)}
-              aria-label={t('houses.openPhoto', { index: index + 1, total })}
-              className={cn(
-                'group relative overflow-hidden bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                // The first photo is the large one; on phones it spans the full width.
-                index === 0 ? 'col-span-2 aspect-[16/10] sm:row-span-2 sm:aspect-auto sm:min-h-[22rem]' : 'aspect-[4/3] sm:aspect-auto sm:min-h-0',
-                preview.length === 1 && 'max-h-[30rem] sm:min-h-0 sm:aspect-[16/9]',
-                preview.length === 2 && 'col-span-1 aspect-[4/3] sm:row-span-1 sm:min-h-0 sm:aspect-[4/3]',
-                preview.length === 3 && index > 0 && 'sm:col-span-2',
-                // With four photos the last one fills its row, so no cell is left empty.
-                preview.length === 4 && index === 3 && 'col-span-2 aspect-[16/9] sm:aspect-auto',
-              )}
+              onClick={() => slide(-1)}
+              aria-label={t('houses.previousPhoto')}
+              className="absolute left-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] transition-colors hover:bg-black/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             >
-              <img
-                src={photo.src}
-                alt={index === 0 ? title : ''}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                onError={() => onPhotoError(photo.key)}
-                className="absolute inset-0 h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none"
-              />
-              {isLast && hiddenCount > 0 ? (
-                <span className="absolute inset-0 flex items-center justify-center bg-black/55 text-lg font-semibold text-white">+{hiddenCount}</span>
-              ) : null}
+              <ChevronLeft className="size-8" aria-hidden />
             </button>
-          )
-        })}
+            <button
+              type="button"
+              onClick={() => slide(1)}
+              aria-label={t('houses.nextPhoto')}
+              className="absolute right-3 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-full text-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.7)] transition-colors hover:bg-black/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <ChevronRight className="size-8" aria-hidden />
+            </button>
+            <span className="pointer-events-none absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-0.5 text-xs font-medium tabular-nums text-white">
+              {t('houses.photoCount', { current: active + 1, total })}
+            </span>
+          </>
+        ) : null}
       </div>
 
-      <button
-        type="button"
-        onClick={() => setOpenAt(0)}
-        className="mt-2 inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1.5 text-sm font-medium shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <Images className="size-4" aria-hidden />
-        {t('houses.viewAllPhotos', { count: total })}
-      </button>
+      {total > 1 ? (
+        <ul className="mt-4 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:thin]">
+          {photos.map((photo, index) => (
+            <li key={photo.key} className="shrink-0">
+              <button
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                aria-label={t('houses.showPhoto', { index: index + 1 })}
+                aria-current={index === active}
+                className={cn(
+                  'block rounded-md border bg-card p-1 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  index === active ? 'border-primary' : 'hover:border-primary/60',
+                )}
+              >
+                <img src={photo.src} alt="" loading="lazy" onError={() => onPhotoError(photo.key)} className="h-16 w-24 rounded-sm object-cover sm:h-[4.75rem] sm:w-28" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {isOpen ? (
         <div

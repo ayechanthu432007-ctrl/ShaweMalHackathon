@@ -73,14 +73,16 @@ describe('house details location map', () => {
 
     expect(await screen.findByRole('heading', { name: 'Inya Garden Flat' })).toBeInTheDocument()
     expect(screen.getAllByText('Available').length).toBeGreaterThan(0)
-    expect(screen.getByText(/^availability$/i)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: /location map/i })).toBeInTheDocument()
     expect(screen.getByTestId('house-location-map')).toHaveTextContent('42 Inya Road · Kamayut Township')
 
-    const detailsHeading = screen.getByText(/^house details$/i)
+    // Description, room type and amenities come before the map; the agent card sits in the sidebar after it.
+    const descriptionHeading = screen.getByRole('heading', { name: /^description$/i })
+    const roomTypeHeading = screen.getByRole('heading', { name: /^room type$/i })
     const agentHeading = screen.getByText(/^agent details$/i)
     const mapHeading = screen.getByRole('heading', { name: /location map/i })
-    expect(detailsHeading.compareDocumentPosition(mapHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(agentHeading.compareDocumentPosition(mapHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(descriptionHeading.compareDocumentPosition(roomTypeHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(roomTypeHeading.compareDocumentPosition(mapHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(mapHeading.compareDocumentPosition(agentHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 })

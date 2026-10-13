@@ -78,7 +78,14 @@ describe('house presentation', () => {
     // The first photo is the large one on the page; no viewer is open yet.
     expect(screen.getByRole('img', { name: 'Golden Condo' })).toHaveAttribute('src', 'https://img.test/1.jpg')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'View all 3 photos' })).toBeInTheDocument()
+    expect(screen.getByText('1 / 3')).toBeInTheDocument()
+
+    // The arrows and the thumbnails change the large photo on the page.
+    await user.click(screen.getByRole('button', { name: 'Next photo' }))
+    expect(screen.getByRole('img', { name: 'Golden Condo' })).toHaveAttribute('src', 'https://img.test/2.jpg')
+    await user.click(screen.getByRole('button', { name: 'Show photo 3' }))
+    expect(screen.getByRole('img', { name: 'Golden Condo' })).toHaveAttribute('src', 'https://img.test/3.jpg')
+    await user.click(screen.getByRole('button', { name: 'Previous photo' }))
 
     await user.click(screen.getByRole('button', { name: 'Open photo 2 of 3' }))
     const viewer = screen.getByRole('dialog', { name: 'Photos of Golden Condo' })
