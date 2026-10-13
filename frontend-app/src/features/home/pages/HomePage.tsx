@@ -4,7 +4,7 @@ import { type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
 
-import shawemalLogo from '@/assets/shawemal-logo.jpg'
+import shawemalLogo from '@/assets/shawemal-logo.png'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

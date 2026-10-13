@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
 import { UserMenu } from '@/features/public/components/UserMenu'
-import shawemalLogo from '@/assets/shawemal-logo.jpg'
+import shawemalLogo from '@/assets/shawemal-logo.png'
 import { cn } from '@/lib/utils'
 
 const guestTopLinks = [
@@ -94,7 +94,7 @@ export function PublicLayout() {
             <img
               src={shawemalLogo}
               alt=""
-              className="h-9 w-9 rounded-md object-cover"
+              className="h-9 w-9 rounded-md bg-white object-contain"
             />
             <span className="text-xl font-bold tracking-tight">{t('common.appName')}</span>
           </Link>
