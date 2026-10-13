@@ -96,11 +96,18 @@ export function HomePage() {
             {homeQuery.data.popularRecommended.length === 0 ? (
               <EmptyHint text={t('home.emptyPopular')} />
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              // One row that scrolls sideways (swipe on phones); the scrollbar itself is hidden.
+              <ul
+                aria-label={t('home.popularTitle')}
+                tabIndex={0}
+                className="-mx-1 flex snap-x gap-4 overflow-x-auto scroll-smooth px-1 py-1 [scrollbar-width:none] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-scrollbar]:hidden"
+              >
                 {homeQuery.data.popularRecommended.map((house) => (
-                  <HouseCard key={house.id} house={house} />
+                  <li key={house.id} className="w-[80%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
+                    <HouseCard house={house} className="h-full" />
+                  </li>
                 ))}
-              </div>
+              </ul>
             )}
           </HomeSection>
 
