@@ -160,6 +160,8 @@ export function HireMovingPage() {
     const params = new URLSearchParams(searchParams)
     params.set('step', String(next))
     setSearchParams(params)
+    // The buttons sit at the bottom of each step, so a new step has to start back at the top.
+    window.scrollTo?.({ top: 0, behavior: 'smooth' })
   }
 
   const applyFieldErrors = (validationErrors: Record<string, string | undefined>) => {
@@ -171,6 +173,10 @@ export function HireMovingPage() {
       }
       setError(key as keyof MovingRequestFormValues, { type: 'validate', message })
     })
+    // Continue is below the fields: bring the first problem into view once it has been drawn.
+    window.setTimeout(() => {
+      document.querySelector('[data-moving-form] .text-destructive')?.scrollIntoView?.({ behavior: 'smooth', block: 'center' })
+    }, 0)
   }
 
   const syncPhotoPaths = (paths: string[]) => {
@@ -340,7 +346,7 @@ export function HireMovingPage() {
             userEmail={user?.email}
           />
         ) : (
-          <form className="space-y-6" onSubmit={onSubmit} noValidate>
+          <form data-moving-form className="space-y-6" onSubmit={onSubmit} noValidate>
             <input type="hidden" {...register('pickupAddress')} />
             <input type="hidden" {...register('dropoffAddress')} />
             <input type="hidden" {...register('pickupLatitude')} />

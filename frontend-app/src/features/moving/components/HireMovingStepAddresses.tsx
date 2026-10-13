@@ -13,6 +13,7 @@ import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import { HireMovingEasySteps } from './HireMovingEasySteps'
 import { HireMovingField } from './HireMovingField'
 import { MovingRouteMap, type MovingPinRole } from './MovingRouteMap'
+import { HireMovingStepNav } from './HireMovingStepNav'
 
 const selectClassName =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50'
@@ -145,10 +146,6 @@ export function HireMovingStepAddresses({
 
   return (
     <div className="space-y-8">
-      <div className="flex w-full justify-end">
-        <Button type="submit">{t('moving.continue')}</Button>
-      </div>
-
       <div className="grid gap-6">
         <AddressBlock
           streetName="pickupStreet"
@@ -222,6 +219,10 @@ export function HireMovingStepAddresses({
           className="w-full rounded-md border object-contain"
         />
       </section>
+
+      <HireMovingStepNav>
+        <Button type="submit">{t('moving.continue')}</Button>
+      </HireMovingStepNav>
     </div>
   )
 }

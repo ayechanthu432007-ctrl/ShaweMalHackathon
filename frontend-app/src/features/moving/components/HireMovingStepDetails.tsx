@@ -11,6 +11,7 @@ import { INVENTORY_CATEGORY_ORDER } from '../constants/inventory-catalog'
 import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import { HireMovingField } from './HireMovingField'
 import { InventoryItemRow } from './InventoryItemRow'
+import { HireMovingStepNav } from './HireMovingStepNav'
 
 const textareaClassName =
   'flex min-h-20 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
@@ -53,13 +54,6 @@ export function HireMovingStepDetails({
 
   return (
     <div className="space-y-6">
-      <div className="flex w-full flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          {t('moving.back')}
-        </Button>
-        <Button type="submit">{t('moving.continue')}</Button>
-      </div>
-
       <div className="rounded-md border bg-muted/40 p-4 text-sm">
         <p>
           <span className="font-medium">{t('moving.pickupAddress')}: </span>
@@ -138,6 +132,10 @@ export function HireMovingStepDetails({
         <HireMovingField label={t('moving.remarks')} error={errors.remarks?.message} className="sm:col-span-2">
           <textarea className={textareaClassName} {...register('remarks')} />
         </HireMovingField>
+
+      <HireMovingStepNav onBack={onBack}>
+        <Button type="submit">{t('moving.continue')}</Button>
+      </HireMovingStepNav>
     </div>
   )
 }

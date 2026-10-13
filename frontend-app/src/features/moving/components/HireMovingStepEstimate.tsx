@@ -8,6 +8,7 @@ import type { MasterDataItem } from '@/features/master-data/types'
 import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import type { MovingQuote } from '../types'
 import { HireMovingField } from './HireMovingField'
+import { HireMovingStepNav } from './HireMovingStepNav'
 
 const selectClassName =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
@@ -42,15 +43,6 @@ export function HireMovingStepEstimate({
 
   return (
     <div className="space-y-6">
-      <div className="flex w-full flex-wrap justify-end gap-2">
-        <Button type="button" variant="outline" onClick={onBack}>
-          {t('moving.back')}
-        </Button>
-        <Button type="submit" disabled={isSubmitting || isQuoting || !quote}>
-          {isSubmitting ? t('common.loading') : t('moving.confirmBooking')}
-        </Button>
-      </div>
-
       <div>
         <h2 className="text-xl font-semibold">{t('moving.estimateTitle')}</h2>
         <p className="text-sm text-muted-foreground">{t('moving.estimateHint')}</p>
@@ -108,6 +100,12 @@ export function HireMovingStepEstimate({
       <HireMovingField label={t('moving.moveInDate')} error={errors.moveInDate?.message} className="max-w-xs">
         <Input type="date" {...register('moveInDate')} />
       </HireMovingField>
+
+      <HireMovingStepNav onBack={onBack}>
+        <Button type="submit" disabled={isSubmitting || isQuoting || !quote}>
+          {isSubmitting ? t('common.loading') : t('moving.confirmBooking')}
+        </Button>
+      </HireMovingStepNav>
     </div>
   )
 }
