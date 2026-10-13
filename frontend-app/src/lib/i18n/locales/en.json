@@ -1312,9 +1312,8 @@
     "sell": {
       "title": "Sell an item",
       "editTitle": "Edit listing",
-      "subtitle": "Four quick steps. Buyers contact you directly — Shawe Mal doesn't take a cut.",
-      "progressLabel": "Listing progress",
-      "stepHeading": "Step {{step}} — {{title}}",
+      "subtitle": "One short form. Buyers contact you directly — Shawe Mal doesn't take a cut.",
+      "formTitle": "Item details",
       "steps": {
         "photos": "Photos",
         "details": "Item info",

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, ShieldCheck } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
@@ -27,8 +27,9 @@ import {
   type SellerContactSettings,
 } from '../types'
 
-type Step = 1 | 2 | 3 | 4
-const STEPS: Step[] = [1, 2, 3, 4]
+/** The four parts of the form, in the order they appear on the page. */
+type Section = 1 | 2 | 3 | 4
+const SECTIONS: Section[] = [1, 2, 3, 4]
 
 type FormState = {
   images: string[]
@@ -98,7 +99,6 @@ export function SellItemPage() {
   const queryClient = useQueryClient()
   const { isAuthenticated, isBootstrapping } = useAuth()
 
-  const [step, setStep] = useState<Step>(1)
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [dirty, setDirty] = useState(false)
   const [contact, setContact] = useState<SellerContactSettings | null>(null)
@@ -162,7 +162,7 @@ export function SellItemPage() {
     setDirty(true)
   }
 
-  const validateStep = (target: Step): Errors => {
+  const validateSection = (target: Section): Errors => {
     const next: Errors = {}
     if (target === 1 && form.images.length === 0) next.images = t('marketplace.sell.errors.photos')
     if (target === 2) {
@@ -192,21 +192,6 @@ export function SellItemPage() {
       if (!form.policyAccepted) next.policyAccepted = t('marketplace.sell.errors.policy')
     }
     return next
-  }
-
-  const goTo = (target: Step) => {
-    // Moving forward requires every earlier step to be valid.
-    for (const earlier of STEPS.filter((value) => value < target)) {
-      const stepErrors = validateStep(earlier)
-      if (Object.keys(stepErrors).length > 0) {
-        setErrors(stepErrors)
-        setStep(earlier)
-        return
-      }
-    }
-    setErrors({})
-    setStep(target)
-    window.scrollTo?.({ top: 0, behavior: 'smooth' })
   }
 
   const publishMutation = useMutation({
@@ -251,11 +236,12 @@ export function SellItemPage() {
   })
 
   const onPublish = () => {
-    const allErrors = STEPS.reduce<Errors>((acc, value) => ({ ...acc, ...validateStep(value) }), {})
+    const allErrors = SECTIONS.reduce<Errors>((acc, value) => ({ ...acc, ...validateSection(value) }), {})
     if (Object.keys(allErrors).length > 0) {
       setErrors(allErrors)
-      const firstInvalid = STEPS.find((value) => Object.keys(validateStep(value)).length > 0) ?? 4
-      setStep(firstInvalid)
+      // Everything is on one page, so bring the first part that needs attention into view.
+      const firstInvalid = SECTIONS.find((value) => Object.keys(validateSection(value)).length > 0) ?? 1
+      document.getElementById(`sell-section-${firstInvalid}`)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
       return
     }
     publishMutation.mutate()
@@ -273,7 +259,7 @@ export function SellItemPage() {
     return <p className="text-sm text-destructive">{t('marketplace.detail.notFound')}</p>
   }
 
-  const stepTitles: Record<Step, string> = {
+  const sectionTitles: Record<Section, string> = {
     1: t('marketplace.sell.steps.photos'),
     2: t('marketplace.sell.steps.details'),
     3: t('marketplace.sell.steps.location'),
@@ -293,45 +279,13 @@ export function SellItemPage() {
         <p className="mt-1 text-muted-foreground">{t('marketplace.sell.subtitle')}</p>
       </div>
 
-      <nav aria-label={t('marketplace.sell.progressLabel')}>
-        <ol className="grid grid-cols-4 gap-2">
-          {STEPS.map((value) => {
-            const complete = value < step
-            const current = value === step
-            return (
-              <li key={value}>
-                <button
-                  type="button"
-                  onClick={() => (value < step ? setStep(value) : goTo(value))}
-                  aria-current={current ? 'step' : undefined}
-                  className="flex w-full flex-col items-center gap-1.5 text-center"
-                >
-                  <span
-                    className={cn(
-                      'flex size-9 items-center justify-center rounded-full text-sm font-semibold transition-all',
-                      current && 'bg-primary text-primary-foreground ring-4 ring-primary/25',
-                      complete && 'bg-primary text-primary-foreground',
-                      !current && !complete && 'border-2 bg-background text-muted-foreground',
-                    )}
-                  >
-                    {complete ? <Check className="size-4" aria-hidden /> : value}
-                  </span>
-                  <span className={cn('text-xs', current ? 'font-semibold' : 'text-muted-foreground')}>{stepTitles[value]}</span>
-                </button>
-              </li>
-            )
-          })}
-        </ol>
-      </nav>
-
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">
-            {t('marketplace.sell.stepHeading', { step, title: stepTitles[step] })}
-          </CardTitle>
+          <CardTitle className="text-lg">{t('marketplace.sell.formTitle')}</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5">
-          {step === 1 ? (
+        <CardContent className="space-y-8">
+          <section id="sell-section-1" className="scroll-mt-4 space-y-5" aria-label={sectionTitles[1]}>
+            <h2 className="border-b pb-2 text-base font-semibold">{sectionTitles[1]}</h2>
             <MarketplacePhotoUploader
               photos={form.images}
               coverIndex={form.coverIndex}
@@ -342,10 +296,10 @@ export function SellItemPage() {
                 setErrors((previous) => ({ ...previous, images: undefined }))
               }}
             />
-          ) : null}
+          </section>
 
-          {step === 2 ? (
-            <>
+          <section id="sell-section-2" className="scroll-mt-4 space-y-5" aria-label={sectionTitles[2]}>
+            <h2 className="border-b pb-2 text-base font-semibold">{sectionTitles[2]}</h2>
               <Field id="listing-title" label={t('marketplace.fields.title')} error={errors.title}>
                 <Input id="listing-title" maxLength={120} value={form.title} onChange={(event) => set('title', event.target.value)} placeholder={t('marketplace.sell.titlePlaceholder')} />
               </Field>
@@ -410,11 +364,10 @@ export function SellItemPage() {
                   placeholder={t('marketplace.sell.descriptionPlaceholder')}
                 />
               </Field>
-            </>
-          ) : null}
+          </section>
 
-          {step === 3 ? (
-            <>
+          <section id="sell-section-3" className="scroll-mt-4 space-y-5" aria-label={sectionTitles[3]}>
+            <h2 className="border-b pb-2 text-base font-semibold">{sectionTitles[3]}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field id="listing-township" label={t('marketplace.fields.township')} error={errors.cityId}>
                   <select id="listing-township" className={selectClassName} value={form.cityId} onChange={(event) => set('cityId', event.target.value)}>
@@ -454,10 +407,11 @@ export function SellItemPage() {
                   </select>
                 </Field>
               ) : null}
-            </>
-          ) : null}
+          </section>
 
-          {step === 4 && contact ? (
+          <section id="sell-section-4" className="scroll-mt-4 space-y-5" aria-label={sectionTitles[4]}>
+            <h2 className="border-b pb-2 text-base font-semibold">{sectionTitles[4]}</h2>
+          {contact ? (
             <>
               <p className="text-sm text-muted-foreground">{t('marketplace.sell.contactIntro')}</p>
               <div className="space-y-3">
@@ -518,6 +472,7 @@ export function SellItemPage() {
               </div>
             </>
           ) : null}
+          </section>
 
           {publishMutation.isError ? (
             <p className="text-sm text-destructive" role="alert">
@@ -526,24 +481,12 @@ export function SellItemPage() {
           ) : null}
 
           <div className="flex justify-between gap-2 border-t pt-4">
-            {step > 1 ? (
-              <Button type="button" variant="outline" onClick={() => setStep((step - 1) as Step)}>
-                {t('common.previous')}
-              </Button>
-            ) : (
-              <Button asChild variant="ghost">
-                <Link to={isEditing ? '/marketplace/my' : '/marketplace'}>{t('common.cancel')}</Link>
-              </Button>
-            )}
-            {step < 4 ? (
-              <Button type="button" onClick={() => goTo((step + 1) as Step)}>
-                {t('common.next')}
-              </Button>
-            ) : (
-              <Button type="button" disabled={publishMutation.isPending} onClick={onPublish}>
-                {publishMutation.isPending ? t('common.loading') : isEditing ? t('marketplace.sell.saveChanges') : t('marketplace.sell.publish')}
-              </Button>
-            )}
+            <Button asChild variant="ghost">
+              <Link to={isEditing ? '/marketplace/my' : '/marketplace'}>{t('common.cancel')}</Link>
+            </Button>
+            <Button type="button" disabled={publishMutation.isPending} onClick={onPublish}>
+              {publishMutation.isPending ? t('common.loading') : isEditing ? t('marketplace.sell.saveChanges') : t('marketplace.sell.publish')}
+            </Button>
           </div>
         </CardContent>
       </Card>
