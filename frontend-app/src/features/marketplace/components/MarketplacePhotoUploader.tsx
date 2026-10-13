@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 
 import { compressImage } from '../lib/compress-image'
 
-export const MARKETPLACE_MAX_PHOTOS = 10
+export const MARKETPLACE_MAX_PHOTOS = 3
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 /** Hard stop before compression; anything bigger is almost certainly not a phone photo. */
 const MAX_SOURCE_BYTES = 25 * 1024 * 1024

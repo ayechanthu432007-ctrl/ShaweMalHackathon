@@ -14,10 +14,10 @@ export const UPLOAD_MIME_TO_EXTENSION: Record<string, string> = {
 
 export const DEFAULT_UPLOAD_ALLOWED_MIME = Object.keys(UPLOAD_MIME_TO_EXTENSION);
 
-export const MARKETPLACE_MAX_PHOTOS = 10;
+export const MARKETPLACE_MAX_PHOTOS = 3;
 
-/** Largest per-request file count across all categories (multer limit). */
-export const MAX_FILES_PER_UPLOAD = MARKETPLACE_MAX_PHOTOS;
+/** Largest per-request file count across all categories (multer limit): houses and moving allow 5. */
+export const MAX_FILES_PER_UPLOAD = 5;
 
 export const maxFilesForCategory = (category: UploadCategory): number => {
   if (category === 'marketplace') {

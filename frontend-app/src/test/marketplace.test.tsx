@@ -140,9 +140,10 @@ describe('marketplace photo uploader', () => {
     expect(onChange).toHaveBeenLastCalledWith({ photos: photos.slice(0, 2), coverIndex: 0 })
   })
 
-  it('shows the 10 photo limit', () => {
+  it('shows the 3 photo limit and stops accepting more once it is reached', () => {
     renderWithProviders(<MarketplacePhotoUploader photos={photos} coverIndex={0} onChange={vi.fn()} />)
-    expect(screen.getByText('3 / 10 photos')).toBeInTheDocument()
+    expect(screen.getByText('3 / 3 photos')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add photos/i })).toBeDisabled()
   })
 })
 

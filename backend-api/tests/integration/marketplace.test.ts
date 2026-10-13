@@ -101,8 +101,8 @@ describe('marketplace listings - seller', () => {
     expect(JSON.stringify(response.body.errors)).toContain('marketplace policy');
   });
 
-  it('rejects more than 10 photos', async () => {
-    const images = Array.from({ length: 11 }, (_, index) => `uploads/marketplace/p${index}.jpg`);
+  it('rejects more than 3 photos', async () => {
+    const images = Array.from({ length: 4 }, (_, index) => `uploads/marketplace/p${index}.jpg`);
     const response = await request(app)
       .post('/api/v1/marketplace/me/listings')
       .set('Authorization', bearer('seller-1'))

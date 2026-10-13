@@ -1300,7 +1300,7 @@
     },
     "photos": {
       "count": "{{count}} / {{max}} photos",
-      "hint": "Add up to 10 photos. Drag or use the arrows to reorder, and choose a cover photo. Large photos are compressed automatically.",
+      "hint": "Add up to 3 photos. Drag or use the arrows to reorder, and choose a cover photo. Large photos are compressed automatically.",
       "empty": "Tap to add photos",
       "cover": "Cover",
       "setCover": "Cover",
