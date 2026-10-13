@@ -101,3 +101,103 @@ select optgroup {
   background-color: var(--popover);
   color: var(--popover-foreground);
 }
+
+/* ---- Rotating 3D logo on the home page (see RotatingLogo.tsx) ---- */
+.logo3d {
+  perspective: 1100px;
+}
+
+.logo3d-float {
+  transform-style: preserve-3d;
+  animation: logo3d-float 5s ease-in-out infinite;
+}
+
+.logo3d-spin {
+  transform-style: preserve-3d;
+  animation: logo3d-spin 11s linear infinite;
+  will-change: transform;
+}
+
+/* The stacked middle copies form the edge: darker, like the side of a cut-out shape. */
+.logo3d-edge {
+  filter: brightness(0.38) saturate(0.85);
+}
+
+/* The two outer copies are the faces; they catch more light when turned towards the viewer. */
+.logo3d-face {
+  animation: logo3d-light 11s linear infinite;
+  filter: drop-shadow(0 0 0.5px rgb(255 255 255 / 0.6));
+}
+
+.logo3d-shadow {
+  animation:
+    logo3d-shadow-turn 11s linear infinite,
+    logo3d-shadow-float 5s ease-in-out infinite;
+}
+
+@keyframes logo3d-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+
+@keyframes logo3d-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4%);
+  }
+}
+
+@keyframes logo3d-light {
+  0%,
+  50%,
+  100% {
+    filter: brightness(1.06) drop-shadow(0 0 0.5px rgb(255 255 255 / 0.6));
+  }
+  25%,
+  75% {
+    filter: brightness(0.72) drop-shadow(0 0 0.5px rgb(255 255 255 / 0.6));
+  }
+}
+
+@keyframes logo3d-shadow-turn {
+  0%,
+  50%,
+  100% {
+    scale: 1 1;
+  }
+  25%,
+  75% {
+    scale: 0.28 1;
+  }
+}
+
+@keyframes logo3d-shadow-float {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.32;
+  }
+}
+
+/* Reduced motion: no turning or floating, just the solid logo at a slight angle. */
+@media (prefers-reduced-motion: reduce) {
+  .logo3d-float,
+  .logo3d-face,
+  .logo3d-shadow {
+    animation: none;
+  }
+
+  .logo3d-spin {
+    animation: none;
+    transform: rotateY(-24deg);
+  }
+}

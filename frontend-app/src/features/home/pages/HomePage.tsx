@@ -4,7 +4,6 @@ import { type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
 
-import shawemalLogo from '@/assets/shawemal-logo.png'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,6 +11,7 @@ import { StarRating } from '@/features/reviews/components/StarRating'
 
 import { homeApi } from '../api/home-api'
 import { HouseCarousel } from '../components/HouseCarousel'
+import { RotatingLogo } from '../components/RotatingLogo'
 
 const newPlaceItems: { icon: LucideIcon; titleKey: string; bodyKey: string }[] = [
   { icon: Home, titleKey: 'home.newPlaceItem1Title', bodyKey: 'home.newPlaceItem1Body' },
@@ -246,11 +246,7 @@ function YourNewPlaceSection() {
         <div className="relative flex min-h-[280px] items-center justify-center overflow-hidden bg-gradient-to-br from-[#FAF6F4] via-[#F4E8DC] to-[#E8D4BE] p-8 lg:min-h-full lg:rounded-tl-[8rem] dark:from-muted dark:via-card dark:to-secondary">
           <div className="pointer-events-none absolute -right-10 top-6 size-56 rounded-full bg-primary/25 blur-3xl" />
           <div className="pointer-events-none absolute bottom-4 left-6 size-44 rounded-full bg-sky-300/35 blur-3xl dark:bg-sky-400/20" />
-          <img
-            src={shawemalLogo}
-            alt={t('home.newPlaceLogoAlt')}
-            className="relative z-10 max-h-80 w-full max-w-md object-contain drop-shadow-xl"
-          />
+          <RotatingLogo alt={t('home.newPlaceLogoAlt')} className="z-10" />
         </div>
       </div>
     </section>
