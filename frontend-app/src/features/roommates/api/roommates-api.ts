@@ -1,6 +1,6 @@
 import { apiRequest } from '@/lib/api/client'
 
-import type { RoommateCreateInput, RoommateListFilters, RoommatePost } from '../types'
+import type { RoommateCreateInput, RoommateListFilters, RoommateListResult, RoommatePost } from '../types'
 
 function toQuery(filters: RoommateListFilters): string {
   const search = new URLSearchParams()
@@ -16,7 +16,8 @@ function toQuery(filters: RoommateListFilters): string {
 
 export const roommatesApi = {
   list(filters: RoommateListFilters = {}) {
-    return apiRequest<{ items: RoommatePost[] }>(`/roommates${toQuery(filters)}`, { auth: false })
+    // Sent with the session when there is one, so each post comes back with the viewer's match.
+    return apiRequest<RoommateListResult>(`/roommates${toQuery(filters)}`)
   },
   create(input: RoommateCreateInput) {
     return apiRequest<{ item: RoommatePost }>('/roommates', {

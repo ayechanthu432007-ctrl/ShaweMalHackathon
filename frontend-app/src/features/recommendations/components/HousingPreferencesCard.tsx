@@ -121,6 +121,7 @@ export function HousingPreferencesCard() {
       queryClient.setQueryData(['housing-preferences'], data)
       // Every recommendation depends on these answers, so they are all recalculated.
       void queryClient.invalidateQueries({ queryKey: ['recommendations'] })
+      void queryClient.invalidateQueries({ queryKey: ['roommates'] })
       setStatus({ kind: 'saved', message: t('match.preferences.saved') })
     },
     onError: () => setStatus({ kind: 'error', message: t('match.preferences.saveError') }),

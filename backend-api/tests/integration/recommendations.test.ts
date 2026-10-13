@@ -162,6 +162,67 @@ describe('recommendations', () => {
     expect(prisma.roommatePost.findMany.mock.calls[0][0].where.userId).toEqual({ not: 'user-1' });
   });
 
+  describe('the roommate list', () => {
+    const posts = () => [
+      roommatePost('loud', { isSmokingFriendly: true, likesNightOut: true }),
+      roommatePost('mine', { userId: 'user-1', isNoSmoking: true }),
+      roommatePost('quiet', {
+        isNoSmoking: true,
+        hobbyRelaxSilent: true,
+        user: { id: 'poster-quiet', name: 'Poster quiet', phone: '0911', profilePicturePath: null, housingPreference: preference({ smoking: 'NON_SMOKER' }) }
+      })
+    ];
+
+    it('gives a signed-in visitor their match on every post, best first, without hiding any', async () => {
+      prisma.roommatePost.findMany.mockResolvedValue(posts());
+
+      const response = await request(app).get('/api/v1/roommates').set('Authorization', authHeader('user-1', ['normal']));
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.viewer).toEqual({ signedIn: true, hasPreferences: true });
+      const items = response.body.data.items as Array<{ id: string; match: { score: number } | null }>;
+      // All three posts are returned once each; the lifestyle conflict ranks last among the scored ones.
+      expect(items.map((item) => item.id)).toEqual(['quiet', 'loud', 'mine']);
+      expect(items[0]!.match!.score).toBeGreaterThan(items[1]!.match!.score);
+      // A person is never matched against their own post.
+      expect(items[2]!.match).toBeNull();
+      // The other person's saved preferences are used for scoring but never sent out.
+      expect(JSON.stringify(response.body)).not.toContain('housingPreference');
+    });
+
+    it('scores differently for a different person', async () => {
+      prisma.roommatePost.findMany.mockResolvedValue(posts());
+      prisma.user.findUnique.mockResolvedValue({ ...seeker, housingPreference: preference({ smoking: 'SMOKER', socialLevel: 'SOCIAL' }) });
+
+      const response = await request(app).get('/api/v1/roommates').set('Authorization', authHeader('user-9', ['normal']));
+
+      expect(response.body.data.items[0].id).toBe('loud');
+    });
+
+    it('returns the plain list to visitors who are not signed in', async () => {
+      prisma.roommatePost.findMany.mockResolvedValue(posts());
+
+      const response = await request(app).get('/api/v1/roommates');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.viewer).toEqual({ signedIn: false, hasPreferences: false });
+      expect(response.body.data.items).toHaveLength(3);
+      expect(response.body.data.items.every((item: { match: unknown }) => item.match === null)).toBe(true);
+      expect(prisma.user.findUnique).not.toHaveBeenCalled();
+    });
+
+    it('marks every match incomplete, not 0%, when the visitor has saved no preferences', async () => {
+      prisma.roommatePost.findMany.mockResolvedValue(posts());
+      prisma.user.findUnique.mockResolvedValue({ ...seeker, occupation: null, housingPreference: null });
+
+      const response = await request(app).get('/api/v1/roommates').set('Authorization', authHeader('user-1', ['normal']));
+
+      expect(response.body.data.viewer.hasPreferences).toBe(false);
+      const scored = response.body.data.items.filter((item: { match: unknown }) => item.match !== null);
+      expect(scored.every((item: { match: { confidence: string } }) => item.match.confidence === 'INCOMPLETE')).toBe(true);
+    });
+  });
+
   it('lets only agents ask for potential tenants', async () => {
     const response = await request(app)
       .post('/api/v1/agent/houses/tenant-matches')

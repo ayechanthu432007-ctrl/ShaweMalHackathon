@@ -27,16 +27,20 @@ const parseRoommateGender = (value: unknown): RoommateGender | undefined => {
 };
 
 export const listRoommatesController = async (req: Request, res: Response): Promise<void> => {
-  const items = await listRoommatePosts({
+  const result = await listRoommatePosts(
+    {
     gender: parseRoommateGender(req.query.gender),
     occupationId: typeof req.query.occupationId === 'string' ? req.query.occupationId : undefined,
     city: typeof req.query.city === 'string' ? req.query.city : undefined,
     state: typeof req.query.state === 'string' ? req.query.state : undefined,
     cityId: typeof req.query.cityId === 'string' ? req.query.cityId : undefined,
     stateId: typeof req.query.stateId === 'string' ? req.query.stateId : undefined
-  });
+    },
+    // Signed-in visitors get their personal match on every post; everyone else gets the plain list.
+    req.auth?.userId
+  );
 
-  sendSuccess(res, 200, 'Roommate posts fetched successfully', { items });
+  sendSuccess(res, 200, 'Roommate posts fetched successfully', result);
 };
 
 const parseRoommateBody = (req: Request) => ({

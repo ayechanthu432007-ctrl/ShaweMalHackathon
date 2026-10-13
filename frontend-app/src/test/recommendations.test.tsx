@@ -4,7 +4,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SignUpPage } from '@/features/auth/pages/SignUpPage'
 import { RecommendedHouses } from '@/features/recommendations/components/RecommendedHouses'
-import { RecommendedRoommates } from '@/features/recommendations/components/RecommendedRoommates'
 import { TenantCompatibility } from '@/features/recommendations/components/TenantCompatibility'
 import { tokenStorage } from '@/lib/auth/token-storage'
 import { renderWithProviders } from '@/test/utils'
@@ -40,20 +39,6 @@ const houses = {
   ],
 }
 
-const roommates = {
-  userName: 'Thiri',
-  hasPreferences: true,
-  total: 1,
-  page: 1,
-  pageSize: 6,
-  items: [
-    {
-      post: { id: 'r1', title: 'Looking for a flatmate', budgetCostSharing: '150,000 MMK', gender: 'ANY', occupation: { id: 'o', name: 'Student' }, photos: [], user: { id: 'u2', name: 'Aung', phone: '09 111 222', profilePicturePath: null }, house: { id: 'h', title: 'Shared flat', city: { id: 'c', name: 'Yangon' }, state: null } },
-      match: match(88, { matched: ['smoking', 'social', 'budget', 'location'] }),
-    },
-  ],
-}
-
 const tenants = {
   total: 1,
   page: 1,
@@ -79,7 +64,6 @@ function stubFetch(signedIn: boolean) {
       if (url.includes('/auth/verify')) return json({ user: { id: 'user-1', name: 'Thiri', email: 't@example.com', roles: ['normal'] } })
       if (url.includes('/master-data/occupations')) return json({ items: [{ id: 'occ-student', name: 'Student' }, { id: 'occ-remote', name: 'Remote Worker' }] })
       if (url.includes('/recommendations/houses')) return json(houses)
-      if (url.includes('/recommendations/roommates')) return json(roommates)
       if (url.includes('/agent/houses/tenant-matches')) return json(tenants)
       if (url.includes('/auth/register')) return json({ user: { id: 'new' }, accessToken: 'a', refreshToken: 'r' })
       return new Response(JSON.stringify({ success: false, message: 'not found' }), { status: 404 })
@@ -121,20 +105,6 @@ describe('recommendations', () => {
     const second = cards.find((card) => within(card).queryByText('Quiet Studio'))!
     expect(within(second).getByText('Low confidence')).toBeInTheDocument()
     expect(within(second).getByText('room type and size')).toBeInTheDocument()
-  })
-
-  it('lists the best roommate matches with their top three factors and a contact action', async () => {
-    stubFetch(true)
-    renderWithProviders(<RecommendedRoommates />)
-
-    expect(await screen.findByRole('heading', { name: 'Best Roommate Matches for You' })).toBeInTheDocument()
-    expect(await screen.findByText('Aung')).toBeInTheDocument()
-    expect(screen.getByText('88% match')).toBeInTheDocument()
-    expect(screen.getByText('You match on smoking preference, social lifestyle, budget.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Contact' })).toHaveAttribute('href', 'tel:09111222')
-
-    await userEvent.setup().click(screen.getByRole('button', { name: 'View Profile' }))
-    expect(screen.getByText('Looking for a flatmate')).toBeInTheDocument()
   })
 
   it('analyses a listing draft for the agent and shows matches, conflicts and a limited profile', async () => {

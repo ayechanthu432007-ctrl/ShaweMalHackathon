@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Trash2 } from 'lucide-react'
 import { type ReactNode, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
-import { RecommendedRoommates } from '@/features/recommendations/components/RecommendedRoommates'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -15,10 +14,10 @@ import { SingleImageUploadField } from '@/components/uploads/SingleImageUploadFi
 import { housesApi } from '@/features/houses/api/houses-api'
 import { MarketplaceDialog } from '@/features/marketplace/components/MarketplaceDialog'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
-import { ApiRequestError } from '@/lib/api/client'
-import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
+import { ApiRequestError, refreshAccessToken } from '@/lib/api/client'
 
 import { roommatesApi } from '../api/roommates-api'
+import { RoommateCard } from '../components/RoommateCard'
 import {
   defaultRoommatePostFormValues,
   ROOMMATE_HOBBY_FLAGS,
@@ -34,7 +33,7 @@ const selectClassName =
 
 export function FindingRoommatesPage() {
   const { t } = useTranslation()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, isBootstrapping, user } = useAuth()
   const queryClient = useQueryClient()
   const [filters, setFilters] = useState<RoommateListFilters>({
     gender: '',
@@ -66,8 +65,20 @@ export function FindingRoommatesPage() {
   })
 
   const roommatesQuery = useQuery({
-    queryKey: ['roommates', appliedFilters],
-    queryFn: () => roommatesApi.list(appliedFilters),
+    // Matches are personal, so the list is kept per account and reloads on sign-in and sign-out.
+    queryKey: ['roommates', appliedFilters, user?.id ?? 'guest'],
+    // Wait until it is known who is looking, so the list is requested once, already personalised.
+    enabled: !isBootstrapping,
+    queryFn: async () => {
+      const result = await roommatesApi.list(appliedFilters)
+      // An expired session is served the plain list; renew it once so the matches come back.
+      if (isAuthenticated && !result.viewer?.signedIn && (await refreshAccessToken())) {
+        return roommatesApi.list(appliedFilters)
+      }
+      return result
+    },
+    // Keep the cards on screen while the list reloads (new filters, or the session becoming known).
+    placeholderData: (previous) => previous,
   })
 
   const housesQuery = useQuery({
@@ -220,6 +231,9 @@ export function FindingRoommatesPage() {
     editingPost?.occupation && !occupationOptions.some((item) => item.id === editingPost.occupation?.id)
       ? editingPost.occupation
       : null
+
+  const posts = roommatesQuery.data?.items ?? []
+  const viewer = roommatesQuery.data?.viewer ?? { signedIn: false, hasPreferences: false }
 
   return (
     <div className="space-y-6">
@@ -458,128 +472,75 @@ export function FindingRoommatesPage() {
 
       {successMessage ? <p className="text-sm text-primary">{successMessage}</p> : null}
 
-      {roommatesQuery.isLoading ? (
-        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
-      ) : null}
-      {roommatesQuery.isError ? (
-        <div className="space-y-2">
-          <p className="text-sm text-destructive">{t('roommates.loadError')}</p>
-          <Button type="button" variant="outline" onClick={() => void roommatesQuery.refetch()}>
-            {t('common.retry')}
-          </Button>
+      <section className="space-y-4" aria-labelledby="roommate-list-title">
+        <div>
+          <h2 id="roommate-list-title" className="text-xl font-semibold tracking-tight">
+            {t('roommates.listTitle')}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{viewer.signedIn ? t('roommates.listSubtitleRanked') : t('roommates.listSubtitle')}</p>
         </div>
-      ) : null}
-      {!roommatesQuery.isLoading && !roommatesQuery.isError && (roommatesQuery.data?.items.length ?? 0) === 0 ? (
-        <p className="text-sm text-muted-foreground">{t('roommates.empty')}</p>
-      ) : null}
 
-      <RecommendedRoommates />
+        {!isAuthenticated ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+            <p className="text-sm text-muted-foreground">{t('match.roommates.signIn')}</p>
+            <Button asChild size="sm">
+              <Link to="/sign-in" state={{ from: '/finding-roommates' }}>
+                {t('nav.signIn')}
+              </Link>
+            </Button>
+          </div>
+        ) : null}
 
-      <h2 className="text-xl font-semibold tracking-tight">{t('roommates.allPosts')}</h2>
-      <div className="grid gap-4 md:grid-cols-2">
-        {(roommatesQuery.data?.items ?? []).map((item) => {
-          const activePrefs = Object.entries(item.preferences ?? {})
-            .filter(([, value]) => value)
-            .map(([key]) => t(`roommates.flags.${key}`, { defaultValue: key }))
-          const activeHobbies = Object.entries(item.hobbies ?? {})
-            .filter(([, value]) => value)
-            .map(([key]) => t(`roommates.flags.${key}`, { defaultValue: key }))
-          const photos = (item.photos ?? []).flatMap((path) => resolvePublicUploadUrl(path) ?? [])
-          const isOwner = Boolean(user?.id && item.user?.id === user.id)
+        {viewer.signedIn && !viewer.hasPreferences ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+            <p className="text-sm text-muted-foreground">{t('roommates.completePreferences')}</p>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/profile#housing-preferences">{t('match.setPreferences')}</Link>
+            </Button>
+          </div>
+        ) : null}
 
-          return (
-            <Card key={item.id}>
-              <CardHeader>
-                <div className="flex items-start gap-3">
-                  {(() => {
-                    const avatarSrc = resolvePublicUploadUrl(item.user?.profilePicturePath)
-                    return avatarSrc ? (
-                      <img
-                        src={avatarSrc}
-                        alt=""
-                        className="size-12 shrink-0 rounded-full border border-input object-cover"
-                      />
-                    ) : null
-                  })()}
-                  <div className="min-w-0 space-y-1">
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      {item.user?.name ?? t('home.anonymousReviewer')} · {item.gender}
-                    </p>
-                    {item.user?.phone ? (
-                      <p className="text-sm">
-                        <span className="font-medium">{t('roommates.contactPhone')}: </span>
-                        <a href={`tel:${item.user.phone.replace(/\s+/g, '')}`} className="hover:underline">
-                          {item.user.phone}
-                        </a>
-                      </p>
-                    ) : null}
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                {photos.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {photos.map((src, index) => (
-                      <img
-                        key={src}
-                        src={src}
-                        alt={t('roommates.photoAlt', { name: item.user?.name ?? '', index: index + 1 })}
-                        loading="lazy"
-                        className="aspect-[4/3] w-full rounded-md border border-input object-cover"
-                      />
-                    ))}
-                  </div>
-                ) : null}
-                <p>{item.budgetCostSharing}</p>
-                <p className="text-muted-foreground">
-                  {item.occupation?.name ??
-                    occupationNameById.get(item.occupation?.id ?? '') ??
-                    t('roommates.occupationUnknown')}
-                </p>
-                <p className="text-muted-foreground">
-                  {item.house?.title ?? '—'}
-                  {item.house?.city?.name ? ` · ${item.house.city.name}` : ''}
-                  {item.house?.state?.name ? `, ${item.house.state.name}` : ''}
-                </p>
-                {activePrefs.length > 0 ? (
-                  <p>
-                    <span className="font-medium">{t('roommates.interests')}: </span>
-                    {activePrefs.join(', ')}
-                  </p>
-                ) : null}
-                {activeHobbies.length > 0 ? (
-                  <p>
-                    <span className="font-medium">{t('roommates.hobbies')}: </span>
-                    {activeHobbies.join(', ')}
-                  </p>
-                ) : null}
-                {isOwner ? (
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    <Button type="button" variant="outline" size="sm" onClick={() => onEdit(item)}>
-                      <Pencil className="size-4" aria-hidden />
-                      {t('roommates.editAction')}
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="text-destructive hover:text-destructive"
-                      onClick={() => {
-                        setDeleteError(null)
-                        setDeleteTarget(item)
-                      }}
-                    >
-                      <Trash2 className="size-4" aria-hidden />
-                      {t('roommates.deleteAction')}
-                    </Button>
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+        {viewer.signedIn && viewer.hasPreferences ? (
+          <p className="text-sm">
+            <Link to="/profile#housing-preferences" className="font-medium text-primary underline-offset-4 hover:underline">
+              {t('match.setPreferences')}
+            </Link>
+          </p>
+        ) : null}
+
+        {roommatesQuery.isLoading || isBootstrapping ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {roommatesQuery.isError ? (
+          <div className="space-y-2">
+            <p className="text-sm text-destructive">{t('roommates.loadError')}</p>
+            <Button type="button" variant="outline" onClick={() => void roommatesQuery.refetch()}>
+              {t('common.retry')}
+            </Button>
+          </div>
+        ) : null}
+        {!roommatesQuery.isLoading && !isBootstrapping && !roommatesQuery.isError && posts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('roommates.empty')}</p>
+        ) : null}
+
+        <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {posts.map((item) => (
+            <li key={item.id}>
+              <RoommateCard
+                post={item}
+                viewer={viewer}
+                isOwner={Boolean(user?.id && item.user?.id === user.id)}
+                occupationName={item.occupation?.name ?? occupationNameById.get(item.occupation?.id ?? '') ?? t('roommates.occupationUnknown')}
+                onEdit={() => onEdit(item)}
+                onDelete={() => {
+                  setDeleteError(null)
+                  setDeleteTarget(item)
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+
+        {viewer.signedIn && posts.some((item) => item.match) ? <p className="text-xs text-muted-foreground">{t('match.disclaimer')}</p> : null}
+      </section>
 
       <MarketplaceDialog
         open={deleteTarget !== null}

@@ -149,9 +149,6 @@ export const recommendationsApi = {
   houses() {
     return apiRequest<HouseRecommendations>('/recommendations/houses?limit=5')
   },
-  roommates(pageSize = 6) {
-    return apiRequest<RoommateRecommendations>(`/recommendations/roommates?page=1&pageSize=${pageSize}`)
-  },
   tenantMatches(draft: ListingDraft) {
     return apiRequest<TenantMatches>('/agent/houses/tenant-matches', { method: 'POST', body: { ...draft, pageSize: 5 } })
   },

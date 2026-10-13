@@ -2,6 +2,7 @@ import { Prisma, RoommateGender } from '@prisma/client';
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { PREFERENCE_INCLUDE, loadViewerFacts, matchRoommatePost } from './recommendation.service';
 
 interface ListRoommatePostsInput {
   gender?: RoommateGender;
@@ -52,7 +53,9 @@ const ROOMMATE_INCLUDE = {
       id: true,
       name: true,
       phone: true,
-      profilePicturePath: true
+      profilePicturePath: true,
+      // Only ever used to calculate a match; it is never sent to the browser.
+      housingPreference: { include: PREFERENCE_INCLUDE }
     }
   },
   occupation: {
@@ -65,6 +68,8 @@ const ROOMMATE_INCLUDE = {
     select: {
       id: true,
       title: true,
+      cityId: true,
+      stateId: true,
       city: {
         select: {
           id: true,
@@ -113,8 +118,8 @@ const mapRoommatePost = (item: Prisma.RoommatePostGetPayload<{ include: typeof R
   },
   // Posts created before photos were introduced have no photo list.
   photos: item.photoPaths ?? [],
-  user: item.user,
-  house: item.house,
+  user: { id: item.user.id, name: item.user.name, phone: item.user.phone, profilePicturePath: item.user.profilePicturePath },
+  house: { id: item.house.id, title: item.house.title, city: item.house.city, state: item.house.state },
   createdAt: item.createdAt,
   updatedAt: item.updatedAt
 });
@@ -163,16 +168,38 @@ const buildWhere = (input: ListRoommatePostsInput): Prisma.RoommatePostWhereInpu
   return where;
 };
 
-export const listRoommatePosts = async (input: ListRoommatePostsInput) => {
-  const items = await prisma.roommatePost.findMany({
-    where: buildWhere(input),
-    include: ROOMMATE_INCLUDE,
-    orderBy: {
-      createdAt: 'desc'
-    }
-  });
+/**
+ * Every roommate post that passes the filters, once each. For a signed-in viewer each post
+ * carries their personal compatibility and the list is ordered best match first; posts that
+ * cannot be scored (and the viewer's own posts) follow, newest first. Nothing is hidden.
+ */
+export const listRoommatePosts = async (input: ListRoommatePostsInput, viewerId?: string) => {
+  const [items, viewer] = await Promise.all([
+    prisma.roommatePost.findMany({
+      where: buildWhere(input),
+      include: ROOMMATE_INCLUDE,
+      orderBy: {
+        createdAt: 'desc'
+      }
+    }),
+    viewerId ? loadViewerFacts(viewerId) : Promise.resolve(null)
+  ]);
 
-  return items.map(mapRoommatePost);
+  const posts = items.map((item) => ({
+    ...mapRoommatePost(item),
+    match: viewer && item.userId !== viewerId ? matchRoommatePost(item, viewer.person) : null
+  }));
+
+  if (viewer) {
+    // A post without a usable score has nothing to rank by, so it keeps its place after the scored ones.
+    const rank = (post: (typeof posts)[number]) => (post.match && post.match.confidence !== 'INCOMPLETE' ? post.match.score : -1);
+    posts.sort((a, b) => rank(b) - rank(a) || b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  return {
+    items: posts,
+    viewer: { signedIn: Boolean(viewer), hasPreferences: viewer?.hasPreferences ?? false }
+  };
 };
 
 const assertHouseAndOccupation = async (input: Pick<CreateRoommatePostInput, 'houseId' | 'occupationId'>) => {

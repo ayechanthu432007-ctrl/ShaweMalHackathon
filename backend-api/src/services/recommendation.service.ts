@@ -19,7 +19,7 @@ const CANDIDATE_LIMIT = 300;
 const MIN_HOUSE_SCORE = 40;
 const DEFAULT_HOUSE_RECOMMENDATIONS = 5;
 
-const PREFERENCE_INCLUDE = {
+export const PREFERENCE_INCLUDE = {
   preferredCity: { select: { id: true, name: true, stateId: true } },
   propertyType: { select: { id: true, name: true } }
 } as const;
@@ -276,6 +276,52 @@ const ROOMMATE_MATCH_INCLUDE = {
   }
 } as const;
 
+/** What the roommate scoring needs to know about one post. */
+export interface RoommatePostForMatch {
+  occupationId: string | null;
+  budgetCostSharing: string;
+  isSmokingFriendly: boolean;
+  isNoSmoking: boolean;
+  likesNightOut: boolean;
+  likesHangoutEveryday: boolean;
+  hobbyChillWithOthers: boolean;
+  hobbyRelaxSilent: boolean;
+  hobbySinging: boolean;
+  house: { cityId: string | null; stateId: string | null };
+  user: { housingPreference?: PreferenceRow | null };
+}
+
+/** The signed-in person as the scoring sees them; null when the account no longer exists. */
+export const loadViewerFacts = async (userId: string): Promise<{ person: PersonFacts; hasPreferences: boolean } | null> => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { occupation: { select: { id: true, name: true } }, housingPreference: { include: PREFERENCE_INCLUDE } }
+  });
+  return user ? { person: toPersonFacts(user), hasPreferences: Boolean(user.housingPreference) } : null;
+};
+
+/** Compatibility between one roommate post and one person, from what both actually stated. */
+export const matchRoommatePost = (post: RoommatePostForMatch, person: PersonFacts) =>
+  presentMatch(
+    scoreRoommateForPerson(
+      {
+        occupationId: post.occupationId,
+        cityId: post.house.cityId,
+        stateId: post.house.stateId,
+        budget: parseMonthlyAmount(post.budgetCostSharing),
+        isSmokingFriendly: post.isSmokingFriendly,
+        isNoSmoking: post.isNoSmoking,
+        likesNightOut: post.likesNightOut,
+        likesHangoutEveryday: post.likesHangoutEveryday,
+        hobbyChillWithOthers: post.hobbyChillWithOthers,
+        hobbyRelaxSilent: post.hobbyRelaxSilent,
+        hobbySinging: post.hobbySinging,
+        preferences: toPersonPreferences(post.user.housingPreference)
+      },
+      person
+    )
+  );
+
 /** Roommate posts ranked for the signed-in person, most compatible first. */
 export const recommendRoommates = async (userId: string, page = 1, pageSize = 6) => {
   const user = await loadPerson(userId);
@@ -289,26 +335,7 @@ export const recommendRoommates = async (userId: string, page = 1, pageSize = 6)
   });
 
   const scored = posts
-    .map((post) => ({
-      post,
-      match: scoreRoommateForPerson(
-        {
-          occupationId: post.occupationId,
-          cityId: post.house.cityId,
-          stateId: post.house.stateId,
-          budget: parseMonthlyAmount(post.budgetCostSharing),
-          isSmokingFriendly: post.isSmokingFriendly,
-          isNoSmoking: post.isNoSmoking,
-          likesNightOut: post.likesNightOut,
-          likesHangoutEveryday: post.likesHangoutEveryday,
-          hobbyChillWithOthers: post.hobbyChillWithOthers,
-          hobbyRelaxSilent: post.hobbyRelaxSilent,
-          hobbySinging: post.hobbySinging,
-          preferences: toPersonPreferences(post.user.housingPreference)
-        },
-        person
-      )
-    }))
+    .map((post) => ({ post, match: matchRoommatePost(post, person) }))
     .sort((a, b) => b.match.score - a.match.score || b.post.createdAt.getTime() - a.post.createdAt.getTime());
 
   const start = (page - 1) * pageSize;
@@ -330,7 +357,7 @@ export const recommendRoommates = async (userId: string, page = 1, pageSize = 6)
         user: { id: post.user.id, name: post.user.name, phone: post.user.phone, profilePicturePath: post.user.profilePicturePath },
         house: { id: post.house.id, title: post.house.title, city: post.house.city, state: post.house.state }
       },
-      match: presentMatch(match)
+      match
     }))
   };
 };

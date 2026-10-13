@@ -1,3 +1,5 @@
+import type { MatchSummary } from '@/features/recommendations/api/recommendations-api'
+
 export type RoommateGender = 'MALE' | 'FEMALE' | 'ANY'
 
 export type RoommateListFilters = {
@@ -26,6 +28,13 @@ export type RoommatePost = {
     state?: { id: string; name: string } | null
   } | null
   createdAt?: string
+  /** The signed-in viewer's compatibility with this post; null for guests and for one's own post. */
+  match?: MatchSummary | null
+}
+
+export type RoommateListResult = {
+  items: RoommatePost[]
+  viewer?: { signedIn: boolean; hasPreferences: boolean }
 }
 
 export type RoommateCreateInput = {
