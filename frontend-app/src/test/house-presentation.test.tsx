@@ -70,13 +70,38 @@ describe('house presentation', () => {
     expect(screen.queryByRole('link')).not.toBeInTheDocument()
   })
 
-  it('switches the large photo when a thumbnail is chosen', async () => {
-    renderWithProviders(<HouseGallery title="Golden Condo" images={[{ imagePath: 'https://img.test/1.jpg' }, { imagePath: 'https://img.test/2.jpg' }]} />)
+  it('opens a full-screen viewer from any photo, with a counter and previous/next navigation', async () => {
+    const user = userEvent.setup()
+    const images = [1, 2, 3].map((n) => ({ imagePath: `https://img.test/${n}.jpg` }))
+    renderWithProviders(<HouseGallery title="Golden Condo" images={images} />)
 
+    // The first photo is the large one on the page; no viewer is open yet.
     expect(screen.getByRole('img', { name: 'Golden Condo' })).toHaveAttribute('src', 'https://img.test/1.jpg')
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Show photo 2' }))
-    expect(screen.getByRole('img', { name: 'Golden Condo' })).toHaveAttribute('src', 'https://img.test/2.jpg')
-    expect(screen.getByText('2 / 2')).toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'View all 3 photos' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Open photo 2 of 3' }))
+    const viewer = screen.getByRole('dialog', { name: 'Photos of Golden Condo' })
+    expect(within(viewer).getByText('2 / 3')).toBeInTheDocument()
+    expect(within(viewer).getByRole('img', { name: 'Photo 2 of Golden Condo' })).toHaveAttribute('src', 'https://img.test/2.jpg')
+
+    await user.click(within(viewer).getByRole('button', { name: 'Next photo' }))
+    expect(within(viewer).getByText('3 / 3')).toBeInTheDocument()
+    // Going past the last photo wraps to the first.
+    await user.click(within(viewer).getByRole('button', { name: 'Next photo' }))
+    expect(within(viewer).getByText('1 / 3')).toBeInTheDocument()
+    await user.keyboard('{ArrowLeft}')
+    expect(within(viewer).getByText('3 / 3')).toBeInTheDocument()
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('shows a placeholder only when the listing has no photos', () => {
+    renderWithProviders(<HouseGallery title="Bare Listing" images={[]} />)
+
+    expect(screen.getByText('No photo')).toBeInTheDocument()
+    expect(screen.queryByRole('button')).not.toBeInTheDocument()
   })
 
   it('tidies amenity names and splits the nearby places text', () => {

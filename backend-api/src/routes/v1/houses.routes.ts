@@ -3,6 +3,7 @@ import { Router } from 'express';
 import {
   createHouseBookingController,
   getHouseDetailsController,
+  getRelatedHousesController,
   listHousesController
 } from '../../controllers/house.controller';
 import { recordHouseEventController } from '../../controllers/agent-plan.controller';
@@ -16,6 +17,7 @@ const housesRouter = Router();
 
 housesRouter.get('/', houseListValidator, validateMiddleware, asyncHandler(listHousesController));
 housesRouter.get('/:id', houseIdParamValidator, validateMiddleware, asyncHandler(getHouseDetailsController));
+housesRouter.get('/:id/related', houseIdParamValidator, validateMiddleware, asyncHandler(getRelatedHousesController));
 housesRouter.post('/:id/bookings', requireAuth, houseBookingValidator, validateMiddleware, asyncHandler(createHouseBookingController));
 housesRouter.post('/:id/events', optionalAuth, houseEventValidator, validateMiddleware, asyncHandler(recordHouseEventController));
 

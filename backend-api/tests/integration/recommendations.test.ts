@@ -81,7 +81,7 @@ const roommatePost = (id: string, flags: Record<string, unknown>) => ({
 jest.mock('../../src/prisma/client', () => {
   const prisma: any = {
     user: { findUnique: jest.fn(), findMany: jest.fn(async () => []), update: jest.fn(async () => ({})) },
-    house: { findMany: jest.fn(async () => []) },
+    house: { findMany: jest.fn(async () => []), findUnique: jest.fn(async () => null) },
     roommatePost: { findMany: jest.fn(async () => []) },
     amenity: { findMany: jest.fn(async () => [{ id: 'a-wifi', name: 'WIFI' }]) },
     contractType: { findUnique: jest.fn(async () => ({ durationMonths: 6 })) },
@@ -220,6 +220,34 @@ describe('recommendations', () => {
       expect(response.body.data.viewer.hasPreferences).toBe(false);
       const scored = response.body.data.items.filter((item: { match: unknown }) => item.match !== null);
       expect(scored.every((item: { match: { confidence: string } }) => item.match.confidence === 'INCOMPLETE')).toBe(true);
+    });
+  });
+
+  describe('related houses', () => {
+    const current = { cityId: yangon.id, stateId: yangon.stateId, propertyTypeId: 'type-apartment', monthlyFees: 300000 };
+
+    it('lists similar available listings, most alike first, never the listing itself', async () => {
+      prisma.house.findUnique.mockResolvedValue(current);
+      prisma.house.findMany.mockResolvedValue([
+        houseRow('far-and-different', { cityId: 'city-mandalay', stateId: 'state-mandalay', propertyTypeId: 'type-villa', monthlyFees: 2000000 }),
+        houseRow('same-township', { propertyTypeId: 'type-villa', monthlyFees: 2000000 }),
+        houseRow('twin')
+      ]);
+
+      const response = await request(app).get('/api/v1/houses/house-1/related');
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.items.map((item: { id: string }) => item.id)).toEqual(['twin', 'same-township', 'far-and-different']);
+      expect(response.body.data.items[0]).toMatchObject({ title: 'House twin', monthlyFees: 300000, thumbnail: 'houses/twin.jpg' });
+      const where = prisma.house.findMany.mock.calls[0][0].where;
+      expect(where.id).toEqual({ not: 'house-1' });
+      expect(where.availability).toBe('AVAILABLE');
+    });
+
+    it('answers 404 for a listing that does not exist', async () => {
+      prisma.house.findUnique.mockResolvedValue(null);
+
+      expect((await request(app).get('/api/v1/houses/nope/related')).status).toBe(404);
     });
   });
 

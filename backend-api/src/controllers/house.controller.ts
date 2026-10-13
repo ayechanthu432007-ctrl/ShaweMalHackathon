@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 
 import { createBooking } from '../services/booking.service';
-import { getHouseDetails, listHouses } from '../services/house.service';
+import { getHouseDetails, getRelatedHouses, listHouses } from '../services/house.service';
 import { ApiError } from '../utils/api-error';
 import { sendSuccess } from '../utils/api-response';
 
@@ -54,6 +54,11 @@ export const listHousesController = async (req: Request, res: Response): Promise
 export const getHouseDetailsController = async (req: Request, res: Response): Promise<void> => {
   const item = await getHouseDetails(String(req.params.id ?? ''));
   sendSuccess(res, 200, 'House details fetched successfully', { item });
+};
+
+export const getRelatedHousesController = async (req: Request, res: Response): Promise<void> => {
+  const items = await getRelatedHouses(String(req.params.id ?? ''));
+  sendSuccess(res, 200, 'Related houses fetched successfully', { items });
 };
 
 export const createHouseBookingController = async (req: Request, res: Response): Promise<void> => {

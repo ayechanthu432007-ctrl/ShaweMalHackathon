@@ -265,6 +265,48 @@ export const listHouses = async (input: ListHousesInput) => {
   };
 };
 
+/** How many recent listings are considered when looking for similar ones. */
+const RELATED_CANDIDATE_LIMIT = 80;
+
+/**
+ * Other available listings that resemble this one: the same township counts most, then the
+ * same property type and a similar rent, then the same region. The listing itself is never
+ * included, and when nothing resembles it the newest available listings are offered instead.
+ */
+export const getRelatedHouses = async (houseId: string, limit = 4) => {
+  const current = await prisma.house.findUnique({
+    where: { id: houseId },
+    select: { cityId: true, stateId: true, propertyTypeId: true, monthlyFees: true }
+  });
+
+  if (!current) {
+    throw new ApiError(404, 'HOUSE_NOT_FOUND', 'House not found.');
+  }
+
+  const candidates = await prisma.house.findMany({
+    where: { id: { not: houseId }, availability: HouseAvailabilityStatus.AVAILABLE },
+    include: HOUSE_LIST_INCLUDE,
+    orderBy: { createdAt: 'desc' },
+    take: RELATED_CANDIDATE_LIMIT
+  });
+
+  const rent = toNumber(current.monthlyFees);
+  const similarity = (house: (typeof candidates)[number]): number => {
+    const price = toNumber(house.monthlyFees);
+    return (
+      (house.cityId === current.cityId ? 3 : house.stateId === current.stateId ? 1 : 0) +
+      (house.propertyTypeId === current.propertyTypeId ? 2 : 0) +
+      (rent > 0 && Math.abs(price - rent) <= rent * 0.3 ? 2 : 0)
+    );
+  };
+
+  return candidates
+    .map((house) => ({ house, score: similarity(house) }))
+    .sort((a, b) => b.score - a.score || b.house.createdAt.getTime() - a.house.createdAt.getTime())
+    .slice(0, limit)
+    .map(({ house }) => mapHouseListItem(house));
+};
+
 export const getHouseDetails = async (houseId: string) => {
   const house = await prisma.house.findUnique({
     where: { id: houseId },

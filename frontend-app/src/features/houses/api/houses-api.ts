@@ -1,6 +1,6 @@
 import { apiRequest } from '@/lib/api/client'
 
-import type { HouseBookingResult, HouseDetails, HouseListResult, HouseSearchParams } from '../types'
+import type { HouseBookingResult, HouseDetails, HouseListItem, HouseListResult, HouseSearchParams } from '../types'
 
 function toQuery(params: HouseSearchParams): string {
   const search = new URLSearchParams()
@@ -24,6 +24,9 @@ export const housesApi = {
   },
   getById(id: string) {
     return apiRequest<{ item: HouseDetails }>(`/houses/${id}`, { auth: false })
+  },
+  related(id: string) {
+    return apiRequest<{ items: HouseListItem[] }>(`/houses/${id}/related`, { auth: false })
   },
   book(id: string) {
     return apiRequest<HouseBookingResult>(`/houses/${id}/bookings`, {
