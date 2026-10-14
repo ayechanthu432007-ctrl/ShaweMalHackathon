@@ -144,7 +144,7 @@ export function HouseCard({ house, className }: HouseCardProps) {
           ) : null}
           <p className="mt-auto pt-4 text-sm text-muted-foreground">
             {t('houses.priceFrom')}{' '}
-            <span className="text-xl font-extrabold tracking-tight text-foreground">{formatFees(house.monthlyFees)}</span>
+            <span className="text-xl font-extrabold tracking-tight text-gold-hover">{formatFees(house.monthlyFees)}</span>
             {t('houses.perMonthShort')}
           </p>
         </CardContent>

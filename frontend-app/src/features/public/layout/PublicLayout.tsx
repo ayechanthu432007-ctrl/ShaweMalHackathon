@@ -59,8 +59,10 @@ function NavItem({ to, label, end, onClick }: { to: string; label: string; end?:
       onClick={onClick}
       className={({ isActive }) =>
         cn(
-          'shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition-colors duration-200 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-          isActive && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
+          'shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          // In the navy bar on desktop; inside the white dropdown on phones.
+          'text-foreground/75 hover:bg-muted hover:text-foreground lg:text-header-foreground/80 lg:hover:bg-white/10 lg:hover:text-header-foreground',
+          isActive && 'bg-gold/15 text-gold-hover lg:bg-white/10 lg:text-gold lg:hover:text-gold',
         )
       }
     >
@@ -76,10 +78,10 @@ function SubNavItem({ to, label }: { to: string; label: string }) {
       to={to}
       className={({ isActive }) =>
         cn(
-          'group relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium text-foreground/65 transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+          'group relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium text-header-foreground/70 transition-colors duration-200 hover:text-header-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
           // The brand-coloured bar under the current page.
-          'after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary after:opacity-0 after:transition-opacity after:duration-200 hover:after:opacity-30',
-          isActive && 'text-primary after:opacity-100 hover:text-primary hover:after:opacity-100',
+          'after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-gold after:opacity-0 after:transition-opacity after:duration-200 hover:after:opacity-30',
+          isActive && 'text-header-foreground after:opacity-100 hover:after:opacity-100',
         )
       }
     >
@@ -125,7 +127,7 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen bg-background">
       {/* Both rows stay at the top while the page scrolls; its height is shared as --site-header-h. */}
-      <header ref={headerRef} className="sticky top-0 z-40 border-b bg-background/90 text-foreground shadow-[0_6px_20px_-12px_rgba(0,0,0,0.25)] backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
+      <header ref={headerRef} className="sticky top-0 z-40 bg-header text-header-foreground shadow-[0_8px_24px_-12px_rgba(20,43,74,0.45)]">
         {isMenuOpen ? (
           // Tapping anywhere outside the open menu closes it.
           <div className="fixed inset-0 z-40 lg:hidden" aria-hidden onClick={() => setIsMenuOpen(false)} />
@@ -139,7 +141,7 @@ export function PublicLayout() {
             <img
               src={shawemalLogo}
               alt=""
-              className="size-10 rounded-xl border bg-white object-contain p-0.5 shadow-sm"
+              className="size-10 rounded-xl bg-white object-contain p-0.5 shadow-sm"
             />
             <span className="text-xl font-extrabold tracking-tight">{t('common.appName')}</span>
           </Link>
@@ -164,7 +166,8 @@ export function PublicLayout() {
               />
             ))}
           </nav>
-          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 lg:ml-2 lg:border-l lg:pl-4">
+          {/* Header controls are translucent on the navy bar so their icons stay visible. */}
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 lg:ml-2 lg:border-l lg:border-white/15 lg:pl-4 [&_button]:border-white/20 [&_button]:bg-white/10 [&_button]:text-header-foreground [&_button]:shadow-none [&_button:hover]:bg-white/20 [&_button:hover]:text-header-foreground">
             {!isBootstrapping && isAuthenticated ? (
               <>
                 <NotificationsMenu />
@@ -187,7 +190,7 @@ export function PublicLayout() {
             </Button>
           </div>
         </div>
-        <nav className="border-t bg-secondary/60" aria-label="Sub">
+        <nav className="border-t border-white/10 bg-header-sub" aria-label="Sub">
           {/* On narrow screens the row scrolls sideways inside itself; the page never does. */}
           <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 [scrollbar-width:none] sm:px-4 [&::-webkit-scrollbar]:hidden">
             {subLinks.map((link) => (

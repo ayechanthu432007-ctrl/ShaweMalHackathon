@@ -18,7 +18,7 @@ export function HouseAvailabilityBadge({
     <span
       className={cn(
         'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
-        available ? 'bg-emerald-600 text-white' : 'bg-muted text-muted-foreground',
+        available ? 'bg-success-soft text-success ring-1 ring-success/20' : 'bg-muted text-muted-foreground',
         className,
       )}
     >
