@@ -8,6 +8,7 @@ import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiRequestError } from '@/lib/api/client'
+import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
 import freeBasicArt from '@/assets/plans/free-basic.svg'
 import goldPremiumArt from '@/assets/plans/gold-premium.svg'
@@ -22,6 +23,35 @@ const PLAN_LOOK: Record<string, { art: string; ring: string; tint: string }> = {
   FREE: { art: freeBasicArt, ring: 'ring-[#5B9BD5]', tint: 'from-[#F4F8FC]' },
   SILVER: { art: silverPartnerArt, ring: 'ring-[#9AA6B6]', tint: 'from-[#F6F8FB]' },
   GOLD: { art: goldPremiumArt, ring: 'ring-[#C69245]', tint: 'from-[#FCF7EE]' },
+}
+
+/**
+ * Demo preview: a plan choice kept only in this browser. It changes what this page shows and
+ * nothing else; the server, and so every plan feature and limit, still uses the agent's real plan.
+ * It is on only when the build sets VITE_DEMO_PLAN_PREVIEW=true, and only where the server's own
+ * demo checkout is not available (which is always the case in production).
+ */
+const isDemoPreviewEnabled = () => import.meta.env.VITE_DEMO_PLAN_PREVIEW === 'true'
+type DemoPreview = { code: string; billingMonths: 1 | 3 }
+const previewKey = (userId: string) => `shawemal.demoPlanPreview.${userId}`
+
+function readPreview(userId: string | undefined): DemoPreview | null {
+  if (!userId) return null
+  try {
+    const raw = localStorage.getItem(previewKey(userId))
+    return raw ? (JSON.parse(raw) as DemoPreview) : null
+  } catch {
+    return null
+  }
+}
+
+function writePreview(userId: string, value: DemoPreview | null) {
+  try {
+    if (value) localStorage.setItem(previewKey(userId), JSON.stringify(value))
+    else localStorage.removeItem(previewKey(userId))
+  } catch {
+    // Storage can be blocked; the choice then lasts until the page is left.
+  }
 }
 
 type DemoAction = { kind: 'choose'; plan: Plan; reset: boolean } | { kind: 'free'; plan: Plan }
@@ -49,6 +79,7 @@ export function AgentSubscriptionPage() {
   const { t } = useTranslation()
   const dashboardQuery = useAgentDashboard()
   const dashboard = dashboardQuery.data
+  const previewMode = Boolean(dashboard && !dashboard.demoPayments && isDemoPreviewEnabled())
   const [billingMonths, setBillingMonths] = useState<1 | 3>(1)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,10 +89,20 @@ export function AgentSubscriptionPage() {
   // Demo mode (never in production): confirm in a dialog, then create the order and mark it paid
   // through the server's demo checkout. Switching to a lower plan first returns to Free Basic.
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const [preview, setPreview] = useState<DemoPreview | null>(() => readPreview(user?.id))
+  useEffect(() => setPreview(readPreview(user?.id)), [user?.id])
   const [demoAction, setDemoAction] = useState<DemoAction | null>(null)
   const [demoNote, setDemoNote] = useState<string | null>(null)
   const demoMutation = useMutation({
     mutationFn: async (action: DemoAction) => {
+      if (previewMode) {
+        // Nothing is sent to the server: the choice only changes this page, in this browser.
+        const next = action.kind === 'free' ? null : { code: action.plan.code, billingMonths }
+        if (user?.id) writePreview(user.id, next)
+        setPreview(next)
+        return
+      }
       if (action.kind === 'free' || action.reset) await agentPlanApi.resetDemoSubscription()
       if (action.kind === 'choose') {
         const { order } = await agentPlanApi.createSubscriptionOrder(action.plan.code, billingMonths)
@@ -88,8 +129,12 @@ export function AgentSubscriptionPage() {
     )
   }
 
-  const current = dashboard.plan
-  const isActive = dashboard.subscription.status === 'ACTIVE'
+  const realPlan = dashboard.plan
+  const previewPlan = previewMode && preview ? dashboard.plans.find((item) => item.code === preview.code) ?? null : null
+  // In the preview the chosen plan is shown as current; everything the server decides stays on the real plan.
+  const current = previewPlan ?? realPlan
+  const isActive = previewPlan ? previewPlan.code !== 'FREE' : dashboard.subscription.status === 'ACTIVE'
+  const demoOn = dashboard.demoPayments || previewMode
 
   return (
     <div className="space-y-6">
@@ -99,15 +144,19 @@ export function AgentSubscriptionPage() {
         <p>
           <span className="text-muted-foreground">{t('agentDash.currentPlan')}: </span>
           <span className="font-semibold">{current.name}</span>
+          {previewPlan ? <span className="ml-2 rounded bg-[#FCF7EE] px-1.5 py-0.5 text-[10px] font-semibold text-[#7A5418]">DEMO</span> : null}
           {isActive ? ` · ${t('agentDash.validUntil', { date: formatDate(dashboard.subscription.endsAt) })}` : ''}
         </p>
         {dashboard.subscription.status === 'EXPIRED' ? <p className="mt-1 text-destructive">{t('agentDash.expiredNotice')}</p> : null}
       </div>
 
-      {dashboard.demoPayments ? (
+      {demoOn ? (
         <p className="flex items-start gap-2 rounded-xl border border-[#C69245]/40 bg-[#FCF7EE] p-4 text-sm font-medium text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200" role="status">
           <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden />
-          {t('agentDash.demoBanner')}
+          <span>
+            {t('agentDash.demoBanner')}
+            {previewMode ? <span className="mt-1 block font-normal">{t('agentDash.demoPreviewNote', { plan: realPlan.name })}</span> : null}
+          </span>
         </p>
       ) : (
         <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm" role="status">
@@ -177,7 +226,7 @@ export function AgentSubscriptionPage() {
                     <Button type="button" variant="secondary" className="w-full" disabled>
                       {t('agentDash.currentPlanButton')}
                     </Button>
-                  ) : dashboard.demoPayments ? (
+                  ) : demoOn ? (
                     <Button
                       type="button"
                       variant={isFree ? 'outline' : 'default'}

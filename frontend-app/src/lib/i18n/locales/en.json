@@ -1572,6 +1572,7 @@
     }
   },
   "agentDash": {
+    "demoPreviewNote": "Preview only: your choice is saved in this browser and shown on this page. No order or payment is created, and your actual plan features stay on {{plan}}.",
     "demoBanner": "DEMO MODE — No real payment required. Plan changes here are for testing only.",
     "demoBadge": "DEMO MODE",
     "demoConfirmTitle": "Switch to {{plan}}?",

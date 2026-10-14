@@ -149,3 +149,44 @@ describe('agent plans in demo mode', () => {
     expect(calls).toEqual([])
   })
 })
+
+describe('agent plans as a browser-only demo preview on the live site', () => {
+  afterEach(() => {
+    tokenStorage.clear()
+    localStorage.clear()
+    vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+  })
+
+  it('switches the shown plan without any order or payment and keeps it after a reload', async () => {
+    vi.stubEnv('VITE_DEMO_PLAN_PREVIEW', 'true')
+    const PreviewPage = AgentSubscriptionPage
+    const calls = stubServer({ current: 'FREE', demo: false })
+    const user = userEvent.setup()
+    const view = renderWithProviders(<PreviewPage />)
+
+    expect(await screen.findByText(/your actual plan features stay on Free Basic/)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '3 months (10% off)' }))
+    await user.click(screen.getByRole('button', { name: 'Choose Gold Premium' }))
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveTextContent('432,000 MMK')
+    expect(dialog).toHaveTextContent('3 months (10% off)')
+    await user.click(within(dialog).getByRole('button', { name: 'Confirm Demo Subscription' }))
+
+    expect(await screen.findByText('Demo plan changed to Gold Premium.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Current Plan' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Return to Free Basic' })).toBeInTheDocument()
+    expect(calls).toEqual([])
+
+    // A reload keeps the choice.
+    view.unmount()
+    renderWithProviders(<PreviewPage />)
+    expect(await screen.findByRole('button', { name: 'Return to Free Basic' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Choose Silver Partner' })).toBeEnabled()
+
+    await user.click(screen.getByRole('button', { name: 'Return to Free Basic' }))
+    await user.click(screen.getByRole('button', { name: 'Confirm Demo Subscription' }))
+    expect(await screen.findByText('Demo plan changed to Free Basic.')).toBeInTheDocument()
+    expect(calls).toEqual([])
+  })
+})
