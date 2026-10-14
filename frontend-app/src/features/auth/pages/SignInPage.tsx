@@ -1,4 +1,4 @@
-import { CalendarCheck, Eye, EyeOff, Home, Lock, Mail, Package, Route, ShieldCheck, Truck } from 'lucide-react'
+import { Eye, EyeOff, Headset, Home, Lock, Mail, Package, ShieldCheck, Sparkles, Truck, UserRoundCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -112,9 +112,10 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
   })
 
   const highlights = [
-    { icon: CalendarCheck, title: t('auth.signInHighlightBookings'), body: t('auth.signInHighlightBookingsBody') },
-    { icon: ShieldCheck, title: t('auth.signInHighlightPartners'), body: t('auth.signInHighlightPartnersBody') },
-    { icon: Route, title: t('auth.signInHighlightTrack'), body: t('auth.signInHighlightTrackBody') },
+    { icon: Sparkles, title: t('auth.signInFeatureSimple'), body: t('auth.signInFeatureSimpleBody') },
+    { icon: ShieldCheck, title: t('auth.signInFeatureTrusted'), body: t('auth.signInFeatureTrustedBody') },
+    { icon: UserRoundCheck, title: t('auth.signInFeatureForYou'), body: t('auth.signInFeatureForYouBody') },
+    { icon: Headset, title: t('auth.signInFeatureSupport'), body: t('auth.signInFeatureSupportBody') },
   ]
 
   return (
@@ -131,7 +132,8 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
             <span className="text-lg font-bold tracking-tight">{t('common.appName')}</span>
           </div>
           <h2 className="mt-6 text-2xl font-bold leading-tight tracking-tight sm:text-3xl lg:text-[2.1rem]">{t('auth.signInWelcomeTitle')}</h2>
-          <p className="mt-3 max-w-md text-sm leading-relaxed text-primary-foreground/85 sm:text-base">{t('auth.signInWelcomeBody')}</p>
+          <p className="mt-2 text-lg font-semibold text-primary-foreground/95 sm:text-xl">{t('auth.signInWelcomeSubtitle')}</p>
+          <p className="mt-2 max-w-md text-sm leading-relaxed text-primary-foreground/85 sm:text-base">{t('auth.signInWelcomeBody')}</p>
 
           {/* A small moving scene: home, the road, and the truck carrying the boxes. Hidden on phones. */}
           <div aria-hidden className="mt-6 hidden items-center gap-3 sm:flex">
@@ -142,7 +144,7 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
             <span className="flex size-12 items-center justify-center rounded-2xl bg-white/15"><Package className="size-6" /></span>
           </div>
 
-          <ul className="mt-7 space-y-3">
+          <ul className="mt-6 space-y-3">
             {highlights.map((item) => (
               <li key={item.title} className="flex items-start gap-3">
                 <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/15">
