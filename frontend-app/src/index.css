@@ -218,3 +218,8 @@ select optgroup {
     box-shadow: none;
   }
 }
+
+/* In-page jumps and focus scrolling stop below the sticky site header. */
+html {
+  scroll-padding-top: calc(var(--site-header-h, 0px) + 0.75rem);
+}

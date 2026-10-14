@@ -71,6 +71,18 @@
     "signInTitle": "Sign In"
   },
   "auth": {
+    "signInSubtitle": "Welcome back! Sign in to continue.",
+    "signInWelcomeTitle": "Welcome Back to Shawe Mal",
+    "signInWelcomeBody": "Manage your home search, moving bookings and roommate plans in one place, and follow every move from booking to delivery.",
+    "signInHighlightBookings": "Easy Booking Management",
+    "signInHighlightBookingsBody": "See and manage all your moving bookings at a glance.",
+    "signInHighlightPartners": "Trusted Moving Partners",
+    "signInHighlightPartnersBody": "Verified drivers and agents you can rely on.",
+    "signInHighlightTrack": "Track Your Move",
+    "signInHighlightTrackBody": "Follow each step of your move as it happens.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "noAccount": "Don't have an account?",
     "name": "Name",
     "email": "Email",
     "phone": "Phone Number",

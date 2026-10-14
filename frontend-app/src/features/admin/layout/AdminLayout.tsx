@@ -64,7 +64,7 @@ export function AdminLayout() {
 
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:py-8">
         {/* A side bar on desktop; on phones and tablets the same links scroll sideways above the page. */}
-        <aside className="min-w-0 lg:sticky lg:top-4 lg:self-start">
+        <aside className="min-w-0 lg:sticky lg:top-[calc(var(--site-header-h,0px)+1rem)] lg:self-start">
           <nav
             aria-label={t('admin.navLabel')}
             className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:rounded-xl lg:border lg:bg-card lg:p-2 lg:shadow-sm"

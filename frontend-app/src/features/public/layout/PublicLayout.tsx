@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
@@ -78,9 +78,25 @@ export function PublicLayout() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [isMenuOpen])
 
+  const headerRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const header = headerRef.current
+    if (!header || typeof ResizeObserver === 'undefined') return
+    const root = document.documentElement
+    const update = () => root.style.setProperty('--site-header-h', `${header.offsetHeight}px`)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(header)
+    return () => {
+      observer.disconnect()
+      root.style.removeProperty('--site-header-h')
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-secondary text-secondary-foreground">
+      {/* Both rows stay at the top while the page scrolls; its height is shared as --site-header-h. */}
+      <header ref={headerRef} className="sticky top-0 z-40 border-b bg-secondary text-secondary-foreground shadow-sm">
         {isMenuOpen ? (
           // Tapping anywhere outside the open menu closes it.
           <div className="fixed inset-0 z-40 lg:hidden" aria-hidden onClick={() => setIsMenuOpen(false)} />

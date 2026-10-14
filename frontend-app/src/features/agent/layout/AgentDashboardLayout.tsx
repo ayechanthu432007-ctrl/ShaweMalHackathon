@@ -85,7 +85,7 @@ export function AgentDashboardLayout() {
 
   return (
     <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
-      <aside className="min-w-0 space-y-3 lg:sticky lg:top-4 lg:self-start">
+      <aside className="min-w-0 space-y-3 lg:sticky lg:top-[calc(var(--site-header-h,0px)+1rem)] lg:self-start">
         {dashboard ? (
           <div className={cn('rounded-xl border p-4 text-sm shadow-sm', isGold ? 'border-amber-300/70 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10' : 'bg-card')}>
             <p className="text-xs text-muted-foreground">{t('agentDash.currentPlan')}</p>
