@@ -16,6 +16,7 @@ import { RotatingLogo } from '../components/RotatingLogo'
 const newPlaceItems: { icon: LucideIcon; titleKey: string; bodyKey: string }[] = [
   { icon: Home, titleKey: 'home.newPlaceItem1Title', bodyKey: 'home.newPlaceItem1Body' },
   { icon: CircleCheck, titleKey: 'home.newPlaceItem2Title', bodyKey: 'home.newPlaceItem2Body' },
+  { icon: Store, titleKey: 'home.newPlaceItemMarketTitle', bodyKey: 'home.newPlaceItemMarketBody' },
   { icon: Banknote, titleKey: 'home.newPlaceItem3Title', bodyKey: 'home.newPlaceItem3Body' },
   { icon: Lock, titleKey: 'home.newPlaceItem4Title', bodyKey: 'home.newPlaceItem4Body' },
 ]

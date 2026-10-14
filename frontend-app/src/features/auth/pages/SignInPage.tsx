@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Headset, Home, Lock, Mail, Package, ShieldCheck, Sparkles, Truck, UserRoundCheck } from 'lucide-react'
+import { Eye, EyeOff, Headset, Home, Lock, Mail, Package, ShieldCheck, Sparkles, Store, Truck, UserRoundCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router'
@@ -114,6 +114,7 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
   const highlights = [
     { icon: Sparkles, title: t('auth.signInFeatureSimple'), body: t('auth.signInFeatureSimpleBody') },
     { icon: ShieldCheck, title: t('auth.signInFeatureTrusted'), body: t('auth.signInFeatureTrustedBody') },
+    { icon: Store, title: t('auth.signInFeatureMarket'), body: t('auth.signInFeatureMarketBody') },
     { icon: UserRoundCheck, title: t('auth.signInFeatureForYou'), body: t('auth.signInFeatureForYouBody') },
     { icon: Headset, title: t('auth.signInFeatureSupport'), body: t('auth.signInFeatureSupportBody') },
   ]
@@ -144,7 +145,7 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
             <span className="flex size-12 items-center justify-center rounded-2xl bg-white/15"><Package className="size-6" /></span>
           </div>
 
-          <ul className="mt-6 space-y-3">
+          <ul className="mt-6 space-y-2.5">
             {highlights.map((item) => (
               <li key={item.title} className="flex items-start gap-3">
                 <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#E2B877] ring-1 ring-white/10">
