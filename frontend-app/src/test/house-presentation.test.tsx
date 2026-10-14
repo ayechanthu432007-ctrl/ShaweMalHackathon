@@ -29,7 +29,7 @@ describe('house presentation', () => {
     const card = screen.getByRole('link', { name: /golden condo/i })
     expect(card).toHaveAttribute('href', '/houses/h1')
     expect(within(card).getByText('600,000 MMK')).toBeInTheDocument()
-    expect(within(card).getByText('/ month')).toBeInTheDocument()
+    expect(card).toHaveTextContent('From 600,000 MMK/month')
     expect(within(card).getByText('Bahan')).toBeInTheDocument()
     expect(within(card).getByText('Apartment')).toBeInTheDocument()
     expect(within(card).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['1 bed', '2 baths', '500 sqft'])

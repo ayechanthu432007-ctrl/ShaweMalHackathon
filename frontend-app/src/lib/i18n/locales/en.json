@@ -583,6 +583,8 @@
     "browseHint": "Looking for more options? Use filters on Finding House."
   },
   "houses": {
+    "priceFrom": "From",
+    "perMonthShort": "/month",
     "findingTitle": "Find a Home That Fits You",
     "findingSubtitle": "Search by city, property type, and budget to discover available homes.",
     "loadError": "Could not load houses. Please try again.",

@@ -10,7 +10,7 @@ import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 import { cn } from '@/lib/utils'
 
 import type { HouseListItem } from '../types'
-import { isHouseAvailable } from '../lib/availability'
+import { HouseAvailabilityBadge } from './HouseAvailabilityBadge'
 import { useWishlist } from '../hooks/useWishlist'
 
 type HouseCardProps = {
@@ -68,7 +68,6 @@ export function HouseCard({ house, className }: HouseCardProps) {
     house.areaSize ? { key: 'area', icon: Ruler, text: house.areaSize } : null,
   ].flatMap((fact) => (fact ? [fact] : []))
 
-  const available = isHouseAvailable(house.availability)
   const place = [house.city?.name, house.state?.name].filter(Boolean).join(', ')
 
   return (
@@ -95,6 +94,15 @@ export function HouseCard({ house, className }: HouseCardProps) {
               {t('houses.noPhoto')}
             </div>
           )}
+          <div className="absolute left-2.5 top-2.5 flex flex-wrap items-center gap-1.5 pr-14">
+            <HouseAvailabilityBadge availability={house.availability} className="shadow-sm" />
+            {house.propertyType?.name ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-0.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur">
+                <Building2 className="size-3.5 text-primary" aria-hidden />
+                {house.propertyType.name}
+              </span>
+            ) : null}
+          </div>
           <Button
             type="button"
             size="icon"
@@ -109,53 +117,36 @@ export function HouseCard({ house, className }: HouseCardProps) {
           </Button>
         </div>
         <CardContent className="flex flex-1 flex-col p-4">
-          <p className="text-xl font-extrabold leading-tight tracking-tight text-primary">
-            {formatFees(house.monthlyFees)}
-            <span className="ml-1 text-xs font-medium text-muted-foreground">{t('houses.perMonth')}</span>
+          <h3 className="line-clamp-2 text-lg font-bold leading-snug tracking-tight">{house.title}</h3>
+          <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin className="size-3.5 shrink-0" aria-hidden />
+            <span className="truncate">{place || t('houses.locationUnknown')}</span>
           </p>
-          <h3 className="mt-1.5 line-clamp-2 min-h-[2.75rem] text-base font-semibold leading-snug">{house.title}</h3>
-          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
-            <p className="flex items-center gap-1.5">
-              <MapPin className="size-4 shrink-0" aria-hidden />
-              <span className="truncate">{place || t('houses.locationUnknown')}</span>
-            </p>
-            {house.propertyType?.name ? (
-              <p className="flex items-center gap-1.5">
-                <Building2 className="size-4 shrink-0" aria-hidden />
-                <span className="truncate">{house.propertyType.name}</span>
-              </p>
-            ) : null}
-          </div>
+          {/* Nearby distance and transit rows appear here only once listings record them. */}
           {facts.length > 0 ? (
-            <ul className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
+            <ul className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-y py-2.5 text-sm text-foreground/80">
               {facts.map((fact) => (
-                <li key={fact.key} className="flex items-center gap-1.5 font-medium">
-                  <fact.icon className="size-4 shrink-0 text-primary/80" aria-hidden />
+                <li key={fact.key} className="flex items-center gap-1.5">
+                  <fact.icon className="size-4 shrink-0 text-primary" aria-hidden />
                   {fact.text}
                 </li>
               ))}
             </ul>
           ) : null}
-          {/* Only labels the listing really earns: its availability and, when paid for, Featured. */}
-          <div className="mt-auto pt-3">
-          <div className="flex flex-wrap gap-1.5 border-t pt-3">
-            <span
-              className={cn(
-                'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold',
-                available ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-muted text-muted-foreground',
-              )}
-            >
-              {available ? t('houses.available') : t('houses.notAvailable')}
-            </span>
-            {/* Paid placement is always disclosed to visitors, in the wording listing sites commonly use. */}
-            {house.isBoosted ? (
-              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
-                <Star className="size-3 fill-amber-400 text-amber-400" aria-hidden />
+          {/* Only labels the listing really earns; paid placement is always disclosed. */}
+          {house.isBoosted ? (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                <Star className="size-3 fill-amber-500 text-amber-500" aria-hidden />
                 {t('houses.boosted')}
               </span>
-            ) : null}
-          </div>
-          </div>
+            </div>
+          ) : null}
+          <p className="mt-auto pt-4 text-sm text-muted-foreground">
+            {t('houses.priceFrom')}{' '}
+            <span className="text-xl font-extrabold tracking-tight text-foreground">{formatFees(house.monthlyFees)}</span>
+            {t('houses.perMonthShort')}
+          </p>
         </CardContent>
       </Link>
     </Card>
