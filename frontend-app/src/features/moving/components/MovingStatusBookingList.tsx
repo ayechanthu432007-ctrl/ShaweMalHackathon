@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
@@ -56,7 +57,7 @@ export function MovingStatusBookingList({ items }: { items: MovingRequest[] }) {
 
       {other.length > 0 ? (
         <Column title={t('moving.statusPastGroup')} count={other.length}>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <>
             {other.map((item) => (
               <BookingCard key={item.id} item={item}>
                 <p className="mt-1 text-xs text-muted-foreground">{t(`moving.statusBadge.${item.status}`, { defaultValue: item.status })}</p>
@@ -65,7 +66,7 @@ export function MovingStatusBookingList({ items }: { items: MovingRequest[] }) {
                 </Button>
               </BookingCard>
             ))}
-          </div>
+          </>
         </Column>
       ) : null}
     </section>
@@ -73,15 +74,22 @@ export function MovingStatusBookingList({ items }: { items: MovingRequest[] }) {
 }
 
 function Column({ title, count, empty, children }: { title: string; count: number; empty?: string; children: React.ReactNode }) {
+  const headingId = useId()
   return (
-    <div className="min-w-0 space-y-3">
-      <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight">
+    // The heading stays put; only the list below it scrolls, so a long history never stretches the page.
+    <section aria-labelledby={headingId} className="flex min-w-0 flex-col overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <h2 id={headingId} className="flex items-center gap-2.5 border-b px-5 py-4 text-2xl font-bold tracking-tight sm:text-[1.6rem]">
         {title}
-        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">{count}</span>
+        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-sm font-semibold text-primary">{count}</span>
       </h2>
-      {count === 0 && empty ? <p className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">{empty}</p> : null}
-      <ul className="space-y-3">{children}</ul>
-    </div>
+      <div className="h-[26rem] overflow-y-auto overscroll-contain bg-muted/30 p-4 [scrollbar-gutter:stable] sm:h-[32rem]">
+        {count === 0 && empty ? (
+          <p className="flex h-full items-center justify-center rounded-xl border border-dashed text-center text-sm text-muted-foreground">{empty}</p>
+        ) : (
+          <ul className="space-y-3">{children}</ul>
+        )}
+      </div>
+    </section>
   )
 }
 
