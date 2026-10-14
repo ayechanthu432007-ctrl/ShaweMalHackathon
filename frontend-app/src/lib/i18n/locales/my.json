@@ -780,6 +780,13 @@
     }
   },
   "moving": {
+    "cancelBooking": "ဘိုကင် ပယ်ဖျက်ရန်",
+    "cancelDialogTitle": "ဤဘိုကင်ကို ပယ်ဖျက်မလား?",
+    "cancelDialogBody": "ဤရွှေ့ပြောင်းရေး ဘိုကင်ကို ပယ်ဖျက်ရန် သေချာပါသလား?",
+    "keepBooking": "ဘိုကင် ဆက်ထားမည်",
+    "confirmCancellation": "ပယ်ဖျက်မှု အတည်ပြုမည်",
+    "cancelSuccess": "သင့်ဘိုကင်ကို အောင်မြင်စွာ ပယ်ဖျက်ပြီးပါပြီ။",
+    "cancelFailed": "ဘိုကင်ကို ပယ်ဖျက်၍ မရပါ။ ထပ်မံကြိုးစားပါ။",
     "statusCompletedGroup": "ပြီးဆုံးသည်",
     "statusNoCompleted": "ပြီးဆုံးသော ရွှေ့ပြောင်းမှု မရှိသေးပါ။",
     "viewReceipt": "ပြေစာ ကြည့်ရန်",

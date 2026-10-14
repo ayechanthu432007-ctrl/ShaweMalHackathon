@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import {
+  cancelMyMovingRequestController,
   createMovingRequestController,
   getMovingRequestController,
   listMyMovingRequestsController,
@@ -22,5 +23,6 @@ movingRouter.post('/quote', movingRequestQuoteValidator, validateMiddleware, asy
 movingRouter.post('/requests', movingRequestCreateValidator, validateMiddleware, asyncHandler(createMovingRequestController));
 movingRouter.get('/requests', asyncHandler(listMyMovingRequestsController));
 movingRouter.get('/requests/:id', movingRequestIdParamValidator, validateMiddleware, asyncHandler(getMovingRequestController));
+movingRouter.post('/requests/:id/cancel', movingRequestIdParamValidator, validateMiddleware, asyncHandler(cancelMyMovingRequestController));
 
 export { movingRouter };

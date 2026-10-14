@@ -481,6 +481,14 @@ jest.mock('../../src/prisma/client', () => {
           return { count: 0 };
         }
 
+        if (typeof where.assignedDriverUserId === 'string' && found.assignedDriverUserId !== where.assignedDriverUserId) {
+          return { count: 0 };
+        }
+
+        if (where.requesterUserId && found.requesterUserId !== where.requesterUserId) {
+          return { count: 0 };
+        }
+
         const updated: MockMovingRequest = {
           ...found,
           status: data.status ?? found.status,
@@ -1327,4 +1335,72 @@ describe('Moving and driver workflow integration', () => {
     expect(invalidResponse.status).toBe(400);
     expect(invalidResponse.body.success).toBe(false);
   });
+
+  describe('customer cancellation', () => {
+    const createBooking = async () => {
+      const response = await request(app)
+        .post('/api/v1/moving/requests')
+        .set('Authorization', `Bearer ${requesterToken}`)
+        .send(createMovingPayload());
+      return response.body.data.movingRequest.id as string;
+    };
+    const cancel = (id: string, token = requesterToken) =>
+      request(app).post(`/api/v1/moving/requests/${id}/cancel`).set('Authorization', `Bearer ${token}`).send();
+
+    it('cancels a booking that is still waiting for a driver and keeps the record', async () => {
+      const id = await createBooking();
+
+      const response = await cancel(id);
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Your booking has been cancelled successfully.');
+      expect(response.body.data.movingRequest.status).toBe('CANCELLED');
+      expect(response.body.data.movingRequest.orderNumber).toBeTruthy();
+      const events = response.body.data.movingRequest.statusEvents as Array<{ status: string; actorUserId?: string }>;
+      expect(events.at(-1)).toMatchObject({ status: MovingRequestStatus.CANCELLED });
+
+      // A second request changes nothing.
+      const again = await cancel(id);
+      expect(again.status).toBe(409);
+      expect(again.body.errors.code).toBe('MOVING_REQUEST_ALREADY_CANCELLED');
+    });
+
+    it('refuses once a driver has accepted, even through a direct API call', async () => {
+      const id = await createBooking();
+      await request(app).post(`/api/v1/driver/requests/${id}/accept`).set('Authorization', `Bearer ${driver1Token}`).send();
+
+      const response = await cancel(id);
+
+      expect(response.status).toBe(409);
+      expect(response.body.errors.code).toBe('MOVING_REQUEST_NOT_CANCELLABLE');
+      const after = await request(app).get(`/api/v1/moving/requests/${id}`).set('Authorization', `Bearer ${requesterToken}`);
+      expect(after.body.data.movingRequest.status).toBe('ACCEPTED');
+    });
+
+    it('does not let another user cancel the booking', async () => {
+      const id = await createBooking();
+
+      const response = await cancel(id, outsiderToken);
+
+      expect(response.status).toBe(403);
+      const after = await request(app).get(`/api/v1/moving/requests/${id}`).set('Authorization', `Bearer ${requesterToken}`);
+      expect(after.body.data.movingRequest.status).toBe('BOOKED');
+    });
+
+    it('keeps a cancelled booking away from drivers and admin assignment', async () => {
+      const id = await createBooking();
+      await cancel(id);
+
+      const accept = await request(app).post(`/api/v1/driver/requests/${id}/accept`).set('Authorization', `Bearer ${driver1Token}`).send();
+      expect(accept.status).toBe(409);
+
+      const assign = await request(app)
+        .post(`/api/v1/admin/moving/requests/${id}/assign`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ driverUserId: 'driver-2' });
+      expect(assign.status).toBe(409);
+      expect(assign.body.errors.code).toBe('MOVING_REQUEST_NOT_ASSIGNABLE');
+    });
+  });
+
 });

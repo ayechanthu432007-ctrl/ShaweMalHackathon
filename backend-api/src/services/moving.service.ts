@@ -996,6 +996,69 @@ export const acceptMovingRequest = async (movingRequestId: string, driverUserId:
   return normalizeMovingRequest(movingRequest);
 };
 
+/**
+ * The customer cancels their own booking. Allowed only while it is still waiting for a driver
+ * (BOOKED with nobody assigned). The check and the change are one conditional update, so a driver
+ * accepting at the same moment either wins (and the cancel is refused) or loses (and cannot accept).
+ */
+export const cancelMovingRequestByRequester = async (movingRequestId: string, requesterUserId: string) => {
+  const existing = await prisma.movingRequest.findUnique({
+    where: { id: movingRequestId },
+    select: { id: true, requesterUserId: true, status: true }
+  });
+
+  if (!existing) {
+    throw new ApiError(404, 'MOVING_REQUEST_NOT_FOUND', 'Moving request not found.');
+  }
+  if (existing.requesterUserId !== requesterUserId) {
+    throw new ApiError(403, 'MOVING_REQUEST_FORBIDDEN', 'You can cancel only your own moving bookings.');
+  }
+  if (existing.status === MovingRequestStatus.CANCELLED) {
+    throw new ApiError(409, 'MOVING_REQUEST_ALREADY_CANCELLED', 'This moving booking is already cancelled.');
+  }
+
+  const movingRequest = await prisma.$transaction(async (tx) => {
+    const result = await tx.movingRequest.updateMany({
+      where: {
+        id: movingRequestId,
+        requesterUserId,
+        status: MovingRequestStatus.BOOKED,
+        assignedDriverUserId: null
+      },
+      data: { status: MovingRequestStatus.CANCELLED }
+    });
+
+    if (result.count === 0) {
+      throw new ApiError(
+        409,
+        'MOVING_REQUEST_NOT_CANCELLABLE',
+        'A driver has already been assigned, so this booking can no longer be cancelled here.'
+      );
+    }
+
+    await tx.movingStatusEvent.create({
+      data: {
+        movingRequestId,
+        actorUserId: requesterUserId,
+        eventType: MovingStatusEventType.STATUS_UPDATED,
+        status: MovingRequestStatus.CANCELLED,
+        notes: 'Cancelled by the customer before a driver was assigned.'
+      }
+    });
+
+    const updated = await tx.movingRequest.findUnique({
+      where: { id: movingRequestId },
+      include: movingRequestArgs.include
+    });
+    if (!updated) {
+      throw new ApiError(404, 'MOVING_REQUEST_NOT_FOUND', 'Moving request not found.');
+    }
+    return updated;
+  });
+
+  return normalizeMovingRequest(movingRequest);
+};
+
 export const rejectMovingRequest = async (input: RejectMovingRequestInput) => {
   await ensureDriverVerified(input.driverUserId);
 
@@ -1183,15 +1246,22 @@ export const assignMovingRequestByAdmin = async (input: AssignMovingRequestInput
       );
     }
 
-    await tx.movingRequest.update({
+    // Conditional on the state checked above, so a customer cancelling meanwhile is never overwritten.
+    const assignResult = await tx.movingRequest.updateMany({
       where: {
-        id: input.movingRequestId
+        id: input.movingRequestId,
+        status: existing.status,
+        assignedDriverUserId: existing.assignedDriverUserId
       },
       data: {
         status: MovingRequestStatus.ASSIGNED,
         assignedDriverUserId: input.driverUserId
       }
     });
+
+    if (assignResult.count === 0) {
+      throw new ApiError(409, 'MOVING_REQUEST_NOT_ASSIGNABLE', 'This moving request changed before it could be assigned.');
+    }
 
     await tx.movingStatusEvent.create({
       data: {

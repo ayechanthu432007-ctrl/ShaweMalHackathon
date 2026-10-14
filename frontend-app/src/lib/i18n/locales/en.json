@@ -780,6 +780,13 @@
     }
   },
   "moving": {
+    "cancelBooking": "Cancel Booking",
+    "cancelDialogTitle": "Cancel this booking?",
+    "cancelDialogBody": "Are you sure you want to cancel this moving booking?",
+    "keepBooking": "Keep Booking",
+    "confirmCancellation": "Confirm Cancellation",
+    "cancelSuccess": "Your booking has been cancelled successfully.",
+    "cancelFailed": "The booking could not be cancelled. Please try again.",
     "statusCompletedGroup": "Completed",
     "statusNoCompleted": "No completed moves yet.",
     "viewReceipt": "View Receipt",

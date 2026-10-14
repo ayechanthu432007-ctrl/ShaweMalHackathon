@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import { MovingRequestStatus } from '@prisma/client';
 
 import {
+  cancelMovingRequestByRequester,
   createMovingRequest,
   getMovingRequestById,
   listAdminMovingRequests,
@@ -101,6 +102,12 @@ export const getMovingRequestController = async (req: Request, res: Response): P
 
   const movingRequest = await getMovingRequestById(requestId, actor);
   sendSuccess(res, 200, 'Moving request fetched successfully', { movingRequest });
+};
+
+export const cancelMyMovingRequestController = async (req: Request, res: Response): Promise<void> => {
+  const actor = requireActor(req);
+  const movingRequest = await cancelMovingRequestByRequester(String(req.params.id ?? ''), actor.userId);
+  sendSuccess(res, 200, 'Your booking has been cancelled successfully.', { movingRequest });
 };
 
 const MOVING_REQUEST_STATUSES = new Set<string>(Object.values(MovingRequestStatus));

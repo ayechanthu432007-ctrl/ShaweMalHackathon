@@ -18,6 +18,9 @@ export const movingApi = {
   getById(id: string) {
     return apiRequest<{ movingRequest: MovingRequest }>(`/moving/requests/${id}`)
   },
+  cancel(id: string) {
+    return apiRequest<{ movingRequest: MovingRequest }>(`/moving/requests/${id}/cancel`, { method: 'POST' })
+  },
   listMine() {
     return apiRequest<{ items: MovingRequest[] }>('/moving/requests')
   },

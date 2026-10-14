@@ -1,9 +1,13 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Phone, ReceiptText, Shield, Truck } from 'lucide-react'
+import { CheckCircle2, Phone, ReceiptText, Shield, Truck, XCircle } from 'lucide-react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
+import { ApiRequestError } from '@/lib/api/client'
+
+import { movingApi } from '../api/moving-api'
 
 import {
   assignedDriverPhone,
@@ -13,6 +17,7 @@ import {
   MOVING_TIMELINE_STEPS,
 } from '../lib/moving-status'
 import type { MovingRequest } from '../types'
+import { MovingCancelDialog } from './MovingCancelDialog'
 import { MovingStatusDriverDetailsDialog } from './MovingStatusDriverDetailsDialog'
 import { MovingStatusRateDriverDialog } from './MovingStatusRateDriverDialog'
 
@@ -27,6 +32,26 @@ export function MovingStatusCurrentStatusCard({ request }: { request: MovingRequ
   const phone = assignedDriverPhone(request)
   const isCancelled = request.status === 'CANCELLED'
   const canRateDriver = request.status === 'COMPLETED' && Boolean(request.assignedDriver)
+  // Mirrors the server rule: only a booking still waiting for a driver. The server checks again.
+  const canCancel = request.status === 'BOOKED' && !request.assignedDriver
+  const queryClient = useQueryClient()
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
+  const [cancelledNote, setCancelledNote] = useState(false)
+  const cancelMutation = useMutation({
+    mutationFn: () => movingApi.cancel(request.id),
+    onSuccess: async (result) => {
+      queryClient.setQueryData(['moving-request', request.id], result)
+      await queryClient.invalidateQueries({ queryKey: ['moving-requests-mine'] })
+      setCancelOpen(false)
+      setCancelledNote(true)
+    },
+    onError: (error) => {
+      setCancelError(error instanceof ApiRequestError ? error.message : t('moving.cancelFailed'))
+      // The booking may have moved on (a driver accepted), so show its current state.
+      void queryClient.invalidateQueries({ queryKey: ['moving-request', request.id] })
+    },
+  })
 
   const title = isCancelled ? t('moving.statusBadge.CANCELLED') : t(`moving.statusStep.${step?.id ?? 'booking_confirmed'}.title`)
 
@@ -72,6 +97,12 @@ export function MovingStatusCurrentStatusCard({ request }: { request: MovingRequ
                 <h2 id="moving-current-status-title" className="text-lg font-bold leading-tight tracking-tight sm:text-xl">
                   {title}
                 </h2>
+                {cancelledNote ? (
+                  <p role="status" className="flex items-center gap-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                    <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />
+                    {t('moving.cancelSuccess')}
+                  </p>
+                ) : null}
                 <p className="line-clamp-1 text-sm text-muted-foreground">
                   {isCancelled ? t('moving.statusCancelledBody') : t(`moving.statusStep.${step?.id ?? 'booking_confirmed'}.detail`)}
                 </p>
@@ -111,6 +142,20 @@ export function MovingStatusCurrentStatusCard({ request }: { request: MovingRequ
                   {t('moving.statusDriverDetails')}
                 </Button>
               ) : null}
+              {canCancel ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-full border-destructive/40 px-5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={() => {
+                    setCancelError(null)
+                    setCancelOpen(true)
+                  }}
+                >
+                  <XCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+                  {t('moving.cancelBooking')}
+                </Button>
+              ) : null}
               {canRateDriver ? (
                 <Button type="button" variant="outline" className="h-10 rounded-full px-5" onClick={() => setRateDriverOpen(true)}>
                   {request.myReview ? t('moving.statusUpdateDriverRating') : t('moving.statusRateDriver')}
@@ -120,6 +165,16 @@ export function MovingStatusCurrentStatusCard({ request }: { request: MovingRequ
           </div>
         </section>
       </div>
+      <MovingCancelDialog
+        open={cancelOpen}
+        orderNumber={request.orderNumber ?? request.id}
+        isPending={cancelMutation.isPending}
+        error={cancelError}
+        onDismiss={() => setCancelOpen(false)}
+        onConfirm={() => {
+          if (!cancelMutation.isPending) cancelMutation.mutate()
+        }}
+      />
       {request.assignedDriver ? (
         <MovingStatusDriverDetailsDialog
           open={driverDetailsOpen}
