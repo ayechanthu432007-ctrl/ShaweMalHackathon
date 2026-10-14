@@ -56,7 +56,7 @@ export function FloatingContactButtons() {
           href={viberHref}
           aria-label={t('contact.viber')}
           title={t('contact.viber')}
-          className={`${buttonClassName} bg-[#7360F2]`}
+          className={`${buttonClassName} bg-[#7360F2] shadow-[#7360F2]/30 hover:bg-[#5E4BD1]`}
         >
           <ViberIcon />
         </a>

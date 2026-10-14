@@ -33,6 +33,13 @@
   --header-sub: #eaf2fa;
   --header-foreground: #172b4d;
   --header-hover: #c5d9ee;
+  /* Filled buttons: a softer blue than the navy text colour. */
+  --button: #5b9bd5;
+  --button-hover: #4a8ac6;
+  --button-foreground: #ffffff;
+  --button-soft: #eaf2fa;
+  --button-soft-hover: #dceaf7;
+  --button-soft-foreground: #172b4d;
   --header-line: #c5d9ee;
 }
 
@@ -65,6 +72,12 @@
   --header-sub: oklch(0.24 0.018 55);
   --header-foreground: oklch(0.96 0.01 95);
   --header-hover: oklch(1 0 0 / 0.1);
+  --button: oklch(0.72 0.12 80);
+  --button-hover: oklch(0.66 0.12 80);
+  --button-foreground: oklch(0.2 0.02 55);
+  --button-soft: oklch(0.28 0.02 55);
+  --button-soft-hover: oklch(0.32 0.02 55);
+  --button-soft-foreground: oklch(0.96 0.01 95);
   --header-line: oklch(1 0 0 / 0.15);
 }
 
@@ -100,6 +113,12 @@
   --color-header-sub: var(--header-sub);
   --color-header-foreground: var(--header-foreground);
   --color-header-hover: var(--header-hover);
+  --color-button: var(--button);
+  --color-button-hover: var(--button-hover);
+  --color-button-foreground: var(--button-foreground);
+  --color-button-soft: var(--button-soft);
+  --color-button-soft-hover: var(--button-soft-hover);
+  --color-button-soft-foreground: var(--button-soft-foreground);
   --color-header-line: var(--header-line);
   --font-sans: "Segoe UI", "Noto Sans Myanmar", "Padauk", sans-serif;
 }

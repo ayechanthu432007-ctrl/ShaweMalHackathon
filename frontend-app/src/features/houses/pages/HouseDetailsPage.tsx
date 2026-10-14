@@ -241,7 +241,7 @@ export function HouseDetailsPage() {
                           href={`tel:${callNumber.replace(/[^\d+]/g, '')}`}
                           onClick={() => trackHouseEvent(house.id, 'CALL')}
                           className={cn(
-                            'flex h-14 items-center justify-center gap-2 rounded-md bg-primary px-2 text-sm font-semibold text-primary-foreground xl:text-base transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                            'flex h-14 items-center justify-center gap-2 rounded-md bg-button px-2 text-sm font-semibold text-button-foreground xl:text-base transition-colors hover:bg-button-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                             !(telegram || viber) && 'col-span-2',
                           )}
                         >
