@@ -88,10 +88,12 @@ export function MovingStatusPage() {
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        <MovingStatusCurrentMoveCard request={request} />
+        <div className="min-w-0 space-y-6">
+          <MovingStatusCurrentMoveCard request={request} />
+          <MovingStatusSafetyCard />
+        </div>
         <MovingStatusTimeline request={request} />
       </div>
-      <MovingStatusSafetyCard />
       <MovingStatusCurrentStatusCard request={request} />
     </div>
   )

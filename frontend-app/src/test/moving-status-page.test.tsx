@@ -287,7 +287,8 @@ describe('moving status page', () => {
     renderMovingStatusRoutes('/moving-status/move-1')
 
     expect(await screen.findByText(/Mini Truck \(20–35 boxes\)/i)).toBeInTheDocument()
-    expect(screen.getByText(/44 pts/i)).toBeInTheDocument()
+    // Items, points, max load and phone are kept in the record but not listed.
+    expect(screen.queryByText(/44 pts/i)).not.toBeInTheDocument()
     expect(screen.queryByText(/m³|m3/i)).not.toBeInTheDocument()
     expect(screen.getByText(/YGN 7J-1234/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /contact driver/i })).toHaveAttribute('href', 'tel:09450123456')

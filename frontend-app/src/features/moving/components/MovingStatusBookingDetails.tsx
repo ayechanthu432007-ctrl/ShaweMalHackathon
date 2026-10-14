@@ -1,34 +1,24 @@
-import { Car, Hash, Package, Phone, Scale, User } from 'lucide-react'
+import { Car, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import {
   assignedDriverName,
-  assignedDriverPhone,
   assignedLicensePlate,
 } from '../lib/moving-status'
 import type { MovingRequest } from '../types'
 
 /**
- * The items and driver facts of a booking, shown as the last group of the Booking Details card.
+ * The driver facts of a booking, shown as the last group of the Booking Details card.
  * Vehicle, price, date and addresses are in the groups above, so they are not repeated here.
  */
 export function MovingStatusBookingDetails({ request }: { request: MovingRequest }) {
   const { t } = useTranslation()
   const driverName = assignedDriverName(request)
-  const phone = assignedDriverPhone(request)
   const plate = assignedLicensePlate(request)
-  const points =
-    typeof request.totalInventoryPoints === 'number' ? `${request.totalInventoryPoints} pts` : '—'
-  const itemCount = request.inventoryItems.reduce((sum, item) => sum + item.count, 0)
 
+  // Items, points, max load and the driver's phone stay in the booking record; they are just not listed here.
   const rows = [
-    { icon: Package, label: t('moving.selectedItems'), value: itemCount > 0 ? t('moving.itemCount', { count: itemCount }) : '—' },
-    { icon: Hash, label: t('moving.statusItemsVolume'), value: points },
-    ...(typeof request.vehicleType?.maxLoadKg === 'number'
-      ? [{ icon: Scale, label: t('moving.vehicleMaxLoad'), value: `${request.vehicleType.maxLoadKg.toLocaleString()} kg` }]
-      : []),
     { icon: User, label: t('moving.statusDriverName'), value: driverName ?? '—' },
-    { icon: Phone, label: t('moving.bookerPhone'), value: phone ?? '—' },
     { icon: Car, label: t('moving.statusLicensePlate'), value: plate ?? '—' },
   ]
 

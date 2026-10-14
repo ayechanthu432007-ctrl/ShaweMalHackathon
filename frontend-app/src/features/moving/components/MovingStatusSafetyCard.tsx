@@ -20,7 +20,7 @@ export function MovingStatusSafetyCard() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
+        <ul className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
           {items.map((item) => (
             <li key={item} className="flex items-start gap-2">
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
