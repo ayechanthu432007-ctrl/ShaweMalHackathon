@@ -30,6 +30,7 @@ import { HireMovingPage } from '@/features/moving/pages/HireMovingPage'
 import { MovingRequestDetailPage } from '@/features/moving/pages/MovingRequestDetailPage'
 import { MovingStatusListPage } from '@/features/moving/pages/MovingStatusListPage'
 import { MovingStatusPage } from '@/features/moving/pages/MovingStatusPage'
+import { MovingReceiptPage } from '@/features/moving/pages/MovingReceiptPage'
 import { HistoryPage } from '@/features/profile/pages/HistoryPage'
 import { ProfilePage } from '@/features/profile/pages/ProfilePage'
 import { WishlistPage } from '@/features/profile/pages/WishlistPage'
@@ -74,6 +75,7 @@ export const publicRoutes: RouteObject = {
     { path: 'hire-moving/:id', element: <MovingRequestDetailPage /> },
     { path: 'moving-status', element: <MovingStatusListPage /> },
     { path: 'moving-status/:id', element: <MovingStatusPage /> },
+    { path: 'moving-status/:id/receipt', element: <MovingReceiptPage /> },
     { path: 'finding-roommates', element: <FindingRoommatesPage /> },
     { path: 'marketplace', element: <MarketplaceHomePage /> },
     { path: 'marketplace/search', element: <MarketplaceSearchPage /> },

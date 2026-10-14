@@ -194,3 +194,13 @@ export function vehicleLabel(request: {
 
   return name || '—'
 }
+
+/** When a move was finished: the time of its COMPLETED status event, or its last update as a fallback. */
+export function completionDate(request: {
+  status: string
+  statusEvents?: Array<{ status?: string | null; createdAt: string }>
+  updatedAt?: string
+}): string | null {
+  if (request.status !== 'COMPLETED') return null
+  return eventTimestampForStatuses(request.statusEvents, ['COMPLETED']) ?? request.updatedAt ?? null
+}

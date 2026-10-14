@@ -201,3 +201,20 @@ select optgroup {
     transform: rotateY(-24deg);
   }
 }
+
+/* Printing the moving receipt prints the receipt alone, without the site around it. */
+@media print {
+  body:has(#moving-receipt) * {
+    visibility: hidden;
+  }
+  body:has(#moving-receipt) #moving-receipt,
+  body:has(#moving-receipt) #moving-receipt * {
+    visibility: visible;
+  }
+  body:has(#moving-receipt) #moving-receipt {
+    position: absolute;
+    inset: 0 0 auto 0;
+    border: 0;
+    box-shadow: none;
+  }
+}
