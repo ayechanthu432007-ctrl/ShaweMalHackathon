@@ -16,12 +16,12 @@ export function MovingStatusTimeline({ request }: { request: MovingRequest }) {
   const { t } = useTranslation()
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">{t('moving.statusProgressTitle')}</CardTitle>
+    <Card className="border-primary/30 shadow-md">
+      <CardHeader className="border-b bg-primary/5">
+        <CardTitle className="text-xl">{t('moving.statusProgressTitle')}</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ol className="space-y-0">
+      <CardContent className="pt-5">
+        <ol className="max-h-[30rem] space-y-0 overflow-y-auto pr-1 lg:max-h-none lg:overflow-visible">
           {MOVING_TIMELINE_STEPS.map((step, index) => {
             const state = timelineStepState(index, request.status, request.statusEvents)
             const timestamp = eventTimestampForStatuses(request.statusEvents, step.statuses)
@@ -54,8 +54,14 @@ export function MovingStatusTimeline({ request }: { request: MovingRequest }) {
                     />
                   ) : null}
                 </div>
-                <div className={cn('pb-6', index === MOVING_TIMELINE_STEPS.length - 1 && 'pb-0')}>
-                  <p className={cn('font-semibold', state === 'pending' && 'text-muted-foreground')}>
+                <div
+                  className={cn(
+                    'mb-4 min-w-0 flex-1 rounded-lg px-3 py-1.5',
+                    index === MOVING_TIMELINE_STEPS.length - 1 && 'mb-0',
+                    state === 'current' && 'bg-primary/10 ring-1 ring-primary/30',
+                  )}
+                >
+                  <p className={cn('font-semibold', state === 'pending' && 'text-muted-foreground', state === 'current' && 'text-primary')}>
                     {t(`moving.statusStep.${step.id}.title`)}
                   </p>
                   <p className="text-sm text-muted-foreground">{t(`moving.statusStep.${step.id}.body`)}</p>

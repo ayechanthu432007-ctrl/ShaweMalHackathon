@@ -80,22 +80,23 @@ export function MovingStatusPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    // The bottom padding keeps the last card clear of the fixed Current Status bar.
+    <div className="mx-auto max-w-6xl space-y-6 pb-64 sm:pb-48">
       <BackLink to="/moving-status" label={t('moving.statusBackToList')} />
       <div>
         <h1 className="text-3xl font-semibold tracking-tight">{t('nav.movingStatus')}</h1>
         <p className="text-sm text-muted-foreground">{t('moving.statusSubtitle')}</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <MovingStatusCurrentMoveCard request={request} />
-        <MovingStatusCurrentStatusCard request={request} />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <div className="min-w-0 space-y-6">
+          <MovingStatusCurrentMoveCard request={request} />
+          <MovingStatusBookingDetails request={request} />
+        </div>
+        <MovingStatusTimeline request={request} />
       </div>
-      <MovingStatusTimeline request={request} />
-      <div className="grid gap-6 lg:grid-cols-2">
-        <MovingStatusBookingDetails request={request} />
-        <MovingStatusSafetyCard />
-      </div>
+      <MovingStatusSafetyCard />
+      <MovingStatusCurrentStatusCard request={request} />
     </div>
   )
 }

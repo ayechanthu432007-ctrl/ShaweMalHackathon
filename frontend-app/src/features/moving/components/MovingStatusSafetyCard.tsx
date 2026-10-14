@@ -12,15 +12,15 @@ export function MovingStatusSafetyCard() {
   ]
 
   return (
-    <Card className="h-full border-primary/20 bg-primary/5">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
+    <Card className="border-primary/20 bg-primary/5 shadow-none">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
           <Shield className="h-5 w-5 text-primary" aria-hidden="true" />
           {t('moving.statusSafetyTitle')}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ul className="space-y-2 text-sm">
+        <ul className="flex flex-wrap gap-x-8 gap-y-2 text-sm">
           {items.map((item) => (
             <li key={item} className="flex items-start gap-2">
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
