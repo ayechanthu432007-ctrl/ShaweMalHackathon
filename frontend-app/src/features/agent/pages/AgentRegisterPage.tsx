@@ -161,6 +161,15 @@ export function AgentRegisterPage() {
           <Field label={t('agent.nrc')} error={errors.nrc?.message}>
             <Input maxLength={15} {...register('nrc')} />
           </Field>
+          <Field label={t('agent.profilePhoto')} error={errors.profilePhotoPath?.message} className="sm:col-span-2">
+            <SingleImageUploadField
+              path={watch('profilePhotoPath')}
+              onChange={(path) => setPhotoPath('profilePhotoPath', path)}
+              category="profile"
+              error={errors.profilePhotoPath?.message}
+            />
+            <p className="text-xs text-muted-foreground">{t('agent.profilePhotoHint')}</p>
+          </Field>
           <Field label={t('agent.nrcFrontPhotoPath')} error={errors.nrcFrontPhotoPath?.message} className="sm:col-span-2">
             <SingleImageUploadField
               path={watch('nrcFrontPhotoPath')}
@@ -176,15 +185,6 @@ export function AgentRegisterPage() {
               category="docs"
               error={errors.nrcBackPhotoPath?.message}
             />
-          </Field>
-          <Field label={t('agent.profilePhoto')} error={errors.profilePhotoPath?.message} className="sm:col-span-2">
-            <SingleImageUploadField
-              path={watch('profilePhotoPath')}
-              onChange={(path) => setPhotoPath('profilePhotoPath', path)}
-              category="profile"
-              error={errors.profilePhotoPath?.message}
-            />
-            <p className="text-xs text-muted-foreground">{t('agent.profilePhotoHint')}</p>
           </Field>
           <Field label={t('auth.email')} error={errors.email?.message}>
             <Input type="email" {...register('email')} />
