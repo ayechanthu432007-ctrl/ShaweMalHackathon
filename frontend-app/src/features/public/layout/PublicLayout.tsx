@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { Menu, X } from 'lucide-react'
+import { ClipboardList, Home, Menu, Store, Truck, Users, X, type LucideIcon } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -8,7 +8,6 @@ import { FloatingContactButtons } from '@/components/common/FloatingContactButto
 import { LanguageToggle } from '@/components/common/LanguageToggle'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
 import { UserMenu } from '@/features/public/components/UserMenu'
 import shawemalLogo from '@/assets/shawemal-logo.png'
@@ -30,6 +29,16 @@ const authTopLinks = [
   { to: '/driver-register', labelKey: 'nav.driverRegister' },
 ] as const
 
+const SUB_LINK_ICONS: Record<string, LucideIcon> = {
+  '/finding-house': Home,
+  '/agent/houses': Home,
+  '/hire-moving': Truck,
+  '/moving-status': ClipboardList,
+  '/driver/jobs': Truck,
+  '/finding-roommates': Users,
+  '/marketplace': Store,
+}
+
 function buildPublicSubLinks(options: { isAgent: boolean; isDriver: boolean }) {
   return [
     { to: '/finding-house', labelKey: 'nav.findingHouse' },
@@ -50,11 +59,31 @@ function NavItem({ to, label, end, onClick }: { to: string; label: string; end?:
       onClick={onClick}
       className={({ isActive }) =>
         cn(
-          'shrink-0 whitespace-nowrap rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground',
-          isActive && 'bg-accent text-accent-foreground font-medium',
+          'shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium text-foreground/70 transition-colors duration-200 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          isActive && 'bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary',
         )
       }
     >
+      {label}
+    </NavLink>
+  )
+}
+
+function SubNavItem({ to, label }: { to: string; label: string }) {
+  const Icon = SUB_LINK_ICONS[to]
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        cn(
+          'group relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium text-foreground/65 transition-colors duration-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+          // The brand-coloured bar under the current page.
+          'after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-primary after:opacity-0 after:transition-opacity after:duration-200 hover:after:opacity-30',
+          isActive && 'text-primary after:opacity-100 hover:text-primary hover:after:opacity-100',
+        )
+      }
+    >
+      {Icon ? <Icon className="size-4 shrink-0 opacity-80" aria-hidden /> : null}
       {label}
     </NavLink>
   )
@@ -96,12 +125,12 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen bg-background">
       {/* Both rows stay at the top while the page scrolls; its height is shared as --site-header-h. */}
-      <header ref={headerRef} className="sticky top-0 z-40 border-b bg-secondary text-secondary-foreground shadow-sm">
+      <header ref={headerRef} className="sticky top-0 z-40 border-b bg-background/90 text-foreground shadow-[0_6px_20px_-12px_rgba(0,0,0,0.25)] backdrop-blur-md supports-[backdrop-filter]:bg-background/80">
         {isMenuOpen ? (
           // Tapping anywhere outside the open menu closes it.
           <div className="fixed inset-0 z-40 lg:hidden" aria-hidden onClick={() => setIsMenuOpen(false)} />
         ) : null}
-        <div className="relative mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-x-4 lg:flex-nowrap">
+        <div className="relative mx-auto flex h-16 max-w-6xl items-center gap-x-2 px-4 sm:gap-x-4">
           <Link
             to="/"
             onClick={() => setIsMenuOpen(false)}
@@ -110,17 +139,17 @@ export function PublicLayout() {
             <img
               src={shawemalLogo}
               alt=""
-              className="h-9 w-9 rounded-md bg-white object-contain"
+              className="size-10 rounded-xl border bg-white object-contain p-0.5 shadow-sm"
             />
-            <span className="text-xl font-bold tracking-tight">{t('common.appName')}</span>
+            <span className="text-xl font-extrabold tracking-tight">{t('common.appName')}</span>
           </Link>
           <nav
             id="primary-nav"
             className={cn(
               // Phones and tablets: a compact dropdown under the menu button, over the page.
-              'absolute right-4 top-full z-50 -mt-1 w-56 flex-col gap-1 rounded-md border bg-popover p-1 text-popover-foreground shadow-lg',
+              'absolute right-4 top-full z-50 mt-1 w-60 flex-col gap-1 rounded-2xl border bg-popover p-2 text-popover-foreground shadow-xl',
               // Desktop: the links sit in the header row.
-              'lg:static lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:min-w-0 lg:flex-1 lg:flex-row lg:items-center lg:justify-end lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:text-inherit lg:shadow-none',
+              'lg:static lg:z-auto lg:mt-0 lg:flex lg:w-auto lg:min-w-0 lg:flex-1 lg:flex-row lg:items-center lg:justify-end lg:gap-0.5 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0 lg:text-inherit lg:shadow-none',
               isMenuOpen ? 'flex' : 'hidden',
             )}
             aria-label="Primary"
@@ -135,7 +164,7 @@ export function PublicLayout() {
               />
             ))}
           </nav>
-          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2 lg:ml-0">
+          <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-1.5 lg:ml-2 lg:border-l lg:pl-4">
             {!isBootstrapping && isAuthenticated ? (
               <>
                 <NotificationsMenu />
@@ -158,11 +187,11 @@ export function PublicLayout() {
             </Button>
           </div>
         </div>
-        <Separator />
-        <nav className="bg-muted text-foreground" aria-label="Sub">
-          <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-4 py-2">
+        <nav className="border-t bg-secondary/60" aria-label="Sub">
+          {/* On narrow screens the row scrolls sideways inside itself; the page never does. */}
+          <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 [scrollbar-width:none] sm:px-4 [&::-webkit-scrollbar]:hidden">
             {subLinks.map((link) => (
-              <NavItem key={link.to} to={link.to} label={t(link.labelKey)} />
+              <SubNavItem key={link.to} to={link.to} label={t(link.labelKey)} />
             ))}
           </div>
         </nav>
