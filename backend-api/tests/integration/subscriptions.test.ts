@@ -66,6 +66,11 @@ jest.mock('../../src/prisma/client', () => {
         const row = { id: nextId('sub'), createdAt: new Date(), ...data };
         db.subscriptions.push(row);
         return row;
+      }),
+      update: jest.fn(async ({ where, data }: any) => {
+        const row = db.subscriptions.find((item) => item.id === where.id);
+        Object.assign(row, data);
+        return row;
       })
     },
     paymentOrder: {
@@ -164,7 +169,7 @@ import { app } from '../../src/app';
 import { env } from '../../src/config/env';
 import { getAgentDashboard, getAgentPerformance, recordHouseEvent } from '../../src/services/agent-analytics.service';
 import { applyFreeBoost, getFreeBoostBalance } from '../../src/services/boost.service';
-import { createBoostOrder, createSubscriptionOrder, processPaymentEvent, simulateDemoPayment } from '../../src/services/payment.service';
+import { createBoostOrder, createSubscriptionOrder, processPaymentEvent, resetDemoSubscriptions, simulateDemoPayment } from '../../src/services/payment.service';
 import { assertListingAllowance, assertPlanFeature, getEffectivePlan, LISTING_CREATED_ACTION, yangonMonthRange } from '../../src/services/subscription.service';
 
 const NOW = new Date('2026-10-09T05:00:00.000Z');
@@ -311,6 +316,31 @@ describe('demo payments and activation', () => {
 
     // When Gold ends, the Silver time already paid for is still there.
     expect((await getEffectivePlan(AGENT, new Date('2026-11-20T00:00:00.000Z'))).plan.code).toBe('SILVER');
+  });
+
+  it('returns a demo agent to Free Basic so another plan can be tried, keeping the records', async () => {
+    await buy('SILVER', 1);
+    await buy('GOLD', 3);
+    expect((await getEffectivePlan(AGENT, NOW)).plan.code).toBe('GOLD');
+
+    expect(await resetDemoSubscriptions(AGENT, NOW)).toEqual({ ended: 2 });
+    expect((await getEffectivePlan(AGENT, NOW)).plan.code).toBe('FREE');
+    expect(db.subscriptions).toHaveLength(2);
+
+    // After the reset a lower plan can be chosen straight away.
+    await buy('SILVER', 1);
+    expect((await getEffectivePlan(AGENT, NOW)).plan.code).toBe('SILVER');
+  });
+
+  it('never resets anything when demo payments are off or in production', async () => {
+    await buy('GOLD', 1);
+    settings.nodeEnv = 'production';
+    await expect(resetDemoSubscriptions(AGENT, NOW)).rejects.toMatchObject({ statusCode: 404 });
+    settings.nodeEnv = 'test';
+    settings.demoPaymentsEnabled = false;
+    await expect(resetDemoSubscriptions(AGENT, NOW)).rejects.toMatchObject({ statusCode: 404 });
+    settings.demoPaymentsEnabled = true;
+    expect((await getEffectivePlan(AGENT, NOW)).plan.code).toBe('GOLD');
   });
 
   it('cannot be simulated when demo payments are off or in production, or for someone else', async () => {

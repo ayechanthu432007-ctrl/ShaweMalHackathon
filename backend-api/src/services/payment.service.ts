@@ -322,3 +322,29 @@ export const simulateDemoPayment = async (userId: string, reference: string, out
 
   return { ...result, order: serializeOrder(await getOwnedOrder(userId, reference)) };
 };
+
+/**
+ * Demo only: ends the agent's demo-paid subscriptions now, so they are back on Free Basic and
+ * can try another plan. Subscriptions paid through a real provider are never touched, and the
+ * endpoint does not exist unless demo payments are enabled outside production. Records are
+ * kept; only their end (and, for queued ones, start) is moved to now.
+ */
+export const resetDemoSubscriptions = async (userId: string, now = new Date()) => {
+  if (!demoPaymentProvider.isAvailable()) {
+    throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
+  }
+
+  const demoOrders = await prisma.paymentOrder.findMany({ where: { userId, isDemo: true, provider: DEMO_PROVIDER } });
+  const demoOrderIds = new Set(demoOrders.map((order) => order.id));
+  const subscriptions = await prisma.agentSubscription.findMany({ where: { userId } });
+  const toEnd = subscriptions.filter((item) => demoOrderIds.has(item.paymentOrderId) && item.endsAt > now);
+
+  for (const item of toEnd) {
+    await prisma.agentSubscription.update({
+      where: { id: item.id },
+      data: { endsAt: now, ...(item.startsAt > now ? { startsAt: now } : {}) }
+    });
+  }
+
+  return { ended: toEnd.length };
+};

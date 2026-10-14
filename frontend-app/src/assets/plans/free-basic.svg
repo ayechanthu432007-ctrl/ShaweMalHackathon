@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" role="img" aria-label="Free Basic">
+  <defs>
+    <linearGradient id="fb-bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4F8FC"/><stop offset="1" stop-color="#DCEAF7"/></linearGradient>
+  </defs>
+  <rect width="320" height="160" rx="16" fill="url(#fb-bg)"/>
+  <circle cx="262" cy="38" r="16" fill="#FFFFFF" opacity="0.9"/>
+  <path d="M0 132 Q80 118 160 128 T320 124 V160 H0Z" fill="#C5D9EE" opacity="0.7"/>
+  <g transform="translate(110 46)">
+    <path d="M50 0 L100 40 H88 V86 H12 V40 H0 Z" fill="#FFFFFF" stroke="#5B9BD5" stroke-width="4" stroke-linejoin="round"/>
+    <rect x="40" y="52" width="20" height="34" rx="3" fill="#5B9BD5"/>
+    <rect x="20" y="48" width="14" height="14" rx="2" fill="#DCEAF7" stroke="#5B9BD5" stroke-width="2"/>
+    <rect x="66" y="48" width="14" height="14" rx="2" fill="#DCEAF7" stroke="#5B9BD5" stroke-width="2"/>
+  </g>
+  <rect x="34" y="52" width="58" height="40" rx="8" fill="#FFFFFF" stroke="#C5D9EE" stroke-width="2"/>
+  <rect x="42" y="61" width="30" height="5" rx="2.5" fill="#5B9BD5"/>
+  <rect x="42" y="72" width="40" height="4" rx="2" fill="#C5D9EE"/>
+  <rect x="42" y="80" width="24" height="4" rx="2" fill="#C5D9EE"/>
+</svg>

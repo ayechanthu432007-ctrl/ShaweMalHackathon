@@ -1572,6 +1572,17 @@
     }
   },
   "agentDash": {
+    "demoBanner": "DEMO MODE — ငွေပေးချေရန် မလိုပါ။ ဤနေရာရှိ အစီအစဉ်ပြောင်းလဲမှုများသည် စမ်းသပ်ရန်သာ ဖြစ်သည်။",
+    "demoBadge": "DEMO MODE",
+    "demoConfirmTitle": "{{plan}} သို့ ပြောင်းမလား?",
+    "demoReturnTitle": "Free Basic သို့ ပြန်သွားမလား?",
+    "demoPlan": "အစီအစဉ်",
+    "demoNoCharge": "ဤသည်မှာ demo ဖြစ်သည်။ ငွေ မကောက်ခံပါ။",
+    "demoConfirmButton": "Demo Subscription အတည်ပြုမည်",
+    "demoSwitched": "Demo အစီအစဉ်ကို {{plan}} သို့ ပြောင်းပြီးပါပြီ။",
+    "demoFailed": "Demo အစီအစဉ်ကို ပြောင်း၍ မရပါ။ ထပ်မံကြိုးစားပါ။",
+    "currentPlanButton": "လက်ရှိ အစီအစဉ်",
+    "returnToFree": "Free Basic သို့ ပြန်သွားမည်",
     "navLabel": "Agent Dashboard",
     "currentPlan": "လက်ရှိ Plan",
     "validUntil": "{{date}} အထိ",

@@ -1572,6 +1572,17 @@
     }
   },
   "agentDash": {
+    "demoBanner": "DEMO MODE — No real payment required. Plan changes here are for testing only.",
+    "demoBadge": "DEMO MODE",
+    "demoConfirmTitle": "Switch to {{plan}}?",
+    "demoReturnTitle": "Return to Free Basic?",
+    "demoPlan": "Plan",
+    "demoNoCharge": "This is a demo. No payment is taken and nothing is charged.",
+    "demoConfirmButton": "Confirm Demo Subscription",
+    "demoSwitched": "Demo plan changed to {{plan}}.",
+    "demoFailed": "The demo plan could not be changed. Please try again.",
+    "currentPlanButton": "Current Plan",
+    "returnToFree": "Return to Free Basic",
     "navLabel": "Agent dashboard",
     "currentPlan": "Current plan",
     "validUntil": "valid until {{date}}",

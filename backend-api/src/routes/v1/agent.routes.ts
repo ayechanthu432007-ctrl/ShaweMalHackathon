@@ -19,7 +19,8 @@ import {
   applyFreeBoostController,
   createBoostOrderController,
   createSubscriptionOrderController,
-  simulateDemoPaymentController
+  simulateDemoPaymentController,
+  resetDemoSubscriptionController
 } from '../../controllers/agent-plan.controller';
 import { tenantMatchesController } from '../../controllers/recommendation.controller';
 import { requireAuth, requireRole } from '../../middleware/auth.middleware';
@@ -64,5 +65,6 @@ agentRouter.post('/subscription/orders', subscriptionOrderValidator, validateMid
 agentRouter.get('/payments/orders', asyncHandler(agentOrdersController));
 agentRouter.get('/payments/orders/:reference', orderReferenceValidator, validateMiddleware, asyncHandler(agentOrderController));
 agentRouter.post('/payments/orders/:reference/demo', demoPaymentValidator, validateMiddleware, asyncHandler(simulateDemoPaymentController));
+agentRouter.post('/subscription/demo-reset', asyncHandler(resetDemoSubscriptionController));
 
 export { agentRouter };

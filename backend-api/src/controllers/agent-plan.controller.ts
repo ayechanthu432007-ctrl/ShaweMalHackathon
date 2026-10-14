@@ -17,7 +17,8 @@ import {
   listOwnedOrders,
   serializeOrder,
   simulateDemoPayment,
-  type PaymentOutcome
+  type PaymentOutcome,
+  resetDemoSubscriptions
 } from '../services/payment.service';
 import { listPlans, serializePlan } from '../services/subscription.service';
 import { prisma } from '../prisma/client';
@@ -75,6 +76,10 @@ export const simulateDemoPaymentController = async (req: Request, res: Response)
   const outcome = String(req.body.outcome).toUpperCase() as PaymentOutcome;
   const result = await simulateDemoPayment(requireActor(req), String(req.params.reference), outcome);
   sendSuccess(res, 200, 'Demo payment processed', result);
+};
+
+export const resetDemoSubscriptionController = async (req: Request, res: Response): Promise<void> => {
+  sendSuccess(res, 200, 'Demo subscription reset to Free Basic', await resetDemoSubscriptions(requireActor(req)));
 };
 
 export const agentBoostsController = async (req: Request, res: Response): Promise<void> => {

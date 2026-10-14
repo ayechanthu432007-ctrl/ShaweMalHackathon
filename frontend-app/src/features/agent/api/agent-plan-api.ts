@@ -146,6 +146,10 @@ export const agentPlanApi = {
   order(reference: string) {
     return apiRequest<{ order: PaymentOrder }>(`/agent/payments/orders/${encodeURIComponent(reference)}`)
   },
+  /** Demo only (refused in production): ends demo-paid plans so the agent is back on Free Basic. */
+  resetDemoSubscription() {
+    return apiRequest<{ ended: number }>('/agent/subscription/demo-reset', { method: 'POST' })
+  },
   simulateDemoPayment(reference: string, outcome: 'success' | 'pending' | 'failed') {
     return apiRequest<{ result: string; status: string; order: PaymentOrder }>(
       `/agent/payments/orders/${encodeURIComponent(reference)}/demo`,
