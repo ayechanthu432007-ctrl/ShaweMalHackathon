@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Phone, Shield, Truck } from 'lucide-react'
+import { Phone, ReceiptText, Shield, Truck } from 'lucide-react'
+import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -83,6 +84,15 @@ export function MovingStatusCurrentStatusCard({ request }: { request: MovingRequ
               </p>
             ) : null}
             <div className="flex shrink-0 flex-wrap gap-2">
+              {/* Only the final step, Move Completed, has a receipt. */}
+              {request.status === 'COMPLETED' ? (
+                <Button asChild className="h-10 rounded-full px-5 font-semibold shadow-md shadow-primary/25">
+                  <Link to={`/moving-status/${request.id}/receipt`}>
+                    <ReceiptText className="mr-2 h-4 w-4" aria-hidden="true" />
+                    {t('moving.viewReceipt')}
+                  </Link>
+                </Button>
+              ) : null}
               {phone ? (
                 <Button asChild className="h-10 rounded-full px-5 font-semibold shadow-md shadow-primary/25">
                   <a href={`tel:${phone.replace(/\s+/g, '')}`}>
