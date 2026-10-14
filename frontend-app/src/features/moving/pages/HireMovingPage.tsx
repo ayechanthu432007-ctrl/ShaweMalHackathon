@@ -27,7 +27,7 @@ import {
   validateMovingStep3,
   type MovingRequestFormValues,
 } from '../schemas/moving-request-schema'
-import type { MovingQuote } from '../types'
+import type { MovingQuote, MovingRequest } from '../types'
 
 function parseStep(value: string | null): 1 | 2 | 3 | 4 {
   const parsed = Number(value ?? '1')
@@ -40,16 +40,17 @@ export function HireMovingPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { isAuthenticated, isBootstrapping, user } = useAuth()
+  const { isAuthenticated, isBootstrapping } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
-  const [createdRequestId, setCreatedRequestId] = useState<string | null>(null)
-  const [createdOrderNumber, setCreatedOrderNumber] = useState<string | null>(null)
+  const [createdRequest, setCreatedRequest] = useState<MovingRequest | null>(null)
   const [quote, setQuote] = useState<MovingQuote | null>(null)
   const [isQuoting, setIsQuoting] = useState(false)
 
   const bookingId = searchParams.get('bookingId') ?? undefined
   const houseId = searchParams.get('houseId') ?? undefined
   const step = parseStep(searchParams.get('step'))
+  // The booking just made; kept in the address so a refresh shows the same confirmation.
+  const confirmedRequestId = searchParams.get('request')
 
   useEffect(() => {
     if (!isBootstrapping && !isAuthenticated) {
@@ -156,9 +157,10 @@ export function HireMovingPage() {
     [photo1, photo2, photo3, photo4, photo5],
   )
 
-  const setStep = (next: 1 | 2 | 3 | 4) => {
+  const setStep = (next: 1 | 2 | 3 | 4, requestId?: string) => {
     const params = new URLSearchParams(searchParams)
     params.set('step', String(next))
+    if (requestId) params.set('request', requestId)
     setSearchParams(params)
     // The buttons sit at the bottom of each step, so a new step has to start back at the top.
     window.scrollTo?.({ top: 0, behavior: 'smooth' })
@@ -301,9 +303,8 @@ export function HireMovingPage() {
         photos: collectPhotoPaths(merged),
         inventoryItems,
       })
-      setCreatedRequestId(result.movingRequest.id)
-      setCreatedOrderNumber(result.movingRequest.orderNumber ?? result.movingRequest.id)
-      setStep(4)
+      setCreatedRequest(result.movingRequest)
+      setStep(4, result.movingRequest.id)
     } catch (error) {
       if (error instanceof ApiRequestError) {
         setFormError(error.message)
@@ -317,7 +318,8 @@ export function HireMovingPage() {
     return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
   }
 
-  const showConfirmation = step === 4 && Boolean(createdRequestId)
+  const confirmationId = createdRequest?.id ?? confirmedRequestId
+  const showConfirmation = step === 4 && Boolean(confirmationId)
 
   return (
     <Card className="mx-auto max-w-6xl">
@@ -337,14 +339,8 @@ export function HireMovingPage() {
         )}
       </CardHeader>
       <CardContent>
-        {showConfirmation && createdRequestId ? (
-          <HireMovingStepConfirmation
-            orderNumber={createdOrderNumber ?? createdRequestId}
-            requestId={createdRequestId}
-            userName={user?.name ?? ''}
-            userPhone={user?.phone}
-            userEmail={user?.email}
-          />
+        {showConfirmation && confirmationId ? (
+          <HireMovingStepConfirmation requestId={confirmationId} initial={createdRequest?.id === confirmationId ? createdRequest : null} />
         ) : (
           <form data-moving-form className="space-y-6" onSubmit={onSubmit} noValidate>
             <input type="hidden" {...register('pickupAddress')} />
