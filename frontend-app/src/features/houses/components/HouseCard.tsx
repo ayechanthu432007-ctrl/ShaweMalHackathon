@@ -10,7 +10,7 @@ import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 import { cn } from '@/lib/utils'
 
 import type { HouseListItem } from '../types'
-import { HouseAvailabilityBadge } from './HouseAvailabilityBadge'
+import { isHouseAvailable } from '../lib/availability'
 import { useWishlist } from '../hooks/useWishlist'
 
 type HouseCardProps = {
@@ -21,6 +21,7 @@ type HouseCardProps = {
     | 'monthlyFees'
     | 'propertyType'
     | 'city'
+    | 'state'
     | 'thumbnail'
     | 'bedrooms'
     | 'bathrooms'
@@ -67,11 +68,19 @@ export function HouseCard({ house, className }: HouseCardProps) {
     house.areaSize ? { key: 'area', icon: Ruler, text: house.areaSize } : null,
   ].flatMap((fact) => (fact ? [fact] : []))
 
+  const available = isHouseAvailable(house.availability)
+  const place = [house.city?.name, house.state?.name].filter(Boolean).join(', ')
+
   return (
-    <Card className={cn('group overflow-hidden transition-shadow duration-200 hover:shadow-lg', className)}>
+    <Card
+      className={cn(
+        'group overflow-hidden rounded-2xl border-border/70 bg-card shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg motion-reduce:transform-none',
+        className,
+      )}
+    >
       <Link
         to={`/houses/${house.id}`}
-        className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex h-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
         <div className="relative aspect-[4/3] overflow-hidden bg-muted">
           {thumbnailSrc ? (
@@ -86,21 +95,11 @@ export function HouseCard({ house, className }: HouseCardProps) {
               {t('houses.noPhoto')}
             </div>
           )}
-          <div className="absolute left-2 top-2 flex flex-wrap items-center gap-1.5">
-            <HouseAvailabilityBadge availability={house.availability} className="shadow-sm" />
-            {/* Paid placement is always disclosed to visitors, in the wording listing sites commonly use. */}
-            {house.isBoosted ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-background/90 px-2 py-0.5 text-xs font-medium text-foreground shadow-sm">
-                <Star className="size-3 fill-amber-400 text-amber-400" aria-hidden />
-                {t('houses.boosted')}
-              </span>
-            ) : null}
-          </div>
           <Button
             type="button"
             size="icon"
             variant="secondary"
-            className="absolute right-2 top-2 h-9 w-9 rounded-full bg-background/90 shadow-sm"
+            className="absolute right-2.5 top-2.5 h-9 w-9 rounded-full bg-background/90 shadow-sm backdrop-blur"
             aria-label={isWishlisted ? t('houses.removeWishlist') : t('houses.addWishlist')}
             aria-pressed={isWishlisted}
             disabled={isToggling}
@@ -109,16 +108,16 @@ export function HouseCard({ house, className }: HouseCardProps) {
             <Heart className={cn('size-4 transition-colors', isWishlisted && 'fill-primary text-primary')} />
           </Button>
         </div>
-        <CardContent className="flex flex-1 flex-col gap-2 p-4">
-          <p className="text-lg font-bold leading-tight text-primary">
+        <CardContent className="flex flex-1 flex-col p-4">
+          <p className="text-xl font-extrabold leading-tight tracking-tight text-primary">
             {formatFees(house.monthlyFees)}
-            <span className="ml-1 text-xs font-normal text-muted-foreground">{t('houses.perMonth')}</span>
+            <span className="ml-1 text-xs font-medium text-muted-foreground">{t('houses.perMonth')}</span>
           </p>
-          <h3 className="line-clamp-2 text-base font-semibold leading-snug">{house.title}</h3>
-          <div className="space-y-1 text-sm text-muted-foreground">
+          <h3 className="mt-1.5 line-clamp-2 min-h-[2.75rem] text-base font-semibold leading-snug">{house.title}</h3>
+          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
             <p className="flex items-center gap-1.5">
               <MapPin className="size-4 shrink-0" aria-hidden />
-              <span className="truncate">{house.city?.name ?? t('houses.locationUnknown')}</span>
+              <span className="truncate">{place || t('houses.locationUnknown')}</span>
             </p>
             {house.propertyType?.name ? (
               <p className="flex items-center gap-1.5">
@@ -128,15 +127,35 @@ export function HouseCard({ house, className }: HouseCardProps) {
             ) : null}
           </div>
           {facts.length > 0 ? (
-            <ul className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1 border-t pt-3 text-sm">
+            <ul className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
               {facts.map((fact) => (
-                <li key={fact.key} className="flex items-center gap-1.5">
-                  <fact.icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                <li key={fact.key} className="flex items-center gap-1.5 font-medium">
+                  <fact.icon className="size-4 shrink-0 text-primary/80" aria-hidden />
                   {fact.text}
                 </li>
               ))}
             </ul>
           ) : null}
+          {/* Only labels the listing really earns: its availability and, when paid for, Featured. */}
+          <div className="mt-auto pt-3">
+          <div className="flex flex-wrap gap-1.5 border-t pt-3">
+            <span
+              className={cn(
+                'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold',
+                available ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-muted text-muted-foreground',
+              )}
+            >
+              {available ? t('houses.available') : t('houses.notAvailable')}
+            </span>
+            {/* Paid placement is always disclosed to visitors, in the wording listing sites commonly use. */}
+            {house.isBoosted ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                <Star className="size-3 fill-amber-400 text-amber-400" aria-hidden />
+                {t('houses.boosted')}
+              </span>
+            ) : null}
+          </div>
+          </div>
         </CardContent>
       </Link>
     </Card>
