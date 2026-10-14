@@ -29,9 +29,11 @@
   --gold-foreground: #142b4a;
   --success: #16845b;
   --success-soft: #e7f5ef;
-  --header: #142b4a;
-  --header-sub: #1d3a5c;
-  --header-foreground: #ffffff;
+  --header: #dceaf7;
+  --header-sub: #eaf2fa;
+  --header-foreground: #172b4d;
+  --header-hover: #c5d9ee;
+  --header-line: #c5d9ee;
 }
 
 .dark {
@@ -62,6 +64,8 @@
   --header: oklch(0.18 0.015 55);
   --header-sub: oklch(0.24 0.018 55);
   --header-foreground: oklch(0.96 0.01 95);
+  --header-hover: oklch(1 0 0 / 0.1);
+  --header-line: oklch(1 0 0 / 0.15);
 }
 
 @theme inline {
@@ -95,6 +99,8 @@
   --color-header: var(--header);
   --color-header-sub: var(--header-sub);
   --color-header-foreground: var(--header-foreground);
+  --color-header-hover: var(--header-hover);
+  --color-header-line: var(--header-line);
   --font-sans: "Segoe UI", "Noto Sans Myanmar", "Padauk", sans-serif;
 }
 
