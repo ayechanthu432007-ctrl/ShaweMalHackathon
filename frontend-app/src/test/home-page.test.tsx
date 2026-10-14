@@ -67,6 +67,7 @@ describe('home page', () => {
     expect(screen.getByRole('heading', { name: /how shawe mal works\?/i })).toBeInTheDocument()
     expect(screen.getByText('Find Your Home')).toBeInTheDocument()
     expect(screen.getByText('Stay Updated')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Sell Your Unwanted Items' })).toHaveAttribute('href', '/marketplace')
     expect(screen.getByText('Welcome to ShweMal')).toBeInTheDocument()
     expect(screen.getByText('Agent A')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Housing agents' })).toBeInTheDocument()

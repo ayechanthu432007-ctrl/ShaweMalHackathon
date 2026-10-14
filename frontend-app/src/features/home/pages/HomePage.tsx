@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { BadgeCheck, Banknote, Bell, CircleCheck, Home, Lock, Search, Truck, Users, type LucideIcon } from 'lucide-react'
+import { BadgeCheck, Banknote, Bell, CircleCheck, Home, Lock, Search, Store, Truck, Users, type LucideIcon } from 'lucide-react'
 import { type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
@@ -27,6 +27,8 @@ const howItWorksSteps: {
   arrowClass: string
   titleKey: string
   bodyKey: string
+  /** A step that is a feature of its own links to it. */
+  to?: string
 }[] = [
   {
     icon: Search,
@@ -51,6 +53,15 @@ const howItWorksSteps: {
     arrowClass: 'border-l-sky-400',
     titleKey: 'home.howItWorksStep3Title',
     bodyKey: 'home.howItWorksStep3Body',
+  },
+  {
+    icon: Store,
+    tileClass: 'bg-gradient-to-br from-emerald-400 to-teal-500',
+    lineClass: 'border-emerald-400',
+    arrowClass: 'border-l-emerald-400',
+    titleKey: 'home.howItWorksMarketTitle',
+    bodyKey: 'home.howItWorksMarketBody',
+    to: '/marketplace',
   },
   {
     icon: Bell,
@@ -264,12 +275,12 @@ function HowShaweMalWorksSection() {
           components={{ brand: <span className="text-primary" /> }}
         />
       </h2>
-      <ol className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
+      <ol className="grid gap-10 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 lg:gap-6">
         {howItWorksSteps.map((step, index) => {
           const Icon = step.icon
           const isLast = index === howItWorksSteps.length - 1
           return (
-            <li key={step.titleKey} className="relative flex flex-col items-center px-3 text-center">
+            <li key={step.titleKey} className="relative flex flex-col items-center px-2 text-center">
               {!isLast ? (
                 <div
                   className={`pointer-events-none absolute top-7 left-[calc(50%+2.25rem)] hidden h-0 w-[calc(100%-4.5rem)] border-t-2 border-dashed lg:block ${step.lineClass}`}
@@ -284,7 +295,15 @@ function HowShaweMalWorksSection() {
               >
                 <Icon className="size-7 text-white" aria-hidden />
               </span>
-              <p className="mt-4 font-semibold text-[#1a2744] dark:text-foreground">{t(step.titleKey)}</p>
+              <p className="mt-4 font-semibold text-[#1a2744] dark:text-foreground">
+                {step.to ? (
+                  <Link to={step.to} className="underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    {t(step.titleKey)}
+                  </Link>
+                ) : (
+                  t(step.titleKey)
+                )}
+              </p>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t(step.bodyKey)}</p>
             </li>
           )
