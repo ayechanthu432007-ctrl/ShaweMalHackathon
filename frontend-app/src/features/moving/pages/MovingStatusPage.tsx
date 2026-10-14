@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button'
 import { ApiRequestError } from '@/lib/api/client'
 
 import { movingApi } from '../api/moving-api'
-import { MovingStatusBookingDetails } from '../components/MovingStatusBookingDetails'
 import { MovingStatusCurrentMoveCard } from '../components/MovingStatusCurrentMoveCard'
 import { MovingStatusCurrentStatusCard } from '../components/MovingStatusCurrentStatusCard'
 import { MovingStatusSafetyCard } from '../components/MovingStatusSafetyCard'
@@ -89,10 +88,7 @@ export function MovingStatusPage() {
       </div>
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
-        <div className="min-w-0 space-y-6">
-          <MovingStatusCurrentMoveCard request={request} />
-          <MovingStatusBookingDetails request={request} />
-        </div>
+        <MovingStatusCurrentMoveCard request={request} />
         <MovingStatusTimeline request={request} />
       </div>
       <MovingStatusSafetyCard />

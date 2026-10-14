@@ -31,69 +31,85 @@ export function MovingStatusCurrentStatusCard({ request }: { request: MovingRequ
 
   return (
     <>
-      {/* Fixed to the bottom of the window while this page is open; it unmounts with the page. */}
-      <section
-        aria-labelledby="moving-current-status-title"
-        className="fixed inset-x-0 bottom-0 z-30 border-t-4 border-primary bg-card shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+      {/* Fixed to the bottom of the window while this page is open; it unmounts with the page.
+          It floats inside the page width and stops short of the Telegram/Viber buttons on the right. */}
+      <div
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-30 px-3 sm:px-6"
+        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom, 0px))' }}
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-3 py-3 pl-4 pr-20 sm:flex-row sm:items-center sm:gap-5 sm:py-4 sm:pr-24 lg:pl-6">
-          <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center sm:gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground ring-4 ring-primary/20 sm:size-14">
-              <Truck className="size-5 sm:size-7" aria-hidden="true" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-wider text-primary">{t('moving.statusCurrentTitle')}</p>
-              <h2 id="moving-current-status-title" className="text-lg font-bold leading-tight sm:text-xl">
-                {title}
-              </h2>
-              {etaAt ? (
-                <p className="text-sm font-medium text-primary">
-                  {minutes
-                    ? t('moving.statusEtaMinutes', { minutes })
-                    : t('moving.statusEtaAt', {
-                        time: new Date(etaAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }),
-                      })}
+        <section
+          aria-labelledby="moving-current-status-title"
+          className="pointer-events-auto mx-auto mr-[4.5rem] max-w-6xl overflow-hidden rounded-2xl border border-border/80 bg-card/95 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.35)] backdrop-blur supports-[backdrop-filter]:bg-card/85 sm:mr-24 xl:mx-auto"
+        >
+          <div className="h-1 bg-gradient-to-r from-primary via-primary/70 to-primary/20" aria-hidden="true" />
+          <div className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-5 sm:p-4">
+            <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+              <div className="relative shrink-0">
+                <div className="flex size-11 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary/75 text-primary-foreground shadow-md sm:size-14">
+                  <Truck className="size-5 sm:size-6" aria-hidden="true" />
+                </div>
+                {!isCancelled && request.status !== 'COMPLETED' ? (
+                  <span className="absolute -right-0.5 -top-0.5 flex size-3.5" aria-hidden="true">
+                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-60 motion-reduce:animate-none" />
+                    <span className="relative inline-flex size-3.5 rounded-full border-2 border-card bg-emerald-500" />
+                  </span>
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">{t('moving.statusCurrentTitle')}</p>
+                  {etaAt ? (
+                    <p className="text-xs font-semibold text-primary">
+                      {minutes
+                        ? t('moving.statusEtaMinutes', { minutes })
+                        : t('moving.statusEtaAt', {
+                            time: new Date(etaAt).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }),
+                          })}
+                    </p>
+                  ) : null}
+                </div>
+                <h2 id="moving-current-status-title" className="text-lg font-bold leading-tight tracking-tight sm:text-xl">
+                  {title}
+                </h2>
+                <p className="line-clamp-1 text-sm text-muted-foreground">
+                  {isCancelled ? t('moving.statusCancelledBody') : t(`moving.statusStep.${step?.id ?? 'booking_confirmed'}.detail`)}
                 </p>
-              ) : null}
-              <p className="line-clamp-1 text-sm text-muted-foreground sm:line-clamp-2">
-                {isCancelled ? t('moving.statusCancelledBody') : t(`moving.statusStep.${step?.id ?? 'booking_confirmed'}.detail`)}
+              </div>
+            </div>
+            {!isCancelled ? (
+              <p className="hidden max-w-xs items-start gap-2 rounded-xl bg-muted/70 px-3 py-2 text-xs leading-snug text-muted-foreground lg:flex">
+                <Shield className="mt-px h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
+                {t(`moving.statusStep.${step?.id ?? 'booking_confirmed'}.alert`)}
               </p>
-              {!isCancelled ? (
-                <p className="mt-1 hidden items-start gap-1.5 text-xs text-foreground/80 md:flex">
-                  <Shield className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" aria-hidden="true" />
-                  {t(`moving.statusStep.${step?.id ?? 'booking_confirmed'}.alert`)}
-                </p>
-              ) : null}
-            </div>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {phone ? (
-              <Button asChild className="h-9 px-3 sm:h-10 sm:px-4">
-                <a href={`tel:${phone.replace(/\s+/g, '')}`}>
+            ) : null}
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {phone ? (
+                <Button asChild className="h-10 rounded-full px-5 font-semibold shadow-md shadow-primary/25">
+                  <a href={`tel:${phone.replace(/\s+/g, '')}`}>
+                    <Phone className="mr-2 h-4 w-4" aria-hidden="true" />
+                    {t('moving.contactDriver')}
+                  </a>
+                </Button>
+              ) : (
+                <Button type="button" className="h-10 rounded-full px-5 font-semibold" disabled>
                   <Phone className="mr-2 h-4 w-4" aria-hidden="true" />
                   {t('moving.contactDriver')}
-                </a>
-              </Button>
-            ) : (
-              <Button type="button" className="h-9 px-3 sm:h-10 sm:px-4" disabled>
-                <Phone className="mr-2 h-4 w-4" aria-hidden="true" />
-                {t('moving.contactDriver')}
-              </Button>
-            )}
-            {request.assignedDriver ? (
-              <Button type="button" variant="outline" className="h-9 px-3 sm:h-10 sm:px-4" onClick={() => setDriverDetailsOpen(true)}>
-                {t('moving.statusDriverDetails')}
-              </Button>
-            ) : null}
-            {canRateDriver ? (
-              <Button type="button" variant="outline" className="h-9 px-3 sm:h-10 sm:px-4" onClick={() => setRateDriverOpen(true)}>
-                {request.myReview ? t('moving.statusUpdateDriverRating') : t('moving.statusRateDriver')}
-              </Button>
-            ) : null}
+                </Button>
+              )}
+              {request.assignedDriver ? (
+                <Button type="button" variant="outline" className="h-10 rounded-full px-5" onClick={() => setDriverDetailsOpen(true)}>
+                  {t('moving.statusDriverDetails')}
+                </Button>
+              ) : null}
+              {canRateDriver ? (
+                <Button type="button" variant="outline" className="h-10 rounded-full px-5" onClick={() => setRateDriverOpen(true)}>
+                  {request.myReview ? t('moving.statusUpdateDriverRating') : t('moving.statusRateDriver')}
+                </Button>
+              ) : null}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
       {request.assignedDriver ? (
         <MovingStatusDriverDetailsDialog
           open={driverDetailsOpen}

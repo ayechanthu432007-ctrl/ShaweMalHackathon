@@ -5,15 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { vehicleLabel } from '../lib/moving-status'
 import type { MovingRequest } from '../types'
+import { MovingStatusBookingDetails } from './MovingStatusBookingDetails'
 
 export function MovingStatusCurrentMoveCard({ request }: { request: MovingRequest }) {
   const { t } = useTranslation()
   const moveAt = request.moveInDate ? new Date(request.moveInDate) : null
 
   return (
-    <Card>
+    <Card className="min-w-0">
       <CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
-        <CardTitle className="text-lg">{t('moving.statusCurrentMove')}</CardTitle>
+        <CardTitle className="text-lg">{t('moving.statusBookingDetails')}</CardTitle>
         <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
           {t(`moving.statusBadge.${request.status}`, { defaultValue: request.status })}
         </span>
@@ -43,6 +44,7 @@ export function MovingStatusCurrentMoveCard({ request }: { request: MovingReques
             </span>
           </Fact>
         </dl>
+        <MovingStatusBookingDetails request={request} />
       </CardContent>
     </Card>
   )
