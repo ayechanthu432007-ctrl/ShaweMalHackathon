@@ -241,7 +241,7 @@ export function HouseDetailsPage() {
                           href={`tel:${callNumber.replace(/[^\d+]/g, '')}`}
                           onClick={() => trackHouseEvent(house.id, 'CALL')}
                           className={cn(
-                            'flex h-14 items-center justify-center gap-2 rounded-md bg-button px-2 text-sm font-semibold text-button-foreground xl:text-base transition-colors hover:bg-button-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                            'flex h-14 items-center justify-center gap-2 rounded-xl border border-[#D5E2F0] bg-[#EAF2FA] px-2 text-sm font-semibold text-[#24476A] xl:text-base transition-colors hover:bg-[#DCEAF8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-border dark:bg-button-soft dark:text-button-soft-foreground dark:hover:bg-button-soft-hover',
                             !(telegram || viber) && 'col-span-2',
                           )}
                         >
@@ -255,7 +255,7 @@ export function HouseDetailsPage() {
                           {...(telegram ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                           onClick={() => trackHouseEvent(house.id, telegram ? 'TELEGRAM' : 'VIBER')}
                           className={cn(
-                            'flex h-14 items-center justify-center gap-2 rounded-md bg-emerald-600 px-2 text-sm font-bold uppercase xl:text-base tracking-wide text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2',
+                            'flex h-14 items-center justify-center gap-2 rounded-xl bg-[#7360F2] px-2 text-sm font-bold uppercase xl:text-base tracking-wide text-white shadow-md shadow-[#7360F2]/25 transition-colors hover:bg-[#5E4BD1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7360F2] focus-visible:ring-offset-2',
                             !callNumber && 'col-span-2',
                           )}
                         >
