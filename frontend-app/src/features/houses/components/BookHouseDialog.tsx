@@ -1,6 +1,7 @@
 import { useEffect, useId } from 'react'
 import { CalendarCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { ACTION_BUTTON } from './action-button'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -82,7 +83,7 @@ export function BookHouseDialog({
             <Button type="button" variant="outline" disabled={isPending} autoFocus onClick={onDismiss}>
               {t('houses.bookDialogStay')}
             </Button>
-            <Button type="button" disabled={isPending} onClick={onConfirm}>
+            <Button type="button" className={ACTION_BUTTON} disabled={isPending} onClick={onConfirm}>
               {isPending ? t('common.loading') : t('houses.bookNow')}
             </Button>
           </div>

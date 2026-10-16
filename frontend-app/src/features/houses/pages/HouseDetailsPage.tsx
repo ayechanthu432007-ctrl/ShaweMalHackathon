@@ -3,6 +3,7 @@ import { Bookmark, ChevronRight, Heart, Home, MessageCircle, Phone, Send, Share2
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { ACTION_BUTTON } from '../components/action-button'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
@@ -242,7 +243,8 @@ export function HouseDetailsPage() {
                           href={`tel:${callNumber.replace(/[^\d+]/g, '')}`}
                           onClick={() => trackHouseEvent(house.id, 'CALL')}
                           className={cn(
-                            'flex h-14 items-center justify-center gap-2 rounded-xl border border-[#D5E2F0] bg-[#EAF2FA] px-2 text-sm font-semibold text-[#24476A] xl:text-base transition-colors hover:bg-[#DCEAF8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-border dark:bg-button-soft dark:text-button-soft-foreground dark:hover:bg-button-soft-hover',
+                            'flex h-14 items-center justify-center gap-2 rounded-xl px-2 text-sm font-semibold xl:text-base transition-colors focus-visible:outline-none',
+                            ACTION_BUTTON,
                             !(telegram || viber) && 'col-span-2',
                           )}
                         >
@@ -269,14 +271,13 @@ export function HouseDetailsPage() {
                   ) : null}
 
                   {myActiveBooking ? (
-                    <Button type="button" variant="outline" className="h-14 w-full border-highlight text-base text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setCancelDialogOpen(true)}>
+                    <Button type="button" className={cn('h-14 w-full text-base', ACTION_BUTTON)} onClick={() => setCancelDialogOpen(true)}>
                       {t('houses.cancelBooking')}
                     </Button>
                   ) : (
                     <Button
                       type="button"
-                      variant="outline"
-                      className="h-14 w-full border-highlight text-base text-primary hover:bg-primary/10 hover:text-primary"
+                      className={cn('h-14 w-full text-base', ACTION_BUTTON)}
                       disabled={bookMutation.isPending || !available}
                       onClick={onBook}
                     >
@@ -294,11 +295,11 @@ export function HouseDetailsPage() {
                     ) : null}
                     <HouseAvailabilityBadge availability={house.availability} />
                     <span className="ml-auto flex items-center gap-1">
-                      <Button type="button" variant="ghost" size="sm" disabled={isToggling} aria-pressed={isWishlisted} onClick={() => void onToggleWishlist()}>
-                        <Heart className={cn(isWishlisted && 'fill-primary text-primary')} aria-hidden />
+                      <Button type="button" size="sm" className={ACTION_BUTTON} disabled={isToggling} aria-pressed={isWishlisted} onClick={() => void onToggleWishlist()}>
+                        <Heart className={cn(isWishlisted && 'fill-[#222222]')} aria-hidden />
                         {isWishlisted ? t('houses.saved') : t('houses.save')}
                       </Button>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => void onShare()}>
+                      <Button type="button" size="sm" className={ACTION_BUTTON} onClick={() => void onShare()}>
                         <Share2 aria-hidden />
                         {t('houses.share')}
                       </Button>
