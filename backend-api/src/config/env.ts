@@ -37,6 +37,10 @@ const parsePositiveInt = (value: string | undefined, fallback: number, key: stri
   return parsed;
 };
 
+/** "true", "True", " true ", '"true"', "1" and "yes" are on; anything else (including unset) is off. */
+export const isTruthyFlag = (value: string | undefined): boolean =>
+  ['true', '1', 'yes'].includes((value ?? '').trim().replace(/^["']|["']$/g, '').trim().toLowerCase());
+
 const requireEnv = (key: string): string => {
   const value = process.env[key];
   if (!value) {
@@ -102,7 +106,8 @@ export const env = {
   // Marketplace-only demo checkout (Premium Seller, product boosts) that may run on the deployed
   // site for demonstrations. Off unless explicitly 'true'. Agent payments are never affected, and
   // every order it creates is recorded as a demo; no money is taken or marked paid.
-  marketplaceDemoPurchaseEnabled: process.env.MARKETPLACE_DEMO_PURCHASE_ENABLED === 'true',
+  // Hosting dashboards make it easy to paste "True", ' true ' or a quoted '"true"'; accept those too.
+  marketplaceDemoPurchaseEnabled: isTruthyFlag(process.env.MARKETPLACE_DEMO_PURCHASE_ENABLED),
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN?.trim() || null,
   telegramWebhookSecret,
   telegramSupportUsernames,
