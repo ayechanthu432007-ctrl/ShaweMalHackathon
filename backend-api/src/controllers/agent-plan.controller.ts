@@ -13,7 +13,7 @@ import { applyFreeBoost, listAgentBoosts } from '../services/boost.service';
 import {
   createBoostOrder,
   createSubscriptionOrder,
-  getOwnedOrder,
+  getOwnedAgentOrder,
   listOwnedOrders,
   serializeOrder,
   simulateDemoPayment,
@@ -57,7 +57,7 @@ export const agentOrdersController = async (req: Request, res: Response): Promis
 };
 
 export const agentOrderController = async (req: Request, res: Response): Promise<void> => {
-  const order = await getOwnedOrder(requireActor(req), String(req.params.reference));
+  const order = await getOwnedAgentOrder(requireActor(req), String(req.params.reference));
   sendSuccess(res, 200, 'Order fetched successfully', { order: serializeOrder(order) });
 };
 
@@ -74,7 +74,10 @@ export const createBoostOrderController = async (req: Request, res: Response): P
 
 export const simulateDemoPaymentController = async (req: Request, res: Response): Promise<void> => {
   const outcome = String(req.body.outcome).toUpperCase() as PaymentOutcome;
-  const result = await simulateDemoPayment(requireActor(req), String(req.params.reference), outcome);
+  const userId = requireActor(req);
+  // Agent checkout pays agent orders only; Marketplace orders are paid from My Marketplace.
+  await getOwnedAgentOrder(userId, String(req.params.reference));
+  const result = await simulateDemoPayment(userId, String(req.params.reference), outcome);
   sendSuccess(res, 200, 'Demo payment processed', result);
 };
 

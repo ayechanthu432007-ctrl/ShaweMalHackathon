@@ -16,7 +16,7 @@ import {
   nextListingBoostStart,
   SELLER_PLAN_AUDIENCE
 } from './marketplace-plan.service';
-import { addMonths, FREE_PLAN_CODE, getEffectivePlan } from './subscription.service';
+import { addMonths, AGENT_ORDER_KINDS, FREE_PLAN_CODE, getEffectivePlan, PLAN_AUDIENCE } from './subscription.service';
 
 export const PAYMENT_CURRENCY = 'MMK';
 export const DEMO_PROVIDER = 'demo';
@@ -94,7 +94,8 @@ export const createSubscriptionOrder = async (userId: string, planCode: string, 
   }
 
   const plan = await prisma.subscriptionPlan.findUnique({ where: { code: planCode } });
-  if (!plan || !plan.isActive || plan.code === FREE_PLAN_CODE || plan.audience === SELLER_PLAN_AUDIENCE) {
+  // Only agent plans are sold here; Marketplace seller plans have their own checkout.
+  if (!plan || !plan.isActive || plan.code === FREE_PLAN_CODE || plan.audience !== PLAN_AUDIENCE.AGENT) {
     throw new ApiError(400, 'PLAN_INVALID', 'Choose a paid plan from the list.');
   }
 
@@ -264,13 +265,31 @@ export const getOwnedOrder = async (userId: string, reference: string) => {
   return order;
 };
 
+/** The agent dashboard's orders only; Marketplace seller orders are handled in My Marketplace. */
+export const getOwnedAgentOrder = async (userId: string, reference: string) => {
+  const order = await getOwnedOrder(userId, reference);
+  if (!(AGENT_ORDER_KINDS as readonly string[]).includes(order.kind)) {
+    throw new ApiError(404, 'ORDER_NOT_FOUND', 'Order not found.');
+  }
+  return order;
+};
+
 export const listOwnedOrders = async (userId: string) => {
-  const orders = await prisma.paymentOrder.findMany({ where: { userId }, include: { plan: true }, orderBy: { createdAt: 'desc' }, take: 30 });
+  const orders = await prisma.paymentOrder.findMany({
+    where: { userId, kind: { in: [...AGENT_ORDER_KINDS] } },
+    include: { plan: true },
+    orderBy: { createdAt: 'desc' },
+    take: 30
+  });
   return orders.map(serializeOrder);
 };
 
 const activateSubscription = async (tx: Prisma.TransactionClient, order: PaymentOrder, now: Date) => {
   const plan = await tx.subscriptionPlan.findUniqueOrThrow({ where: { id: order.planId as string } });
+  // An agent order can only ever start an agent plan.
+  if (plan.audience !== PLAN_AUDIENCE.AGENT) {
+    throw new ApiError(409, 'PLAN_AUDIENCE_MISMATCH', 'This order does not match an agent plan.');
+  }
   const billingMonths = order.billingMonths as number;
 
   // Renewing the same plan extends it from its current end; a different plan starts now.
@@ -313,6 +332,10 @@ const activateBoost = async (tx: Prisma.TransactionClient, order: PaymentOrder, 
 
 const activateSellerSubscription = async (tx: Prisma.TransactionClient, order: PaymentOrder, now: Date) => {
   const plan = await tx.subscriptionPlan.findUniqueOrThrow({ where: { id: order.planId as string } });
+  // A Marketplace order can only ever start a Marketplace seller plan.
+  if (plan.audience !== SELLER_PLAN_AUDIENCE) {
+    throw new ApiError(409, 'PLAN_AUDIENCE_MISMATCH', 'This order does not match a seller plan.');
+  }
   const billingMonths = order.billingMonths ?? 1;
 
   // Renewing extends from the end of the latest period of the same plan; otherwise it starts now.

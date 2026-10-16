@@ -3,13 +3,14 @@ import type { Prisma, SellerSubscription, SubscriptionPlan } from '@prisma/clien
 import { prisma } from '../prisma/client';
 import { LOCKED_TRANSACTION_OPTIONS, lockForTransaction } from '../utils/advisory-lock';
 import { ApiError } from '../utils/api-error';
+import { PLAN_AUDIENCE } from './subscription.service';
 
 /**
  * Marketplace seller plans. The rules (price, active-product limit, free boost days, badge,
  * insight level, homepage placement) live in the SubscriptionPlan rows with audience SELLER;
  * nothing here or in the frontend repeats the numbers.
  */
-export const SELLER_PLAN_AUDIENCE = 'SELLER';
+export const SELLER_PLAN_AUDIENCE = PLAN_AUDIENCE.SELLER;
 export const SELLER_FREE_PLAN_CODE = 'SELLER_FREE';
 export const LISTING_BOOST_PRICE_SETTING = 'LISTING_BOOST_PRICE_PER_DAY_MMK';
 /** Paid boost lengths a seller can choose from. */

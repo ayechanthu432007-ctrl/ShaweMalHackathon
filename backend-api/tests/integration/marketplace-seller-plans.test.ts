@@ -6,6 +6,7 @@ import { signJwt } from '../../src/utils/jwt';
 const db = {
   plans: [] as any[],
   subscriptions: [] as any[],
+  agentSubscriptions: [] as any[],
   orders: [] as any[],
   transactions: [] as any[],
   boosts: [] as any[],
@@ -89,6 +90,7 @@ jest.mock('../../src/prisma/client', () => {
     $executeRaw: jest.fn(async () => 1),
     subscriptionPlan: table(() => db.plans, 'plan'),
     sellerSubscription: table(() => db.subscriptions, 'sub', {}, (row) => ({ plan: db.plans.find((plan) => plan.id === row.planId) })),
+    agentSubscription: table(() => db.agentSubscriptions, 'agentsub', {}, (row) => ({ plan: db.plans.find((plan) => plan.id === row.planId) })),
     paymentOrder: table(() => db.orders, 'order', { status: 'PENDING', paidAt: null, planId: null, billingMonths: null, houseId: null, listingId: null, boostDays: null }, (row) => ({
       plan: db.plans.find((plan) => plan.id === row.planId) ?? null
     })),
@@ -158,7 +160,8 @@ import { app } from '../../src/app';
 import { env } from '../../src/config/env';
 import { getSellerInsights, recordListingView } from '../../src/services/marketplace-insights.service';
 import { claimFreeListingBoost, getListingAllowance, getSellerEffectivePlan, pickBoostedListingIds } from '../../src/services/marketplace-plan.service';
-import { createListingBoostOrder, createSellerSubscriptionOrder, processPaymentEvent, simulateDemoPayment } from '../../src/services/payment.service';
+import { createListingBoostOrder, createSellerSubscriptionOrder, createSubscriptionOrder, processPaymentEvent, simulateDemoPayment } from '../../src/services/payment.service';
+import { getEffectivePlan } from '../../src/services/subscription.service';
 
 const NOW = new Date('2026-10-16T05:00:00.000Z');
 const DAY = 24 * 60 * 60 * 1000;
@@ -186,6 +189,7 @@ beforeEach(() => {
   db.plans.push(
     { ...base, id: 'plan_seller_free', code: 'SELLER_FREE', name: 'Free Seller', rank: 0, monthlyPriceMmk: 0, activeListingLimit: 5, freeBoostDays: 0, badgeEligible: false, performanceLevel: 'BASIC', homepageFeatured: false },
     { ...base, id: 'plan_seller_premium', code: 'SELLER_PREMIUM', name: 'Premium Seller', rank: 1, monthlyPriceMmk: 90000, activeListingLimit: null, freeBoostDays: 3, badgeEligible: true, performanceLevel: 'DETAILED', homepageFeatured: true },
+    { id: 'plan_free', code: 'FREE', name: 'Free Basic', rank: 0, isActive: true, audience: 'AGENT', monthlyPriceMmk: 0, quarterlyPriceMmk: 0, monthlyListingLimit: 5 },
     { id: 'plan_gold', code: 'GOLD', name: 'Gold Premium', rank: 2, isActive: true, audience: 'AGENT', monthlyPriceMmk: 160000, quarterlyPriceMmk: 432000 }
   );
   db.settings.push({ key: 'LISTING_BOOST_PRICE_PER_DAY_MMK', value: '2000' });
@@ -239,6 +243,27 @@ describe('seller plans', () => {
     const effective = await getSellerEffectivePlan(SELLER, new Date(NOW.getTime() + 2 * DAY));
     expect(effective.renewal?.startsAt.toISOString()).toBe('2026-11-16T05:00:00.000Z');
     await expect(createSellerSubscriptionOrder(SELLER, 'SELLER_PREMIUM', new Date(NOW.getTime() + 2 * DAY))).rejects.toMatchObject({ code: 'RENEWAL_ALREADY_QUEUED' });
+  });
+
+  it('changes only the Marketplace subscription when a seller buys Premium Seller', async () => {
+    db.agentSubscriptions.push({ id: 'agent-sub', userId: SELLER, planId: 'plan_gold', billingMonths: 1, startsAt: new Date(NOW.getTime() - 86_400_000), endsAt: new Date(NOW.getTime() + 5 * 86_400_000), paymentOrderId: 'agent-order' });
+    const agentBefore = JSON.stringify(db.agentSubscriptions);
+    await buyPremium();
+    expect(JSON.stringify(db.agentSubscriptions)).toBe(agentBefore);
+    expect((await getEffectivePlan(SELLER, NOW)).plan.code).toBe('GOLD');
+    expect((await getSellerEffectivePlan(SELLER, NOW)).plan.code).toBe('SELLER_PREMIUM');
+  });
+
+  it('keeps an agent plan purchase out of the Marketplace subscription', async () => {
+    const order = await createSubscriptionOrder(SELLER, 'GOLD', 1, NOW);
+    await simulateDemoPayment(SELLER, order.reference, 'SUCCESS', NOW);
+    expect(db.agentSubscriptions).toHaveLength(1);
+    expect(db.subscriptions).toHaveLength(0);
+    expect((await getSellerEffectivePlan(SELLER, NOW)).plan.code).toBe('SELLER_FREE');
+
+    // The Marketplace checkout refuses to show or pay an agent order.
+    const read = await request(app).get(`/api/v1/marketplace/me/payments/orders/${order.reference}`).set('Authorization', bearer(SELLER));
+    expect(read.status).toBe(404);
   });
 
   it('keeps seller and agent plans apart', async () => {

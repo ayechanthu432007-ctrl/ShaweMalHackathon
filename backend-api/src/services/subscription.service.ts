@@ -4,6 +4,14 @@ import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
 
 export const FREE_PLAN_CODE = 'FREE';
+/**
+ * Which product a plan belongs to (SubscriptionPlan.audience). AGENT plans govern House/Driver
+ * agent listings and are sold on /agent/subscription; SELLER plans govern Marketplace products and
+ * are sold in My Marketplace. Every query and checkout filters on this, so the two never mix.
+ */
+export const PLAN_AUDIENCE = { AGENT: 'AGENT', SELLER: 'SELLER' } as const;
+export const AGENT_ORDER_KINDS = ['SUBSCRIPTION', 'BOOST'] as const;
+export const SELLER_ORDER_KINDS = ['SELLER_SUBSCRIPTION', 'LISTING_BOOST'] as const;
 export const LISTING_CREATED_ACTION = 'AGENT_HOUSE_CREATED';
 
 /** Myanmar has a fixed UTC+6:30 offset with no daylight saving. */
@@ -38,7 +46,7 @@ export const addMonths = (date: Date, months: number): Date => {
 };
 
 export const listPlans = (db: Db = prisma) =>
-  db.subscriptionPlan.findMany({ where: { isActive: true, audience: 'AGENT' }, orderBy: { rank: 'asc' } });
+  db.subscriptionPlan.findMany({ where: { isActive: true, audience: PLAN_AUDIENCE.AGENT }, orderBy: { rank: 'asc' } });
 
 const getFreePlan = async (db: Db): Promise<SubscriptionPlan> => {
   const plan = await db.subscriptionPlan.findUnique({ where: { code: FREE_PLAN_CODE } });

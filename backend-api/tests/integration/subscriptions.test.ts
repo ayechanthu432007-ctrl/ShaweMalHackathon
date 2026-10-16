@@ -53,7 +53,7 @@ jest.mock('../../src/prisma/client', () => {
     subscriptionPlan: {
       findUnique: jest.fn(async ({ where }: any) => db.plans.find((plan) => matches(plan, where)) ?? null),
       findUniqueOrThrow: jest.fn(async ({ where }: any) => db.plans.find((plan) => matches(plan, where))),
-      findMany: jest.fn(async () => [...db.plans].sort((a, b) => a.rank - b.rank))
+      findMany: jest.fn(async ({ where }: any = {}) => db.plans.filter((plan) => matches(plan, where)).sort((a, b) => a.rank - b.rank))
     },
     agentSubscription: {
       findMany: jest.fn(async ({ where }: any) => db.subscriptions.filter((item) => matches(item, where)).map(withPlan)),
@@ -195,7 +195,7 @@ beforeEach(() => {
   Object.values(db).forEach((table) => (table.length = 0));
   settings.demoPaymentsEnabled = true;
   settings.nodeEnv = 'test';
-  const base = { isActive: true, badgeEligible: false, audienceInsights: false, monthlyReport: false, freeBoostDays: 0 };
+  const base = { isActive: true, audience: 'AGENT', badgeEligible: false, audienceInsights: false, monthlyReport: false, freeBoostDays: 0 };
   db.plans.push(
     { ...base, id: 'plan_free', code: 'FREE', name: 'Free Basic', rank: 0, monthlyPriceMmk: 0, quarterlyPriceMmk: 0, monthlyListingLimit: 5, performanceLevel: 'BASIC' },
     { ...base, id: 'plan_silver', code: 'SILVER', name: 'Silver Partner', rank: 1, monthlyPriceMmk: 90000, quarterlyPriceMmk: 243000, monthlyListingLimit: 15, freeBoostDays: 3, badgeEligible: true, performanceLevel: 'OVERVIEW' },
@@ -447,6 +447,47 @@ describe('view and contact tracking', () => {
     const dashboard = await getAgentDashboard(AGENT, NOW);
     expect(dashboard.last30Days).toMatchObject({ views: 2, calls: 1, inquiries: 1 });
     expect(JSON.stringify(db.events)).not.toContain('10.0.0.1');
+  });
+});
+
+describe('agent and Marketplace seller plans stay separate', () => {
+  it('lists only agent plans for the agent subscription page', async () => {
+    const { prisma } = jest.requireMock('../../src/prisma/client');
+    const { listPlans } = await import('../../src/services/subscription.service');
+    await listPlans();
+    expect(prisma.subscriptionPlan.findMany).toHaveBeenLastCalledWith(expect.objectContaining({ where: { isActive: true, audience: 'AGENT' } }));
+  });
+
+  it('shows agents only Free Basic, Silver Partner and Gold Premium even when seller plans exist', async () => {
+    db.plans.push({ id: 'plan_seller_free', code: 'SELLER_FREE', name: 'Free Seller', rank: 0, isActive: true, audience: 'SELLER', monthlyPriceMmk: 0, quarterlyPriceMmk: 0 });
+    const response = await request(app).get('/api/v1/agent/dashboard').set('Authorization', bearer(AGENT, ['agent']));
+    expect(response.status).toBe(200);
+    expect(response.body.data.dashboard.plans.map((plan: any) => plan.code)).toEqual(['FREE', 'SILVER', 'GOLD']);
+  });
+
+  it('does not let the agent checkout read or pay a Marketplace seller order', async () => {
+    db.plans.push({ id: 'plan_seller_premium', code: 'SELLER_PREMIUM', name: 'Premium Seller', rank: 1, isActive: true, audience: 'SELLER', monthlyPriceMmk: 90000, quarterlyPriceMmk: 0 });
+    db.orders.push({ id: 'order-seller', reference: 'SM-SELLER1-ABCDEF12', userId: AGENT, kind: 'SELLER_SUBSCRIPTION', planId: 'plan_seller_premium', billingMonths: 1, amountMmk: 90000, currency: 'MMK', status: 'PENDING', provider: 'demo', isDemo: true, expiresAt: new Date(Date.now() + 600_000), createdAt: new Date() });
+    const read = await request(app).get('/api/v1/agent/payments/orders/SM-SELLER1-ABCDEF12').set('Authorization', bearer(AGENT, ['agent']));
+    expect(read.status).toBe(404);
+    const pay = await request(app).post('/api/v1/agent/payments/orders/SM-SELLER1-ABCDEF12/demo').set('Authorization', bearer(AGENT, ['agent'])).send({ outcome: 'success' });
+    expect(pay.status).toBe(404);
+    const list = await request(app).get('/api/v1/agent/payments/orders').set('Authorization', bearer(AGENT, ['agent']));
+    expect(list.body.data.items.map((item: any) => item.reference)).not.toContain('SM-SELLER1-ABCDEF12');
+    expect(db.subscriptions).toHaveLength(0);
+  });
+
+  it('never activates a non-agent plan from an agent order', async () => {
+    db.plans.push({ id: 'plan_seller_premium', code: 'SELLER_PREMIUM', name: 'Premium Seller', rank: 1, isActive: true, audience: 'SELLER', monthlyPriceMmk: 90000, quarterlyPriceMmk: 0 });
+    // A tampered agent order pointing at a seller plan: the payment is refused and nothing starts.
+    db.orders.push({ id: 'order-bad', reference: 'SM-BAD1-ABCDEF12', userId: AGENT, kind: 'SUBSCRIPTION', planId: 'plan_seller_premium', billingMonths: 1, amountMmk: 90000, currency: 'MMK', status: 'PENDING', provider: 'demo', isDemo: true, expiresAt: new Date(NOW.getTime() + 600_000), createdAt: NOW });
+    await expect(processPaymentEvent({ provider: 'demo', eventId: 'e-bad', reference: 'SM-BAD1-ABCDEF12', outcome: 'SUCCESS', amountMmk: 90000, currency: 'MMK' }, NOW)).rejects.toMatchObject({ code: 'PLAN_AUDIENCE_MISMATCH' });
+    expect(db.subscriptions).toHaveLength(0);
+  });
+
+  it('refuses to sell a Marketplace seller plan through the agent checkout', async () => {
+    db.plans.push({ id: 'plan_seller_premium', code: 'SELLER_PREMIUM', name: 'Premium Seller', rank: 1, isActive: true, audience: 'SELLER', monthlyPriceMmk: 90000, quarterlyPriceMmk: 0 });
+    await expect(createSubscriptionOrder(AGENT, 'SELLER_PREMIUM', 1, NOW)).rejects.toMatchObject({ code: 'PLAN_INVALID' });
   });
 });
 
