@@ -29,7 +29,7 @@ describe('moving inventory row', () => {
 
     const row = screen.getAllByRole('listitem')[0]!
     expect(row.textContent).toMatch(/^Single bed.*0$/)
-    // Bedroom items use one dark-grey line icon each, not colour emoji.
+    // Every item uses one dark-grey line icon, not colour emoji.
     const icon = row.querySelector('svg[data-inventory-icon="mono"]')
     expect(icon).not.toBeNull()
     expect(icon?.getAttribute('class')).toContain('text-[#333333]')
@@ -56,6 +56,13 @@ describe('moving inventory row', () => {
     await user.click(screen.getByRole('button', { name: 'Remove one Single bed' }))
     await user.click(screen.getByRole('button', { name: 'Remove one Single bed' }))
     expect(quantity('Single bed')).toBe('0')
+  })
+
+  it('gives every catalogue item a monochrome line icon, including ones added later', async () => {
+    const { inventoryItemMonoIcon } = await import('@/features/moving/components/InventoryItemRow')
+    const codes = ['living_sofa_2', 'living_tv', 'living_air_conditioner', 'kitchen_refrigerator', 'kitchen_microwave', 'kitchen_washing_machine', 'office_laptop', 'office_printer', 'other_bicycles', 'other_motorcycle', 'other_plants', 'other_boxes']
+    for (const code of codes) expect(inventoryItemMonoIcon({ code, itemName: code })).toBeTruthy()
+    expect(inventoryItemMonoIcon({ code: 'new_thing', itemName: 'Folding Chair' })).toBe(inventoryItemMonoIcon({ code: 'bedroom_chair', itemName: '' }))
   })
 
   it('has a picture for every catalogue item, including ones added later', () => {

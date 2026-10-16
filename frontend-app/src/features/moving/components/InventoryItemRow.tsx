@@ -1,4 +1,39 @@
-import { Armchair, Bed, BedDouble, BedSingle, DoorClosed, Lamp, LampDesk, Layers2, Library, Minus, Plus, ScanFace, type LucideIcon } from 'lucide-react'
+import {
+  AirVent,
+  Archive,
+  Armchair,
+  Bed,
+  BedDouble,
+  BedSingle,
+  Bike,
+  Coffee,
+  CookingPot,
+  DoorClosed,
+  Fan,
+  Flame,
+  GlassWater,
+  Lamp,
+  LampDesk,
+  Laptop,
+  Layers2,
+  Library,
+  Microwave,
+  Minus,
+  Monitor,
+  Motorbike,
+  Package,
+  Plus,
+  Printer,
+  Refrigerator,
+  ScanFace,
+  Sofa,
+  Sprout,
+  Tv,
+  TvMinimal,
+  UtensilsCrossed,
+  WashingMachine,
+  type LucideIcon,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { InventoryCatalogItem } from '../constants/inventory-catalog'
@@ -44,10 +79,10 @@ const ICON_BY_CODE: Record<string, string> = {
 }
 
 /**
- * Bedroom items use plain line icons in one dark grey instead of colour emoji, so the list reads
- * as one consistent set. Other rooms keep their pictures for now.
+ * Every inventory item gets a plain line icon in one dark grey, so the whole list reads as one
+ * consistent set. Items an admin adds later get a fitting icon from their name, or a box.
  */
-const BEDROOM_ICON_BY_CODE: Record<string, LucideIcon> = {
+const MONO_ICON_BY_CODE: Record<string, LucideIcon> = {
   bedroom_single_bed: BedSingle,
   bedroom_couple_bed: BedDouble,
   bedroom_king_bed: BedDouble,
@@ -58,14 +93,58 @@ const BEDROOM_ICON_BY_CODE: Record<string, LucideIcon> = {
   bedroom_chair: Armchair,
   bedroom_study_table: LampDesk,
   bedroom_bookshelf: Library,
+  living_sofa_1: Armchair,
+  living_sofa_2: Sofa,
+  living_sofa_3: Sofa,
+  living_coffee_table: Coffee,
+  living_tv: Tv,
+  living_tv_stand: TvMinimal,
+  living_shelf: Archive,
+  living_fan: Fan,
+  living_air_conditioner: AirVent,
+  kitchen_refrigerator: Refrigerator,
+  kitchen_microwave: Microwave,
+  kitchen_rice_cooker: CookingPot,
+  kitchen_washing_machine: WashingMachine,
+  kitchen_water_dispenser: GlassWater,
+  kitchen_stove: Flame,
+  kitchen_dining_table: UtensilsCrossed,
+  kitchen_dining_chair: Armchair,
+  office_desktop: Monitor,
+  office_laptop: Laptop,
+  office_printer: Printer,
+  office_chair: Armchair,
+  office_desk: LampDesk,
+  other_bicycles: Bike,
+  other_motorcycle: Motorbike,
+  other_plants: Sprout,
+  other_boxes: Package,
 }
 
-function InventoryItemGlyph({ item }: { item: Pick<InventoryCatalogItem, 'code' | 'itemName' | 'category'> }) {
-  if (item.category === 'bedroom') {
-    const Icon = BEDROOM_ICON_BY_CODE[item.code] ?? Bed
-    return <Icon className="size-5 text-[#333333] dark:text-foreground" strokeWidth={1.75} aria-hidden data-inventory-icon="mono" />
-  }
-  return <>{inventoryItemIcon(item)}</>
+const MONO_ICON_BY_KEYWORD: Array<[RegExp, LucideIcon]> = [
+  [/box|carton/i, Package],
+  [/bed|mattress/i, Bed],
+  [/sofa|couch/i, Sofa],
+  [/chair|stool/i, Armchair],
+  [/table|desk/i, LampDesk],
+  [/shelf|cabinet|wardrobe|stand/i, Archive],
+  [/tv|television/i, Tv],
+  [/computer|desktop|monitor/i, Monitor],
+  [/laptop/i, Laptop],
+  [/fridge|refrigerator/i, Refrigerator],
+  [/fan/i, Fan],
+  [/bicycle|bike/i, Bike],
+  [/motor/i, Motorbike],
+  [/plant/i, Sprout],
+]
+
+export function inventoryItemMonoIcon(item: Pick<InventoryCatalogItem, 'code' | 'itemName'>): LucideIcon {
+  return MONO_ICON_BY_CODE[item.code] ?? MONO_ICON_BY_KEYWORD.find(([pattern]) => pattern.test(item.itemName))?.[1] ?? Package
+}
+
+function InventoryItemGlyph({ item }: { item: Pick<InventoryCatalogItem, 'code' | 'itemName'> }) {
+  const Icon = inventoryItemMonoIcon(item)
+  return <Icon className="size-5 text-[#333333] dark:text-foreground" strokeWidth={1.75} aria-hidden data-inventory-icon="mono" />
 }
 
 /** Items an admin adds later still get a fitting picture from their name. */
