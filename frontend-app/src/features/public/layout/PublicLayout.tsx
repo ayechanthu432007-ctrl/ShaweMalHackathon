@@ -10,7 +10,8 @@ import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
 import { UserMenu } from '@/features/public/components/UserMenu'
-import shawemalLogo from '@/assets/shawemal-logo.png'
+// The transparent version of the logo, so it sits directly on the header colour.
+import shawemalLogo from '@/assets/shawemal-logo-mark.png'
 import { cn } from '@/lib/utils'
 
 const guestTopLinks = [
@@ -165,7 +166,7 @@ export function PublicLayout() {
             <img
               src={shawemalLogo}
               alt=""
-              className="size-10 rounded-xl bg-white object-contain p-0.5 shadow-sm"
+              className="size-11 object-contain sm:size-12"
             />
             <span className="text-xl font-extrabold tracking-tight">{t('common.appName')}</span>
           </Link>
