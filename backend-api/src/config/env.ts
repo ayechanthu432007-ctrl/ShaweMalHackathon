@@ -99,6 +99,10 @@ export const env = {
   // Server-side only. Never send these to the browser or write them to logs.
   // Simulated checkout for demos. Ignored in production even when set.
   demoPaymentsEnabled: process.env.DEMO_PAYMENTS_ENABLED === 'true' && (process.env.NODE_ENV ?? 'development') !== 'production',
+  // Marketplace-only demo checkout (Premium Seller, product boosts) that may run on the deployed
+  // site for demonstrations. Off unless explicitly 'true'. Agent payments are never affected, and
+  // every order it creates is recorded as a demo; no money is taken or marked paid.
+  marketplaceDemoPurchaseEnabled: process.env.MARKETPLACE_DEMO_PURCHASE_ENABLED === 'true',
   telegramBotToken: process.env.TELEGRAM_BOT_TOKEN?.trim() || null,
   telegramWebhookSecret,
   telegramSupportUsernames,

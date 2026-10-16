@@ -140,7 +140,11 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
           <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden />
           {t('sellerPlans.demoNote')}
         </p>
-      ) : null}
+      ) : (
+        <p className="rounded-xl border bg-muted/40 p-3 text-sm" role="note">
+          {t('sellerPlans.paymentsUnavailable')}
+        </p>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2">
         {plans.map((plan) => {
@@ -180,7 +184,8 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
                   type="button"
                   variant={isPaid ? 'default' : 'outline'}
                   className={cn('w-full', isPaid && 'bg-[#FFDE59] text-[#3d2f00] hover:bg-[#f5d03f]')}
-                  disabled={(isCurrent && !isPaid) || Boolean(isCurrent && current?.renewal)}
+                  // Without a payment provider or the Marketplace demo checkout, paid plans cannot be bought.
+                  disabled={(isCurrent && !isPaid) || Boolean(isCurrent && current?.renewal) || (isPaid && !demoPayments)}
                   onClick={() => onChoose(plan)}
                 >
                   {isCurrent
@@ -190,7 +195,9 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
                         : t('sellerPlans.renew')
                       : t('sellerPlans.currentPlan')
                     : isPaid
-                      ? t('sellerPlans.upgrade')
+                      ? demoPayments
+                        ? t('sellerPlans.activateDemo')
+                        : t('sellerPlans.upgrade')
                       : t('sellerPlans.startFree')}
                 </Button>
               </CardContent>
@@ -240,7 +247,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
 
       <MarketplaceDialog
         open={Boolean(confirming)}
-        title={t('sellerPlans.confirmTitle', { plan: confirming?.name ?? '' })}
+        title={demoPayments ? t('sellerPlans.confirmDemoTitle', { plan: confirming?.name ?? '' }) : t('sellerPlans.confirmTitle', { plan: confirming?.name ?? '' })}
         description={t('sellerPlans.confirmBody', { plan: confirming?.name ?? '', price: formatPrice(confirming?.monthlyPriceMmk ?? 0) })}
         busy={orderMutation.isPending}
         onDismiss={() => setConfirming(null)}
@@ -256,7 +263,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
             {t('common.cancel')}
           </Button>
           <Button type="button" disabled={orderMutation.isPending} onClick={() => confirming && orderMutation.mutate(confirming)}>
-            {orderMutation.isPending ? t('common.loading') : t('sellerPlans.continueToPayment')}
+            {orderMutation.isPending ? t('common.loading') : demoPayments ? t('sellerPlans.continueToDemo') : t('sellerPlans.continueToPayment')}
           </Button>
         </div>
       </MarketplaceDialog>
@@ -284,6 +291,11 @@ export function SellerCheckoutPage() {
     queryFn: async () => (await marketplaceApi.getOrder(reference)).order,
   })
   const order = orderQuery.data
+  const subscriptionQuery = useQuery({
+    queryKey: SELLER_SUBSCRIPTION_QUERY_KEY,
+    enabled: order?.status === 'PAID' && order.kind === 'SELLER_SUBSCRIPTION',
+    queryFn: () => marketplaceApi.mySubscription(),
+  })
 
   const payMutation = useMutation({
     mutationFn: (outcome: 'SUCCESS' | 'PENDING' | 'FAILED') => marketplaceApi.simulateDemoPayment(reference, outcome),
@@ -369,6 +381,15 @@ export function SellerCheckoutPage() {
           {order.status === 'PAID' ? (
             <div className="space-y-2" role="status">
               <p className="font-medium text-emerald-700 dark:text-emerald-400">{isBoost ? t('sellerPlans.boostActivated') : t('sellerPlans.planActivated')}</p>
+              {!isBoost && subscriptionQuery.data?.subscription ? (
+                <p className="text-sm">
+                  {t('sellerPlans.activeDetails', {
+                    plan: subscriptionQuery.data.plan.name,
+                    from: formatDate(subscriptionQuery.data.subscription.startsAt),
+                    to: formatDate(subscriptionQuery.data.subscription.endsAt),
+                  })}
+                </p>
+              ) : null}
               <Button asChild>
                 <Link to={doneLink}>{t('sellerPlans.backToDashboard')}</Link>
               </Button>

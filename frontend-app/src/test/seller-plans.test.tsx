@@ -38,7 +38,16 @@ describe('seller plan comparison', () => {
     expect(within(row('Product listings')).getByText('Unlimited')).toBeInTheDocument()
     expect(within(row('Free product boost')).getByText('3 days')).toBeInTheDocument()
     expect(within(row('Product views')).getByText('Detailed insights')).toBeInTheDocument()
-    expect(screen.getByText(/payments here are simulated/i)).toBeInTheDocument()
+    expect(screen.getByText(/no real payment is taken/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Activate Premium (Demo)' })).toBeEnabled()
+  })
+
+  it('disables the paid upgrade and names the missing setting when no payment method is available', async () => {
+    stubFetch({ '/marketplace/seller-plans': { plans: PLANS, demoPayments: false } })
+    renderWithProviders(<SellerPlanComparison />)
+
+    expect(await screen.findByRole('button', { name: 'Upgrade to Premium' })).toBeDisabled()
+    expect(screen.getByText(/MARKETPLACE_DEMO_PURCHASE_ENABLED/)).toBeInTheDocument()
   })
 })
 

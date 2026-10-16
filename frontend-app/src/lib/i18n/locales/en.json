@@ -2119,7 +2119,7 @@
       "standardVisibility": "Standard product visibility",
       "inquiryManagement": "Buyer inquiry management"
     },
-    "demoNote": "Demo mode: payments here are simulated and no money is charged.",
+    "demoNote": "Demo purchase: Premium Seller is activated through a simulated checkout. No real payment is taken.",
     "demoNoCharge": "This is a demo transaction. No real payment is taken.",
     "confirmTitle": "Upgrade to {{plan}}",
     "confirmBody": "{{plan}} costs {{price}} per month. Your plan starts as soon as the payment is confirmed.",
@@ -2154,7 +2154,12 @@
     "backToDashboard": "Back to Seller Dashboard",
     "failedNote": "The payment failed. Nothing was activated.",
     "expiredNote": "This order expired. Please start again.",
-    "startAgain": "Start again"
+    "startAgain": "Start again",
+    "activateDemo": "Activate Premium (Demo)",
+    "confirmDemoTitle": "Activate {{plan}} (demo)",
+    "continueToDemo": "Continue to demo purchase",
+    "paymentsUnavailable": "Online payment isn't available yet: no payment provider is connected and the Marketplace demo purchase is turned off. To demonstrate Premium Seller, set MARKETPLACE_DEMO_PURCHASE_ENABLED=true on the API.",
+    "activeDetails": "{{plan}} is active from {{from}} to {{to}}. It stays active after refresh and sign-in."
   },
   "sellerDash": {
     "title": "My Marketplace",

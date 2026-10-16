@@ -168,7 +168,7 @@ const DAY = 24 * 60 * 60 * 1000;
 const SELLER = 'seller-1';
 const OTHER = 'seller-2';
 const BUYER = 'buyer-1';
-const settings = env as unknown as { demoPaymentsEnabled: boolean; nodeEnv: string };
+const settings = env as unknown as { demoPaymentsEnabled: boolean; nodeEnv: string; marketplaceDemoPurchaseEnabled: boolean };
 const bearer = (userId: string) => `Bearer ${signJwt({ sub: userId, email: `${userId}@example.com`, roles: ['normal'] }, '1h')}`;
 
 const addListing = (id: string, sellerId = SELLER, overrides: Record<string, unknown> = {}) => {
@@ -185,6 +185,7 @@ beforeEach(() => {
   Object.values(db).forEach((rows) => (rows.length = 0));
   settings.demoPaymentsEnabled = true;
   settings.nodeEnv = 'test';
+  settings.marketplaceDemoPurchaseEnabled = false;
   const base = { isActive: true, audience: 'SELLER', quarterlyPriceMmk: 0, monthlyListingLimit: null };
   db.plans.push(
     { ...base, id: 'plan_seller_free', code: 'SELLER_FREE', name: 'Free Seller', rank: 0, monthlyPriceMmk: 0, activeListingLimit: 5, freeBoostDays: 0, badgeEligible: false, performanceLevel: 'BASIC', homepageFeatured: false },
@@ -322,6 +323,73 @@ describe('seller plans', () => {
       .send({ outcome: 'success' });
     expect(response.status).toBe(404);
     expect(db.subscriptions).toHaveLength(0);
+  });
+});
+
+describe('Marketplace demo purchase on the deployed (production) site', () => {
+  const asProduction = (marketplaceDemo: boolean) => {
+    settings.nodeEnv = 'production';
+    settings.demoPaymentsEnabled = false;
+    settings.marketplaceDemoPurchaseEnabled = marketplaceDemo;
+  };
+
+  it('activates Premium Seller through the labelled demo checkout when MARKETPLACE_DEMO_PURCHASE_ENABLED is on', async () => {
+    asProduction(true);
+    const plans = await request(app).get('/api/v1/marketplace/seller-plans');
+    expect(plans.body.data.demoPayments).toBe(true);
+
+    const created = await request(app).post('/api/v1/marketplace/me/subscription/orders').set('Authorization', bearer(SELLER)).send({ planCode: 'SELLER_PREMIUM' });
+    expect(created.status).toBe(201);
+    expect(created.body.data.order).toMatchObject({ isDemo: true, provider: 'demo', amountMmk: 90000, status: 'PENDING' });
+
+    const paid = await request(app)
+      .post(`/api/v1/marketplace/me/payments/orders/${created.body.data.order.reference}/demo`)
+      .set('Authorization', bearer(SELLER))
+      .send({ outcome: 'success' });
+    expect(paid.status).toBe(200);
+
+    // Persisted: a fresh request (refresh / new sign-in) reads the same active plan from the database.
+    const state = await request(app).get('/api/v1/marketplace/me/subscription').set('Authorization', bearer(SELLER));
+    expect(state.body.data).toMatchObject({ status: 'ACTIVE', plan: { code: 'SELLER_PREMIUM' }, allowance: { limit: null } });
+    expect(db.orders[0]).toMatchObject({ isDemo: true, status: 'PAID' });
+
+    // Premium features: unlimited products, badge, and the free 3-day boost.
+    for (const id of ['a', 'b', 'c', 'd', 'e', 'f']) addListing(id);
+    expect((await getListingAllowance(SELLER)).remaining).toBeNull();
+    expect((await claimFreeListingBoost(SELLER, 'a')).days).toBe(3);
+  });
+
+  it('keeps agent payments blocked in production even when the Marketplace demo is on', async () => {
+    asProduction(true);
+    await expect(createSubscriptionOrder(SELLER, 'GOLD', 1, NOW)).rejects.toMatchObject({ code: 'PAYMENTS_UNAVAILABLE' });
+
+    // An agent order created earlier cannot be paid through the demo checkout on the live site.
+    settings.nodeEnv = 'test';
+    settings.demoPaymentsEnabled = true;
+    const agentOrder = await createSubscriptionOrder(SELLER, 'GOLD', 1, NOW);
+    asProduction(true);
+    await expect(simulateDemoPayment(SELLER, agentOrder.reference, 'SUCCESS', NOW)).rejects.toMatchObject({ statusCode: 404 });
+    expect(db.agentSubscriptions).toHaveLength(0);
+  });
+
+  it('refuses the demo purchase and explains the missing setting when the Marketplace demo is off', async () => {
+    asProduction(false);
+    const plans = await request(app).get('/api/v1/marketplace/seller-plans');
+    expect(plans.body.data.demoPayments).toBe(false);
+    const created = await request(app).post('/api/v1/marketplace/me/subscription/orders').set('Authorization', bearer(SELLER)).send({ planCode: 'SELLER_PREMIUM' });
+    expect(created.status).toBe(503);
+    expect(created.body.errors.code).toBe('PAYMENTS_UNAVAILABLE');
+    expect(created.body.message).toContain('MARKETPLACE_DEMO_PURCHASE_ENABLED');
+    expect(db.orders).toHaveLength(0);
+    expect(db.subscriptions).toHaveLength(0);
+  });
+
+  it('never activates anything without a successful payment event', async () => {
+    asProduction(true);
+    const order = await createSellerSubscriptionOrder(SELLER, 'SELLER_PREMIUM', NOW);
+    await simulateDemoPayment(SELLER, order.reference, 'FAILED', NOW);
+    expect(db.subscriptions).toHaveLength(0);
+    expect((await getSellerEffectivePlan(SELLER, NOW)).plan.code).toBe('SELLER_FREE');
   });
 });
 

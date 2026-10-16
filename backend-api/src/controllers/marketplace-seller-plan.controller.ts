@@ -23,7 +23,7 @@ import {
 import {
   createListingBoostOrder,
   createSellerSubscriptionOrder,
-  demoPaymentProvider,
+  isMarketplaceDemoAvailable,
   getOwnedOrder,
   resetDemoSellerSubscriptions,
   serializeOrder,
@@ -45,7 +45,7 @@ export const sellerPlansController = async (_req: Request, res: Response): Promi
   const plans = await listSellerPlans();
   sendSuccess(res, 200, 'Seller plans fetched successfully', {
     plans: plans.map(serializeSellerPlan),
-    demoPayments: demoPaymentProvider.isAvailable()
+    demoPayments: isMarketplaceDemoAvailable()
   });
 };
 
@@ -68,7 +68,7 @@ export const mySellerSubscriptionController = async (req: Request, res: Response
     allowance,
     freeBoost,
     plans: plans.map(serializeSellerPlan),
-    demoPayments: demoPaymentProvider.isAvailable()
+    demoPayments: isMarketplaceDemoAvailable()
   });
 };
 
@@ -110,7 +110,7 @@ export const sellerBoostsController = async (req: Request, res: Response): Promi
     freeBoost,
     options: LISTING_BOOST_DAY_OPTIONS.map((days) => ({ days, priceMmk: days * pricePerDay })),
     pricePerDayMmk: pricePerDay,
-    demoPayments: demoPaymentProvider.isAvailable()
+    demoPayments: isMarketplaceDemoAvailable()
   });
 };
 

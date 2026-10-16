@@ -16,7 +16,7 @@ import {
   nextListingBoostStart,
   SELLER_PLAN_AUDIENCE
 } from './marketplace-plan.service';
-import { addMonths, AGENT_ORDER_KINDS, FREE_PLAN_CODE, getEffectivePlan, PLAN_AUDIENCE } from './subscription.service';
+import { addMonths, AGENT_ORDER_KINDS, FREE_PLAN_CODE, getEffectivePlan, PLAN_AUDIENCE, SELLER_ORDER_KINDS } from './subscription.service';
 
 export const PAYMENT_CURRENCY = 'MMK';
 export const DEMO_PROVIDER = 'demo';
@@ -59,12 +59,30 @@ export const demoPaymentProvider: PaymentProvider = {
 
 const providers: PaymentProvider[] = [demoPaymentProvider];
 
-const pickProvider = (): PaymentProvider => {
+/**
+ * Demo checkout for Marketplace seller orders only. Available wherever general demo payments are,
+ * and additionally on a deployed site when MARKETPLACE_DEMO_PURCHASE_ENABLED=true. It never applies
+ * to agent plans or boosts.
+ */
+export const isMarketplaceDemoAvailable = (): boolean => demoPaymentProvider.isAvailable() || env.marketplaceDemoPurchaseEnabled;
+
+const isMarketplaceOrderKind = (kind: string) => (SELLER_ORDER_KINDS as readonly string[]).includes(kind);
+
+const pickProvider = (scope: 'agent' | 'marketplace' = 'agent'): PaymentProvider => {
   const provider = providers.find((item) => item.isAvailable());
-  if (!provider) {
-    throw new ApiError(503, 'PAYMENTS_UNAVAILABLE', 'Online payment is not available yet.');
+  if (provider) {
+    return provider;
   }
-  return provider;
+  if (scope === 'marketplace' && env.marketplaceDemoPurchaseEnabled) {
+    return demoPaymentProvider;
+  }
+  throw new ApiError(
+    503,
+    'PAYMENTS_UNAVAILABLE',
+    scope === 'marketplace'
+      ? 'Online payment is not available yet. No payment provider is connected and the Marketplace demo checkout is turned off (MARKETPLACE_DEMO_PURCHASE_ENABLED).'
+      : 'Online payment is not available yet.'
+  );
 };
 
 const newReference = (): string => `SM-${Date.now().toString(36).toUpperCase()}-${randomBytes(4).toString('hex').toUpperCase()}`;
@@ -189,7 +207,7 @@ export const createSellerSubscriptionOrder = async (userId: string, planCode: st
     throw new ApiError(409, 'RENEWAL_ALREADY_QUEUED', 'Your next period is already paid for. You can renew again once it starts.');
   }
 
-  const provider = pickProvider();
+  const provider = pickProvider('marketplace');
   const reusable = await findReusableOrder(userId, { kind: 'SELLER_SUBSCRIPTION', planId: plan.id, provider: provider.name }, now);
   if (reusable) {
     return serializeOrder(reusable);
@@ -226,7 +244,7 @@ export const createListingBoostOrder = async (userId: string, listingId: string,
 
   await assertBoostableListing(userId, listingId);
   const pricePerDay = await getListingBoostPricePerDay();
-  const provider = pickProvider();
+  const provider = pickProvider('marketplace');
 
   const reusable = await findReusableOrder(userId, { kind: 'LISTING_BOOST', listingId, boostDays: days, provider: provider.name }, now);
   if (reusable) {
@@ -473,11 +491,15 @@ export const processPaymentEvent = async (event: PaymentEvent, now = new Date())
  * run unless demo payments are enabled outside production.
  */
 export const simulateDemoPayment = async (userId: string, reference: string, outcome: PaymentOutcome, now = new Date()) => {
-  if (!demoPaymentProvider.isAvailable()) {
+  if (!demoPaymentProvider.isAvailable() && !env.marketplaceDemoPurchaseEnabled) {
     throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
   }
 
   const order = await getOwnedOrder(userId, reference);
+  // On a deployed site only the Marketplace demo checkout may run; agent orders stay real-payment only.
+  if (!demoPaymentProvider.isAvailable() && !isMarketplaceOrderKind(order.kind)) {
+    throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
+  }
   if (!order.isDemo || order.provider !== DEMO_PROVIDER) {
     throw new ApiError(409, 'ORDER_NOT_DEMO', 'This order cannot be simulated.');
   }
@@ -523,7 +545,7 @@ export const resetDemoSubscriptions = async (userId: string, now = new Date()) =
  * Periods paid through a real provider are never touched; records are kept.
  */
 export const resetDemoSellerSubscriptions = async (userId: string, now = new Date()) => {
-  if (!demoPaymentProvider.isAvailable()) {
+  if (!isMarketplaceDemoAvailable()) {
     throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
   }
 
