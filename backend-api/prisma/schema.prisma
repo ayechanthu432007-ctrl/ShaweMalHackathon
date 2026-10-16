@@ -170,6 +170,10 @@ model User {
   agentSubscriptions AgentSubscription[]
   paymentOrders      PaymentOrder[]
   houseBoosts        HouseBoost[]
+  sellerSubscriptions SellerSubscription[]
+  listingBoosts      ListingBoost[]
+  listingInquiriesSent ListingInquiry[]  @relation("ListingInquiryBuyer")
+  listingInquiriesReceived ListingInquiry[] @relation("ListingInquirySeller")
   occupation         Occupation?        @relation(fields: [occupationId], references: [id], onDelete: SetNull)
   housingPreference  HousingPreference?
 
@@ -804,6 +808,10 @@ model Listing {
   contactReveals   ListingContactReveal[]
   reports          ListingReport[]
   review           RatingReview?
+  boosts           ListingBoost[]
+  events           ListingEvent[]
+  inquiries        ListingInquiry[]
+  paymentOrders    PaymentOrder[]
 
   @@index([sellerId])
   @@index([categoryId])
@@ -929,10 +937,17 @@ model SubscriptionPlan {
   performanceLevel    String              @default("BASIC")
   audienceInsights    Boolean             @default(false)
   monthlyReport       Boolean             @default(false)
+  /// AGENT plans govern house listings; SELLER plans govern Marketplace products.
+  audience            String              @default("AGENT")
+  /// Marketplace only: products that may be live at once. Null means unlimited.
+  activeListingLimit  Int?
+  /// Marketplace only: the seller's products are eligible for the homepage Featured row.
+  homepageFeatured    Boolean             @default(false)
   isActive            Boolean             @default(true)
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   subscriptions       AgentSubscription[]
+  sellerSubscriptions SellerSubscription[]
   paymentOrders       PaymentOrder[]
 }
 
@@ -959,11 +974,13 @@ model PaymentOrder {
   id            String               @id @default(cuid())
   reference     String               @unique
   userId        String
-  /// SUBSCRIPTION | BOOST
+  /// SUBSCRIPTION | BOOST (agents) | SELLER_SUBSCRIPTION | LISTING_BOOST (Marketplace)
   kind          String
   planId        String?
   billingMonths Int?
   houseId       String?
+  /// Marketplace product for LISTING_BOOST orders.
+  listingId     String?
   boostDays     Int?
   amountMmk     Int
   currency      String               @default("MMK")
@@ -978,9 +995,12 @@ model PaymentOrder {
   updatedAt     DateTime             @updatedAt
   user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   plan          SubscriptionPlan?    @relation(fields: [planId], references: [id], onDelete: Restrict)
+  listing       Listing?             @relation(fields: [listingId], references: [id], onDelete: SetNull)
   transactions  PaymentTransaction[]
   subscription  AgentSubscription?
   boost         HouseBoost?
+  sellerSubscription SellerSubscription?
+  listingBoost  ListingBoost?
 
   @@index([userId, createdAt])
   @@index([status])
@@ -1047,6 +1067,90 @@ model HouseEvent {
   @@unique([houseId, type, visitorKey, day])
   @@index([agentId, day])
   @@index([houseId, day])
+}
+
+// --- Marketplace seller plans, product boosts, views and buyer inquiries ---
+
+/// One row per paid Marketplace seller period. No row in force means the Free Seller plan.
+model SellerSubscription {
+  id             String           @id @default(cuid())
+  userId         String
+  planId         String
+  billingMonths  Int
+  startsAt       DateTime
+  endsAt         DateTime
+  paymentOrderId String           @unique
+  createdAt      DateTime         @default(now())
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan           SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+  paymentOrder   PaymentOrder     @relation(fields: [paymentOrderId], references: [id], onDelete: Restrict)
+  freeBoosts     ListingBoost[]
+
+  @@index([userId, endsAt])
+}
+
+model ListingBoost {
+  id             String              @id @default(cuid())
+  listingId      String
+  userId         String
+  /// FREE_ENTITLEMENT | PURCHASED
+  source         String
+  days           Int
+  startsAt       DateTime
+  endsAt         DateTime
+  cancelledAt    DateTime?
+  subscriptionId String?
+  paymentOrderId String?             @unique
+  createdAt      DateTime            @default(now())
+  listing        Listing             @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription   SellerSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  paymentOrder   PaymentOrder?       @relation(fields: [paymentOrderId], references: [id], onDelete: SetNull)
+
+  @@index([listingId, endsAt])
+  @@index([userId, endsAt])
+  @@index([subscriptionId])
+}
+
+/// Product views. One row per visitor, per product, per day; no personal data is stored.
+model ListingEvent {
+  id         String   @id @default(cuid())
+  listingId  String
+  sellerId   String
+  /// VIEW
+  type       String
+  visitorKey String
+  /// Calendar day in Asia/Yangon, YYYY-MM-DD.
+  day        String
+  signedIn   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, type, visitorKey, day])
+  @@index([sellerId, day])
+  @@index([listingId, day])
+}
+
+/// A buyer's written question about a product. One thread per buyer and product.
+model ListingInquiry {
+  id          String    @id @default(cuid())
+  listingId   String
+  sellerId    String
+  buyerId     String
+  message     String    @db.VarChar(1000)
+  /// NEW | REPLIED | CLOSED
+  status      String    @default("NEW")
+  sellerReply String?   @db.VarChar(1000)
+  readAt      DateTime?
+  repliedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  listing     Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  seller      User      @relation("ListingInquirySeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  buyer       User      @relation("ListingInquiryBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, buyerId])
+  @@index([sellerId, status, createdAt])
 }
 
 model AppSetting {

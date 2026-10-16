@@ -48,7 +48,8 @@ export const LISTING_DETAIL_INCLUDE = {
 
 type SellerSummary = Prisma.UserGetPayload<{ select: typeof SELLER_SUMMARY_SELECT }>;
 
-export type SellerBadge = 'PHONE_VERIFIED' | 'IDENTITY_VERIFIED' | 'TRUSTED_SELLER';
+/** PREMIUM_SELLER is added by the Marketplace service while the seller's Premium plan is in force. */
+export type SellerBadge = 'PHONE_VERIFIED' | 'IDENTITY_VERIFIED' | 'TRUSTED_SELLER' | 'PREMIUM_SELLER';
 
 export const sellerBadges = (seller: Pick<SellerSummary, 'phoneVerifiedAt' | 'identityVerifiedAt' | 'trustedSellerAt'>) => {
   const badges: SellerBadge[] = [];

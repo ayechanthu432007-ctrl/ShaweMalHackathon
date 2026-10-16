@@ -2,6 +2,7 @@ import { ListingCondition, Prisma } from '@prisma/client';
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { activeListingBoostWhere, getPremiumSellerIds, pickBoostedListingIds } from './marketplace-plan.service';
 import {
   availableContactMethods,
   buildContactLink,
@@ -42,9 +43,36 @@ export interface SearchListingsInput {
 /** Top-level categories used for relocation-focused recommendations, most useful first. */
 const RELOCATION_CATEGORY_SLUGS = ['furniture', 'study', 'electronics', 'kitchen', 'bedroom', 'home-essentials'];
 
-const mapCardsWithRatings = async (listings: Array<Prisma.ListingGetPayload<{ include: typeof LISTING_CARD_INCLUDE }>>) => {
-  const ratings = await getSellerRatings(listings.map((listing) => listing.sellerId));
-  return listings.map((listing) => mapListingCard(listing, ratings));
+/** Cards with seller ratings, the Premium Seller badge, and a flag on products shown because of a boost. */
+const mapCardsWithRatings = async (listings: Array<Prisma.ListingGetPayload<{ include: typeof LISTING_CARD_INCLUDE }>>, boostedIds: Set<string> = new Set()) => {
+  const sellerIds = listings.map((listing) => listing.sellerId);
+  const [ratings, premium] = await Promise.all([getSellerRatings(sellerIds), getPremiumSellerIds(sellerIds)]);
+  return listings.map((listing) => {
+    const card = mapListingCard(listing, ratings);
+    return {
+      ...card,
+      seller: premium.has(listing.sellerId) ? { ...card.seller, badges: [...card.seller.badges, 'PREMIUM_SELLER' as const] } : card.seller,
+      ...(boostedIds.has(listing.id) ? { boosted: true } : {})
+    };
+  });
+};
+
+/** Homepage Featured row: products of sellers whose Premium plan includes homepage placement, boosted ones first. */
+const listFeaturedListings = async (limit: number, now = new Date()) => {
+  const listings = await prisma.listing.findMany({
+    where: {
+      AND: [
+        PUBLIC_LISTING_WHERE,
+        { status: 'ACTIVE' },
+        { seller: { sellerSubscriptions: { some: { startsAt: { lte: now }, endsAt: { gt: now }, plan: { homepageFeatured: true } } } } }
+      ]
+    },
+    include: { ...LISTING_CARD_INCLUDE, boosts: { where: activeListingBoostWhere(now), select: { id: true }, take: 1 } },
+    orderBy: { publishedAt: 'desc' },
+    take: 40
+  });
+  const ordered = [...listings].sort((a, b) => b.boosts.length - a.boosts.length).slice(0, limit);
+  return mapCardsWithRatings(ordered, new Set(ordered.filter((item) => item.boosts.length > 0).map((item) => item.id)));
 };
 
 const toOrderBy = (sort: ListingSort): Prisma.ListingOrderByWithRelationInput[] => {
@@ -91,7 +119,11 @@ export const searchListings = async (input: SearchListingsInput) => {
   if (typeof input.maxPrice === 'number') conditions.push({ price: { lte: new Prisma.Decimal(input.maxPrice) } });
 
   const where: Prisma.ListingWhereInput = { AND: conditions };
-  const [items, total] = await Promise.all([
+  // Boosted products lead the first page of the default (newest) order, only when they match
+  // the visitor's filters. Price sorting is left untouched.
+  const boostedIds = input.page === 1 && input.sort === 'newest' && (input.status ?? 'ACTIVE') === 'ACTIVE' ? await pickBoostedListingIds(where) : [];
+  const [boosted, regular, total] = await Promise.all([
+    boostedIds.length > 0 ? prisma.listing.findMany({ where: { AND: [where, { id: { in: boostedIds } }] }, include: LISTING_CARD_INCLUDE }) : Promise.resolve([]),
     prisma.listing.findMany({
       where,
       include: LISTING_CARD_INCLUDE,
@@ -102,7 +134,11 @@ export const searchListings = async (input: SearchListingsInput) => {
     prisma.listing.count({ where })
   ]);
 
-  return paginated(await mapCardsWithRatings(items), input.page, input.pageSize, total);
+  const boostedOrdered = boostedIds.flatMap((id) => boosted.find((listing) => listing.id === id) ?? []);
+  const boostedSet = new Set(boostedOrdered.map((listing) => listing.id));
+  const items = [...boostedOrdered, ...regular.filter((listing) => !boostedSet.has(listing.id))].slice(0, input.pageSize);
+
+  return paginated(await mapCardsWithRatings(items, boostedSet), input.page, input.pageSize, total);
 };
 
 export const getRecommendedListings = async (options: { userId?: string; destinationCityId?: string; limit: number }) => {
@@ -243,7 +279,7 @@ export const getMovingOutSale = async (saleId: string) => {
 };
 
 export const getMarketplaceHome = async (userId?: string) => {
-  const [categories, recentItems, recommended, verifiedSellers, movingOutSales] = await Promise.all([
+  const [categories, recentItems, recommended, verifiedSellers, movingOutSales, featured] = await Promise.all([
     listMarketplaceCategories(),
     prisma.listing.findMany({
       where: { AND: [PUBLIC_LISTING_WHERE, { status: 'ACTIVE' }] },
@@ -253,7 +289,8 @@ export const getMarketplaceHome = async (userId?: string) => {
     }),
     getRecommendedListings({ userId, limit: 8 }),
     listVerifiedSellers(8),
-    listMovingOutSales(6)
+    listMovingOutSales(6),
+    listFeaturedListings(8)
   ]);
 
   return {
@@ -261,6 +298,7 @@ export const getMarketplaceHome = async (userId?: string) => {
     recommended: recommended.items,
     recommendedForDestinationCityId: recommended.destinationCityId,
     recentlyListed: await mapCardsWithRatings(recentItems),
+    featured,
     verifiedSellers,
     movingOutSales
   };
@@ -310,7 +348,11 @@ export const getListingDetail = async (listingId: string, viewer?: { userId: str
     where: { sellerId: listing.sellerId, status: 'SOLD', moderationStatus: 'APPROVED' }
   });
 
-  const detail = mapListingDetail(listing, ratings.get(listing.sellerId), availableContactMethods(listing, contactValues));
+  const mapped = mapListingDetail(listing, ratings.get(listing.sellerId), availableContactMethods(listing, contactValues));
+  const premium = await getPremiumSellerIds([listing.sellerId]);
+  const detail = premium.has(listing.sellerId)
+    ? { ...mapped, seller: { ...mapped.seller, badges: [...mapped.seller.badges, 'PREMIUM_SELLER' as const] } }
+    : mapped;
 
   return {
     ...detail,

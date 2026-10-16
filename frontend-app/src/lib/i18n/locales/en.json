@@ -1313,6 +1313,10 @@
       "TRUSTED_SELLER": {
         "label": "Trusted seller",
         "description": "Verified identity, multiple completed sales, good reviews, and no serious reports."
+      },
+      "PREMIUM_SELLER": {
+        "label": "Premium Seller",
+        "description": "This seller has an active Premium Seller plan on Shawe Mal."
       }
     },
     "fields": {
@@ -1588,6 +1592,21 @@
       "remaining_one": "{{count}} post remaining this month",
       "remaining_other": "{{count}} posts remaining this month",
       "full": "Monthly limit reached — new posts open on {{date}}"
+    },
+    "boosted": "Boosted",
+    "featuredTitle": "Featured from Premium Sellers",
+    "inquiry": {
+      "title": "Ask the seller",
+      "you": "You",
+      "seller": "Seller",
+      "awaiting": "Waiting for the seller's reply.",
+      "signIn": "Sign in to ask a question",
+      "label": "Your question",
+      "placeholder": "Is it still available? Can you deliver?",
+      "send": "Send question",
+      "update": "Send again",
+      "sent": "Your question was sent to the seller.",
+      "error": "Could not send your question."
     }
   },
   "agentDash": {
@@ -2048,6 +2067,215 @@
       "NOT_FOUND": "That post no longer exists.",
       "PAYMENT_FAILED": "The payment failed.",
       "INVALID": "Enter a title and a price."
+    }
+  },
+  "sellerPlans": {
+    "title": "Seller plans",
+    "subtitle": "Compare Free Seller and Premium Seller for the Marketplace.",
+    "perMonth": "/ month",
+    "popular": "Popular",
+    "free": "Free",
+    "currentPlan": "Current plan",
+    "upgrade": "Upgrade to Premium",
+    "renew": "Renew for another month",
+    "renewalQueued": "Next month already paid",
+    "startFree": "Start for free",
+    "activeUntil": "Active until {{date}}",
+    "compareTitle": "Package comparison",
+    "feature": "Feature",
+    "included": "Included",
+    "notIncluded": "Not included",
+    "unlimited": "Unlimited",
+    "upTo": "Up to {{count}}",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "detailed": "Detailed insights",
+    "basic": "Basic",
+    "basicStatus": "Basic plan status",
+    "fullManagement": "Full plan management",
+    "rows": {
+      "price": "Monthly price",
+      "listings": "Product listings",
+      "visibility": "Standard marketplace visibility",
+      "featured": "Homepage featured placement",
+      "freeBoost": "Free product boost",
+      "views": "Product views",
+      "inquiries": "Buyer inquiries",
+      "manage": "Manage & edit products",
+      "badge": "Premium Seller badge",
+      "subscription": "Subscription management"
+    },
+    "benefit": {
+      "unlimited": "Unlimited product listings",
+      "limited_one": "Up to {{count}} active product listing",
+      "limited_other": "Up to {{count}} active product listings",
+      "badge": "Instant Premium Seller badge",
+      "featured": "Homepage featured placement",
+      "freeBoost": "{{count}}-day free product boost",
+      "detailedInsights": "Daily product performance insights",
+      "basicViews": "Basic product views",
+      "inquiries": "Buyer inquiry management",
+      "manage": "Edit and manage listings"
+    },
+    "demoNote": "Demo mode: payments here are simulated and no money is charged.",
+    "demoNoCharge": "This is a demo transaction. No real payment is taken.",
+    "confirmTitle": "Upgrade to {{plan}}",
+    "confirmBody": "{{plan}} costs {{price}} per month. Your plan starts as soon as the payment is confirmed.",
+    "continueToPayment": "Continue to payment",
+    "orderError": "Could not start the order.",
+    "orderNotFound": "Order not found.",
+    "demoTransaction": "Demo transaction",
+    "demoTransactionBody": "No real payment provider is connected. Choose an outcome below to simulate the payment.",
+    "checkout": "Checkout",
+    "item": "Item",
+    "reference": "Reference",
+    "status": "Status",
+    "amount": "Total",
+    "planItem": "{{plan}} · 1 month",
+    "boostItem_one": "Product boost · {{count}} day",
+    "boostItem_other": "Product boost · {{count}} days",
+    "orderStatus": {
+      "PENDING": "Pending",
+      "PAID": "Paid",
+      "FAILED": "Failed",
+      "EXPIRED": "Expired"
+    },
+    "paymentError": "The payment could not be processed.",
+    "simulatePrompt": "Simulate the payment result:",
+    "simulateSuccess": "Payment succeeds",
+    "simulatePending": "Still pending",
+    "simulateFailure": "Payment fails",
+    "stillPending": "The payment is still pending. Nothing has been activated yet.",
+    "awaitingProvider": "Waiting for confirmation from the payment provider.",
+    "boostActivated": "Your product boost is active.",
+    "planActivated": "Premium Seller is now active.",
+    "backToDashboard": "Back to Seller Dashboard",
+    "failedNote": "The payment failed. Nothing was activated.",
+    "expiredNote": "This order expired. Please start again.",
+    "startAgain": "Start again"
+  },
+  "sellerDash": {
+    "title": "Seller Dashboard",
+    "navLabel": "Seller Dashboard sections",
+    "currentPlanLabel": "Current plan: {{plan}}",
+    "until": "until {{date}}",
+    "sections": {
+      "products": "My Products",
+      "inquiries": "Buyer Inquiries",
+      "insights": "Product Insights",
+      "boost": "Boost Products",
+      "subscription": "Seller Subscription"
+    },
+    "summary": {
+      "products": "Total products",
+      "views": "Product views",
+      "inquiries": "New inquiries",
+      "boosts": "Active boosts"
+    },
+    "allowance": {
+      "used": "{{used}}/{{limit}} active products",
+      "remaining_one": "{{count}} slot left on Free Seller",
+      "remaining_other": "{{count}} slots left on Free Seller",
+      "full": "Limit reached — mark a product sold, delete one, or upgrade.",
+      "unlimited": "{{used}} active products · unlimited on your plan"
+    },
+    "products": {
+      "search": "Search my products",
+      "noMatch": "No products match this filter.",
+      "views_one": "{{count}} view",
+      "views_other": "{{count}} views",
+      "inquiries_one": "{{count}} inquiry",
+      "inquiries_other": "{{count}} inquiries",
+      "listedOn": "Listed {{date}}",
+      "boostWindow": "Boost {{from}} – {{to}}"
+    },
+    "inquiries": {
+      "subtitle": "Questions buyers sent about your products.",
+      "filter": "Filter inquiries",
+      "empty": "No inquiries here yet.",
+      "unread": "Unread",
+      "yourReply": "Your reply",
+      "replyLabel": "Reply",
+      "replyPlaceholder": "Write your reply to the buyer",
+      "sendReply": "Send reply",
+      "reply": "Reply",
+      "markRead": "Mark as read",
+      "close": "Close",
+      "reopen": "Reopen",
+      "status": {
+        "NEW": "New",
+        "REPLIED": "Replied",
+        "CLOSED": "Closed"
+      }
+    },
+    "insights": {
+      "subtitle": "Views and inquiries recorded for your products.",
+      "range": "Date range",
+      "days_one": "{{count}} day",
+      "days_other": "{{count}} days",
+      "viewsInRange": "Views ({{count}} days)",
+      "inquiriesInRange": "Inquiries ({{count}} days)",
+      "allTimeViews": "All-time views",
+      "trackingSince": "View tracking started on {{date}}; earlier days show as no data.",
+      "noTrackingYet": "No views recorded yet.",
+      "definition": "A view is one visitor opening a product on one day; your own visits and bots are not counted.",
+      "basicNote": "Daily trends, best performers and inquiry rates are part of Premium Seller's detailed insights.",
+      "chartLabel": "Daily product views",
+      "noData": "No data",
+      "views": "Views",
+      "viewsCount_one": "{{count}} view",
+      "viewsCount_other": "{{count}} views",
+      "inquiriesCount_one": "{{count}} inquiry",
+      "inquiriesCount_other": "{{count}} inquiries",
+      "best": "Best-performing products",
+      "perProduct": "Per product",
+      "product": "Product",
+      "rate": "Inquiry rate"
+    },
+    "boost": {
+      "subtitle": "Boosted products appear at the top of Marketplace search results until the boost ends.",
+      "option": "{{count}} days · {{price}}",
+      "freeLocked": "Premium Seller includes a free product boost each month.",
+      "freeAvailable_one": "Your free {{count}}-day boost is ready (available until {{date}}).",
+      "freeAvailable_other": "Your free {{count}}-day boost is ready (available until {{date}}).",
+      "freeUsed": "You have used this period's free boost.",
+      "demoNote": "Demo mode: paid boosts are simulated.",
+      "noEligible": "You have no live, approved products to boost.",
+      "notBoosted": "Not boosted",
+      "eligibleFree": "Eligible for your free boost or a paid boost",
+      "eligiblePaid": "Eligible for a paid boost",
+      "useFree": "Use free {{count}}-day boost",
+      "duration": "Boost duration",
+      "boostFor": "Boost · {{price}}",
+      "history": "Boost history",
+      "sourceFree": "Free benefit",
+      "sourcePaid": "Paid",
+      "status": {
+        "ACTIVE": "Boosted",
+        "SCHEDULED": "Scheduled",
+        "PAUSED": "Paused",
+        "ENDED": "Ended",
+        "CANCELLED": "Cancelled"
+      }
+    },
+    "subscription": {
+      "plan": "Current plan",
+      "status": "Status",
+      "price": "Plan price",
+      "activated": "Activated",
+      "expires": "Expires",
+      "renewal": "Renewal",
+      "noExpiry": "Does not expire",
+      "renewalQueued": "Paid through {{date}}",
+      "renewManually": "Renew from the plan card",
+      "expiredNote": "Your Premium plan has ended, so you are back on Free Seller. Renew to restore Premium benefits.",
+      "demoReset": "Demo: return to Free Seller",
+      "compareLink": "See the full package comparison",
+      "statusValue": {
+        "FREE": "Free plan",
+        "ACTIVE": "Active",
+        "EXPIRED": "Expired (on Free Seller)"
+      }
     }
   }
 }

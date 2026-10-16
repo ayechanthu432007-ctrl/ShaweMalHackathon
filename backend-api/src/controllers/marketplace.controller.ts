@@ -205,7 +205,8 @@ export const updateSellerContactController = async (req: Request, res: Response)
 
 export const myDashboardController = async (req: Request, res: Response): Promise<void> => {
   const dashboard = await getMyMarketplaceDashboard(requireActor(req), {
-    status: queryString(req.query.status) as 'ACTIVE' | 'SOLD' | undefined
+    status: queryString(req.query.status) as 'ACTIVE' | 'SOLD' | undefined,
+    q: queryString(req.query.q)
   });
   sendSuccess(res, 200, 'Marketplace dashboard fetched successfully', dashboard);
 };

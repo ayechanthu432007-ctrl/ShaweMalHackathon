@@ -21,7 +21,7 @@ export type ReportReason = (typeof REPORT_REASONS)[number]
 export type ListingStatus = 'ACTIVE' | 'SOLD'
 export type ModerationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'REMOVED'
 export type AccountStatus = 'ACTIVE' | 'SUSPENDED' | 'BANNED'
-export type SellerBadge = 'PHONE_VERIFIED' | 'IDENTITY_VERIFIED' | 'TRUSTED_SELLER'
+export type SellerBadge = 'PHONE_VERIFIED' | 'IDENTITY_VERIFIED' | 'TRUSTED_SELLER' | 'PREMIUM_SELLER'
 export type ContactMethod = 'phone' | 'telegram' | 'viber'
 export type ListingSort = 'newest' | 'price_asc' | 'price_desc'
 
@@ -56,6 +56,8 @@ export type ListingCard = {
   locationDetail: string | null
   thumbnail: string | null
   seller: SellerSummary
+  /** Set when the product is shown in a promoted position because of an active boost. */
+  boosted?: boolean
   movingOutSaleId: string | null
   publishedAt: string | null
   soldAt: string | null
@@ -131,6 +133,8 @@ export type MarketplaceHome = {
   recommended: ListingCard[]
   recommendedForDestinationCityId: string | null
   recentlyListed: ListingCard[]
+  /** Premium sellers' products for the homepage Featured row. */
+  featured?: ListingCard[]
   verifiedSellers: VerifiedSeller[]
   movingOutSales: MovingOutSaleSummary[]
 }
@@ -193,10 +197,119 @@ export type EditableListing = Omit<ListingFormValues, 'policyAccepted'> & {
   moderationNote: string | null
 }
 
+export type BoostStatus = 'ACTIVE' | 'SCHEDULED' | 'ENDED' | 'CANCELLED' | 'PAUSED'
+
 export type MyListing = ListingCard & {
   moderationNote: string | null
   contactCount: number
   saveCount: number
+  inquiryCount: number
+  /** Unique daily views recorded since view tracking started. */
+  viewCount: number
+  boost: { source: 'FREE_ENTITLEMENT' | 'PURCHASED'; startsAt: string; endsAt: string; status: BoostStatus } | null
+}
+
+/** Active products a seller may have live at once. limit null = unlimited. */
+export type ListingAllowance = { planCode: string; used: number; limit: number | null; remaining: number | null }
+
+export type SellerPlanCode = 'SELLER_FREE' | 'SELLER_PREMIUM' | (string & {})
+
+export type SellerPlan = {
+  code: SellerPlanCode
+  name: string
+  rank: number
+  monthlyPriceMmk: number
+  activeListingLimit: number | null
+  freeBoostDays: number
+  premiumBadge: boolean
+  homepageFeatured: boolean
+  insightsLevel: 'BASIC' | 'DETAILED'
+}
+
+export type SellerFreeBoost = { days: number; claimed: boolean; available: boolean; expiresAt: string | null }
+
+export type SellerSubscriptionState = {
+  plan: SellerPlan
+  status: 'FREE' | 'ACTIVE' | 'EXPIRED'
+  subscription: { startsAt: string; endsAt: string } | null
+  renewal: { plan: SellerPlan; startsAt: string; endsAt: string } | null
+  allowance: ListingAllowance
+  freeBoost: SellerFreeBoost
+  plans: SellerPlan[]
+  demoPayments: boolean
+}
+
+export type SellerOrder = {
+  reference: string
+  kind: 'SELLER_SUBSCRIPTION' | 'LISTING_BOOST'
+  plan: { code: string; name: string } | null
+  listingId: string | null
+  boostDays: number | null
+  amountMmk: number
+  currency: string
+  status: 'PENDING' | 'PAID' | 'FAILED' | 'EXPIRED'
+  isDemo: boolean
+  expiresAt: string
+  paidAt: string | null
+  createdAt: string
+}
+
+export type SellerBoostRecord = {
+  id: string
+  listing: { id: string; title: string }
+  source: 'FREE_ENTITLEMENT' | 'PURCHASED'
+  days: number
+  startsAt: string
+  endsAt: string
+  status: BoostStatus
+}
+
+export type SellerBoosts = {
+  items: SellerBoostRecord[]
+  freeBoost: SellerFreeBoost
+  options: Array<{ days: number; priceMmk: number }>
+  pricePerDayMmk: number
+  demoPayments: boolean
+}
+
+export type InquiryStatus = 'NEW' | 'REPLIED' | 'CLOSED'
+
+export type SellerInquiry = {
+  id: string
+  listing: { id: string; title: string }
+  buyer: { id: string; name: string; profilePicturePath: string | null }
+  message: string
+  status: InquiryStatus
+  sellerReply: string | null
+  read: boolean
+  repliedAt: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+export type SellerInquiries = { counts: Record<InquiryStatus, number>; unread: number; items: SellerInquiry[] }
+
+export type MyInquiry = { id: string; message: string; status: InquiryStatus; sellerReply: string | null; repliedAt: string | null; createdAt: string }
+
+export type SellerInsightProduct = {
+  listing: { id: string; title: string; status: ListingStatus }
+  views: number
+  inquiries: number
+  totalViews: number
+  inquiryRate: number | null
+}
+
+export type SellerInsights = {
+  level: 'BASIC' | 'DETAILED'
+  days: number
+  availableRanges: number[]
+  /** First day (Asia/Yangon) with recorded views; earlier days have no data. */
+  trackingSince: string | null
+  totals: { views: number; inquiries: number; allTimeViews: number }
+  products: SellerInsightProduct[]
+  /** Null on Free Seller (detailed trends are a Premium feature). Null values = no data for that day. */
+  series: Array<{ day: string; views: number | null; inquiries: number | null }> | null
+  bestPerforming: SellerInsightProduct[] | null
 }
 
 export type MyMovingOutSale = {
@@ -212,8 +325,10 @@ export type MyMovingOutSale = {
 }
 
 export type MyMarketplaceDashboard = {
-  /** This month's new-post allowance; the server refuses posts beyond it. */
-  postQuota?: { month: string; used: number; limit: number; remaining: number; resetsAt: string }
+  /** Active-product slots from the seller plan; the server refuses posts beyond it. */
+  allowance: ListingAllowance
+  plan: { code: SellerPlanCode; name: string; endsAt: string | null }
+  summary: { totalProducts: number; totalViews: number; newInquiries: number; activeBoosts: number }
   activeCount: number
   soldCount: number
   needsAttentionCount: number

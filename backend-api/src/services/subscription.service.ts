@@ -38,7 +38,7 @@ export const addMonths = (date: Date, months: number): Date => {
 };
 
 export const listPlans = (db: Db = prisma) =>
-  db.subscriptionPlan.findMany({ where: { isActive: true }, orderBy: { rank: 'asc' } });
+  db.subscriptionPlan.findMany({ where: { isActive: true, audience: 'AGENT' }, orderBy: { rank: 'asc' } });
 
 const getFreePlan = async (db: Db): Promise<SubscriptionPlan> => {
   const plan = await db.subscriptionPlan.findUnique({ where: { code: FREE_PLAN_CODE } });

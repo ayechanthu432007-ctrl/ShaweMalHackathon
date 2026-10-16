@@ -82,6 +82,11 @@ export function ListingCard({ listing, className, footer, hideSave = false }: Li
             </div>
           )}
           {listing.status === 'SOLD' ? <ListingStatusBadge status="SOLD" className="absolute left-2 top-2" /> : null}
+          {listing.boosted && listing.status !== 'SOLD' ? (
+            <span className="absolute left-2 top-2 rounded-full bg-[#FFDE59] px-2 py-0.5 text-xs font-semibold text-[#3d2f00] shadow-sm">
+              {t('marketplace.boosted')}
+            </span>
+          ) : null}
           {!hideSave && listing.status !== 'SOLD' ? (
             <Button
               type="button"

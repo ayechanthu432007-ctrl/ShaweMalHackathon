@@ -26,11 +26,37 @@ import {
   updateMyListingStatusController,
   updateSellerContactController
 } from '../../controllers/marketplace.controller';
+import {
+  claimFreeListingBoostController,
+  createInquiryController,
+  createListingBoostOrderController,
+  createSellerSubscriptionOrderController,
+  myInquiryController,
+  mySellerSubscriptionController,
+  recordListingViewController,
+  resetDemoSellerSubscriptionController,
+  sellerBoostsController,
+  sellerDemoPaymentController,
+  sellerInquiriesController,
+  sellerInsightsController,
+  sellerOrderController,
+  sellerPlansController,
+  updateSellerInquiryController
+} from '../../controllers/marketplace-seller-plan.controller';
 import { optionalAuth, requireAuth } from '../../middleware/auth.middleware';
 import { validateMiddleware } from '../../middleware/validate.middleware';
 import { asyncHandler } from '../../utils/async-handler';
 import {
+  createInquiryValidator,
   createReportValidator,
+  freeListingBoostValidator,
+  listingBoostOrderValidator,
+  sellerDemoPaymentValidator,
+  sellerInquiriesValidator,
+  sellerInsightsValidator,
+  sellerOrderReferenceValidator,
+  sellerPlanOrderValidator,
+  updateInquiryValidator,
   createSellerReviewValidator,
   listingBodyValidator,
   listingIdParamValidator,
@@ -60,6 +86,8 @@ marketplaceRouter.get(
 );
 marketplaceRouter.get('/listings/:id', optionalAuth, listingIdParamValidator, validateMiddleware, asyncHandler(listingDetailController));
 marketplaceRouter.get('/sellers/:sellerId', sellerIdParamValidator, validateMiddleware, asyncHandler(sellerProfileController));
+marketplaceRouter.get('/seller-plans', asyncHandler(sellerPlansController));
+marketplaceRouter.post('/listings/:id/view', optionalAuth, listingIdParamValidator, validateMiddleware, asyncHandler(recordListingViewController));
 marketplaceRouter.get('/moving-out-sales', asyncHandler(listMovingOutSalesController));
 marketplaceRouter.get(
   '/moving-out-sales/:saleId',
@@ -83,6 +111,8 @@ marketplaceRouter.post(
   validateMiddleware,
   asyncHandler(createSellerReviewController)
 );
+marketplaceRouter.post('/listings/:id/inquiries', requireAuth, createInquiryValidator, validateMiddleware, asyncHandler(createInquiryController));
+marketplaceRouter.get('/listings/:id/inquiries/mine', requireAuth, listingIdParamValidator, validateMiddleware, asyncHandler(myInquiryController));
 marketplaceRouter.post('/reports', requireAuth, createReportValidator, validateMiddleware, asyncHandler(createReportController));
 
 // Seller ("My Marketplace").
@@ -112,6 +142,19 @@ meRouter.delete(
   validateMiddleware,
   asyncHandler(deleteMovingOutSaleController)
 );
+
+// Seller Dashboard: plan, demo checkout, boosts, insights and inquiries. Entitlements are enforced in the services.
+meRouter.get('/subscription', asyncHandler(mySellerSubscriptionController));
+meRouter.post('/subscription/orders', sellerPlanOrderValidator, validateMiddleware, asyncHandler(createSellerSubscriptionOrderController));
+meRouter.post('/subscription/demo-reset', asyncHandler(resetDemoSellerSubscriptionController));
+meRouter.get('/payments/orders/:reference', sellerOrderReferenceValidator, validateMiddleware, asyncHandler(sellerOrderController));
+meRouter.post('/payments/orders/:reference/demo', sellerDemoPaymentValidator, validateMiddleware, asyncHandler(sellerDemoPaymentController));
+meRouter.get('/boosts', asyncHandler(sellerBoostsController));
+meRouter.post('/boosts/orders', listingBoostOrderValidator, validateMiddleware, asyncHandler(createListingBoostOrderController));
+meRouter.post('/boosts/free', freeListingBoostValidator, validateMiddleware, asyncHandler(claimFreeListingBoostController));
+meRouter.get('/insights', sellerInsightsValidator, validateMiddleware, asyncHandler(sellerInsightsController));
+meRouter.get('/inquiries', sellerInquiriesValidator, validateMiddleware, asyncHandler(sellerInquiriesController));
+meRouter.patch('/inquiries/:inquiryId', updateInquiryValidator, validateMiddleware, asyncHandler(updateSellerInquiryController));
 
 marketplaceRouter.use('/me', meRouter);
 

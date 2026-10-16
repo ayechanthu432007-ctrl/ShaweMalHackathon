@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Flag, Heart, MapPin, PackageCheck, Pencil, Star, Truck } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -14,6 +14,7 @@ import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 import { cn } from '@/lib/utils'
 
 import { marketplaceApi } from '../api/marketplace-api'
+import { AskSellerCard } from '../components/AskSellerCard'
 import { ContactSellerButtons } from '../components/ContactSellerButtons'
 import { ListingStatusBadge } from '../components/ListingCard'
 import { textareaClassName } from '../components/MarketplaceDialog'
@@ -129,6 +130,16 @@ export function ListingDetailPage() {
     enabled: Boolean(id),
   })
 
+  // One view per page open; the server also de-duplicates per visitor per day and skips the owner.
+  const viewed = useRef<string | null>(null)
+  const loadedId = listingQuery.data?.item.id
+  const isOwnerView = listingQuery.data?.item.isOwner
+  useEffect(() => {
+    if (!loadedId || isOwnerView || viewed.current === loadedId) return
+    viewed.current = loadedId
+    marketplaceApi.recordView(loadedId).catch(() => undefined)
+  }, [loadedId, isOwnerView])
+
   if (listingQuery.isLoading) {
     return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
   }
@@ -233,6 +244,8 @@ export function ListingDetailPage() {
               </CardContent>
             </Card>
           ) : null}
+
+          {listing.status !== 'SOLD' && !listing.isOwner ? <AskSellerCard listingId={listing.id} /> : null}
 
           {listing.canReview ? <ReviewSellerForm listing={listing} /> : null}
 

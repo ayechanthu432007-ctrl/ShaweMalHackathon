@@ -102,6 +102,16 @@ export function MarketplaceHomePage() {
             )}
           </Section>
 
+          {home.featured && home.featured.length > 0 ? (
+            <Section title={t('marketplace.featuredTitle')}>
+              <ListingGrid>
+                {home.featured.map((listing) => (
+                  <ListingCard key={listing.id} listing={listing} />
+                ))}
+              </ListingGrid>
+            </Section>
+          ) : null}
+
           <Section
             title={t('marketplace.recentTitle')}
             action={

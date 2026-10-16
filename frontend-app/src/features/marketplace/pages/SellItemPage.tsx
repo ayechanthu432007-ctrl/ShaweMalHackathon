@@ -3,7 +3,6 @@ import { ShieldCheck } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
-import { PostQuotaMeter } from '../components/PostQuotaMeter'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
@@ -15,6 +14,7 @@ import { ApiRequestError } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 
 import { marketplaceApi } from '../api/marketplace-api'
+import { ListingAllowanceMeter } from './MyMarketplacePage'
 import { selectClassName, textareaClassName } from '../components/MarketplaceDialog'
 import { MarketplacePhotoUploader } from '../components/MarketplacePhotoUploader'
 import { useMarketplaceCategories, useSellerStatus, useTownships } from '../hooks/useMarketplaceData'
@@ -119,9 +119,9 @@ export function SellItemPage() {
     enabled: isAuthenticated,
     queryFn: () => marketplaceApi.dashboard(),
   })
-  const postQuota = dashboardQuery.data?.postQuota
-  // Editing never uses a post; only new posts stop once this month's allowance is used.
-  const quotaFull = !isEditing && Boolean(postQuota && postQuota.remaining <= 0)
+  const allowance = dashboardQuery.data?.allowance
+  // Editing never uses a slot; only new posts stop once the plan's active-product limit is reached.
+  const quotaFull = !isEditing && Boolean(allowance && allowance.limit !== null && (allowance.remaining ?? 0) <= 0)
   const existingQuery = useQuery({
     queryKey: ['marketplace', 'my-listing', editingId],
     enabled: isAuthenticated && isEditing,
@@ -282,7 +282,7 @@ export function SellItemPage() {
         <h1 className="text-3xl font-semibold tracking-tight">{isEditing ? t('marketplace.sell.editTitle') : t('marketplace.sell.title')}</h1>
         <p className="mt-1 text-muted-foreground">{t('marketplace.sell.subtitle')}</p>
       </div>
-      {!isEditing && postQuota ? <PostQuotaMeter quota={postQuota} /> : null}
+      {!isEditing && allowance ? <ListingAllowanceMeter allowance={allowance} /> : null}
 
       <Card>
         <CardHeader>

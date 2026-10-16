@@ -101,7 +101,42 @@ export const updateListingStatusValidator = [
   body('buyerId').optional({ values: 'null' }).isString().withMessage('buyerId must be a string.')
 ];
 
-export const myListingsValidator = [query('status').optional().isIn(['ACTIVE', 'SOLD']).withMessage('status must be ACTIVE or SOLD.')];
+export const myListingsValidator = [
+  query('status').optional().isIn(['ACTIVE', 'SOLD']).withMessage('status must be ACTIVE or SOLD.'),
+  query('q').optional().isString().isLength({ max: 120 }).withMessage('q is too long.')
+];
+
+export const sellerPlanOrderValidator = [body('planCode').isString().trim().notEmpty().withMessage('planCode is required.')];
+
+export const listingBoostOrderValidator = [
+  body('listingId').isString().trim().notEmpty().withMessage('listingId is required.'),
+  body('days').isInt().toInt().isIn([3, 7, 14]).withMessage('days must be 3, 7 or 14.')
+];
+
+export const freeListingBoostValidator = [body('listingId').isString().trim().notEmpty().withMessage('listingId is required.')];
+
+export const sellerOrderReferenceValidator = [param('reference').matches(/^SM-[A-Z0-9]+-[A-F0-9]{8}$/).withMessage('Invalid order reference.')];
+
+export const sellerDemoPaymentValidator = [
+  ...sellerOrderReferenceValidator,
+  body('outcome').isString().trim().toUpperCase().isIn(['SUCCESS', 'PENDING', 'FAILED']).withMessage('outcome must be success, pending or failed.')
+];
+
+export const sellerInsightsValidator = [query('days').optional().isInt({ min: 1, max: 90 }).withMessage('days must be between 1 and 90.')];
+
+export const sellerInquiriesValidator = [query('status').optional().isIn(['NEW', 'REPLIED', 'CLOSED']).withMessage('Unknown status.')];
+
+export const updateInquiryValidator = [
+  param('inquiryId').trim().notEmpty().withMessage('inquiryId is required.'),
+  body('status').optional().isIn(['NEW', 'REPLIED', 'CLOSED']).withMessage('Unknown status.'),
+  body('reply').optional().isString().trim().isLength({ min: 1, max: 1000 }).withMessage('Reply must be 1 to 1000 characters.'),
+  body('read').optional().isBoolean().withMessage('read must be true or false.')
+];
+
+export const createInquiryValidator = [
+  param('id').trim().notEmpty().withMessage('id is required.'),
+  body('message').isString().trim().isLength({ min: 2, max: 1000 }).withMessage('Message must be 2 to 1000 characters.')
+];
 
 export const sellerContactValidator = [
   optionalNullableString('phone', 30),

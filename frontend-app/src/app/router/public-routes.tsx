@@ -26,6 +26,7 @@ import { MarketplaceSearchPage } from '@/features/marketplace/pages/MarketplaceS
 import { MovingOutSalePage } from '@/features/marketplace/pages/MovingOutSalePage'
 import { MyMarketplacePage } from '@/features/marketplace/pages/MyMarketplacePage'
 import { SellerProfilePage } from '@/features/marketplace/pages/SellerProfilePage'
+import { SellerCheckoutPage, SellerPlansPage } from '@/features/marketplace/pages/SellerPlansPages'
 import { SellItemPage } from '@/features/marketplace/pages/SellItemPage'
 import { HireMovingPage } from '@/features/moving/pages/HireMovingPage'
 import { MovingRequestDetailPage } from '@/features/moving/pages/MovingRequestDetailPage'
@@ -88,6 +89,8 @@ export const publicRoutes: RouteObject = {
     { path: 'marketplace/policy', element: <MarketplacePolicyPage /> },
     { path: 'marketplace/sell', element: <SellItemPage /> },
     { path: 'marketplace/my', element: <MyMarketplacePage /> },
+    { path: 'marketplace/plans', element: <SellerPlansPage /> },
+    { path: 'marketplace/checkout/:reference', element: <SellerCheckoutPage /> },
     { path: 'marketplace/my/listings/:id/edit', element: <SellItemPage /> },
     { path: 'profile', element: <ProfilePage /> },
     { path: 'profile/wishlist', element: <WishlistPage /> },

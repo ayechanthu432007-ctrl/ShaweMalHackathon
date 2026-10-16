@@ -7,6 +7,15 @@ import { prisma } from '../prisma/client';
 import { LOCKED_TRANSACTION_OPTIONS, lockForTransaction } from '../utils/advisory-lock';
 import { ApiError } from '../utils/api-error';
 import { assertBoostableHouse, boostEnd, getBoostPricePerDay, MAX_BOOST_DAYS_PER_ORDER, nextBoostStart } from './boost.service';
+import {
+  assertBoostableListing,
+  getListingBoostPricePerDay,
+  getSellerEffectivePlan,
+  LISTING_BOOST_DAY_OPTIONS,
+  listingBoostEnd,
+  nextListingBoostStart,
+  SELLER_PLAN_AUDIENCE
+} from './marketplace-plan.service';
 import { addMonths, FREE_PLAN_CODE, getEffectivePlan } from './subscription.service';
 
 export const PAYMENT_CURRENCY = 'MMK';
@@ -66,6 +75,7 @@ export const serializeOrder = (order: PaymentOrder & { plan?: { code: string; na
   plan: order.plan ? { code: order.plan.code, name: order.plan.name } : null,
   billingMonths: order.billingMonths,
   houseId: order.houseId,
+  listingId: order.listingId,
   boostDays: order.boostDays,
   amountMmk: order.amountMmk,
   currency: order.currency,
@@ -84,7 +94,7 @@ export const createSubscriptionOrder = async (userId: string, planCode: string, 
   }
 
   const plan = await prisma.subscriptionPlan.findUnique({ where: { code: planCode } });
-  if (!plan || !plan.isActive || plan.code === FREE_PLAN_CODE) {
+  if (!plan || !plan.isActive || plan.code === FREE_PLAN_CODE || plan.audience === SELLER_PLAN_AUDIENCE) {
     throw new ApiError(400, 'PLAN_INVALID', 'Choose a paid plan from the list.');
   }
 
@@ -155,6 +165,96 @@ export const createBoostOrder = async (userId: string, houseId: string, days: nu
   return serializeOrder(order);
 };
 
+/** An unpaid, unexpired order for the same thing is reused, so double-clicks never create two payments. */
+const findReusableOrder = (userId: string, where: Prisma.PaymentOrderWhereInput, now: Date) =>
+  prisma.paymentOrder.findFirst({
+    where: { userId, status: 'PENDING', expiresAt: { gt: now }, ...where },
+    include: { plan: true },
+    orderBy: { createdAt: 'desc' }
+  });
+
+/** Marketplace Premium Seller. Monthly billing only; buying again while active queues one renewal. */
+export const createSellerSubscriptionOrder = async (userId: string, planCode: string, now = new Date()) => {
+  const plan = await prisma.subscriptionPlan.findUnique({ where: { code: planCode } });
+  if (!plan || !plan.isActive || plan.audience !== SELLER_PLAN_AUDIENCE || plan.monthlyPriceMmk <= 0) {
+    throw new ApiError(400, 'PLAN_INVALID', 'Choose a paid seller plan from the list.');
+  }
+
+  const current = await getSellerEffectivePlan(userId, now);
+  if (current.subscription && plan.rank < current.plan.rank) {
+    throw new ApiError(409, 'PLAN_DOWNGRADE_NOT_ALLOWED', `Your ${current.plan.name} plan is still active.`);
+  }
+  if (current.renewal) {
+    throw new ApiError(409, 'RENEWAL_ALREADY_QUEUED', 'Your next period is already paid for. You can renew again once it starts.');
+  }
+
+  const provider = pickProvider();
+  const reusable = await findReusableOrder(userId, { kind: 'SELLER_SUBSCRIPTION', planId: plan.id, provider: provider.name }, now);
+  if (reusable) {
+    return serializeOrder(reusable);
+  }
+
+  const order = await prisma.paymentOrder.create({
+    data: {
+      reference: newReference(),
+      userId,
+      kind: 'SELLER_SUBSCRIPTION',
+      planId: plan.id,
+      billingMonths: 1,
+      amountMmk: plan.monthlyPriceMmk,
+      currency: PAYMENT_CURRENCY,
+      provider: provider.name,
+      isDemo: provider.isDemo,
+      expiresAt: new Date(now.getTime() + ORDER_LIFETIME_MS)
+    },
+    include: { plan: true }
+  });
+
+  await prisma.auditLog.create({
+    data: { actorUserId: userId, action: 'PAYMENT_ORDER_CREATED', targetType: 'PaymentOrder', targetId: order.id, metadata: { kind: order.kind, plan: plan.code, amountMmk: order.amountMmk, isDemo: order.isDemo } }
+  });
+
+  return serializeOrder(order);
+};
+
+/** Paid product boost; the price per day comes from the LISTING_BOOST_PRICE_PER_DAY_MMK setting. */
+export const createListingBoostOrder = async (userId: string, listingId: string, days: number, now = new Date()) => {
+  if (!LISTING_BOOST_DAY_OPTIONS.includes(days as (typeof LISTING_BOOST_DAY_OPTIONS)[number])) {
+    throw new ApiError(400, 'BOOST_DAYS_INVALID', `Choose a boost of ${LISTING_BOOST_DAY_OPTIONS.join(', ')} days.`);
+  }
+
+  await assertBoostableListing(userId, listingId);
+  const pricePerDay = await getListingBoostPricePerDay();
+  const provider = pickProvider();
+
+  const reusable = await findReusableOrder(userId, { kind: 'LISTING_BOOST', listingId, boostDays: days, provider: provider.name }, now);
+  if (reusable) {
+    return serializeOrder(reusable);
+  }
+
+  const order = await prisma.paymentOrder.create({
+    data: {
+      reference: newReference(),
+      userId,
+      kind: 'LISTING_BOOST',
+      listingId,
+      boostDays: days,
+      amountMmk: pricePerDay * days,
+      currency: PAYMENT_CURRENCY,
+      provider: provider.name,
+      isDemo: provider.isDemo,
+      expiresAt: new Date(now.getTime() + ORDER_LIFETIME_MS)
+    },
+    include: { plan: true }
+  });
+
+  await prisma.auditLog.create({
+    data: { actorUserId: userId, action: 'PAYMENT_ORDER_CREATED', targetType: 'PaymentOrder', targetId: order.id, metadata: { kind: order.kind, listingId, days, amountMmk: order.amountMmk, isDemo: order.isDemo } }
+  });
+
+  return serializeOrder(order);
+};
+
 /** Orders are only ever visible to the user who created them. */
 export const getOwnedOrder = async (userId: string, reference: string) => {
   const order = await prisma.paymentOrder.findUnique({ where: { reference }, include: { plan: true } });
@@ -208,6 +308,48 @@ const activateBoost = async (tx: Prisma.TransactionClient, order: PaymentOrder, 
 
   await tx.auditLog.create({
     data: { actorUserId: order.userId, action: 'HOUSE_BOOST_PURCHASED', targetType: 'House', targetId: houseId, metadata: { days, boostId: boost.id, orderReference: order.reference, isDemo: order.isDemo } }
+  });
+};
+
+const activateSellerSubscription = async (tx: Prisma.TransactionClient, order: PaymentOrder, now: Date) => {
+  const plan = await tx.subscriptionPlan.findUniqueOrThrow({ where: { id: order.planId as string } });
+  const billingMonths = order.billingMonths ?? 1;
+
+  // Renewing extends from the end of the latest period of the same plan; otherwise it starts now.
+  const latest = await tx.sellerSubscription.findFirst({
+    where: { userId: order.userId, planId: plan.id, endsAt: { gt: now } },
+    orderBy: { endsAt: 'desc' }
+  });
+  const startsAt = latest ? latest.endsAt : now;
+
+  const subscription = await tx.sellerSubscription.create({
+    data: { userId: order.userId, planId: plan.id, billingMonths, startsAt, endsAt: addMonths(startsAt, billingMonths), paymentOrderId: order.id }
+  });
+
+  await tx.auditLog.create({
+    data: {
+      actorUserId: order.userId,
+      action: 'SELLER_SUBSCRIPTION_ACTIVATED',
+      targetType: 'SellerSubscription',
+      targetId: subscription.id,
+      metadata: { plan: plan.code, startsAt: startsAt.toISOString(), endsAt: subscription.endsAt.toISOString(), orderReference: order.reference, isDemo: order.isDemo }
+    }
+  });
+};
+
+const activateListingBoost = async (tx: Prisma.TransactionClient, order: PaymentOrder, now: Date) => {
+  const listingId = order.listingId as string;
+  const days = order.boostDays as number;
+  // The product may have been sold or removed since the order was created.
+  await assertBoostableListing(order.userId, listingId, tx);
+
+  const startsAt = await nextListingBoostStart(listingId, now, tx);
+  const boost = await tx.listingBoost.create({
+    data: { listingId, userId: order.userId, source: 'PURCHASED', days, startsAt, endsAt: listingBoostEnd(startsAt, days), paymentOrderId: order.id }
+  });
+
+  await tx.auditLog.create({
+    data: { actorUserId: order.userId, action: 'LISTING_BOOST_PURCHASED', targetType: 'Listing', targetId: listingId, metadata: { days, boostId: boost.id, orderReference: order.reference, isDemo: order.isDemo } }
   });
 };
 
@@ -279,6 +421,10 @@ export const processPaymentEvent = async (event: PaymentEvent, now = new Date())
 
     if (order.kind === 'SUBSCRIPTION') {
       await activateSubscription(tx, order, now);
+    } else if (order.kind === 'SELLER_SUBSCRIPTION') {
+      await activateSellerSubscription(tx, order, now);
+    } else if (order.kind === 'LISTING_BOOST') {
+      await activateListingBoost(tx, order, now);
     } else {
       await activateBoost(tx, order, now);
     }
@@ -347,4 +493,22 @@ export const resetDemoSubscriptions = async (userId: string, now = new Date()) =
   }
 
   return { ended: toEnd.length };
+};
+
+/**
+ * Demo only: ends the seller's demo-paid Premium periods now, returning them to Free Seller.
+ * Periods paid through a real provider are never touched; records are kept.
+ */
+export const resetDemoSellerSubscriptions = async (userId: string, now = new Date()) => {
+  if (!demoPaymentProvider.isAvailable()) {
+    throw new ApiError(404, 'NOT_FOUND', 'Route not found.');
+  }
+
+  const subscriptions = await prisma.sellerSubscription.findMany({
+    where: { userId, endsAt: { gt: now }, paymentOrder: { isDemo: true, provider: DEMO_PROVIDER } }
+  });
+  for (const item of subscriptions) {
+    await prisma.sellerSubscription.update({ where: { id: item.id }, data: { endsAt: now, ...(item.startsAt > now ? { startsAt: now } : {}) } });
+  }
+  return { ended: subscriptions.length };
 };

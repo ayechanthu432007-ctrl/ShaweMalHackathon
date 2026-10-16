@@ -13,7 +13,15 @@ import type {
   MarketplaceHome,
   MovingOutSaleInput,
   MovingOutSaleSummary,
+  MyInquiry,
   MyMarketplaceDashboard,
+  InquiryStatus,
+  SellerBoosts,
+  SellerInquiries,
+  SellerInsights,
+  SellerOrder,
+  SellerPlan,
+  SellerSubscriptionState,
   Paginated,
   ReportReason,
   SavedListing,
@@ -79,8 +87,61 @@ export const marketplaceApi = {
   updateContact(input: SellerContactSettings) {
     return apiRequest<SellerStatus>('/marketplace/me/contact', { method: 'PUT', body: input })
   },
-  dashboard(status?: ListingStatus) {
-    return apiRequest<MyMarketplaceDashboard>(`/marketplace/me/dashboard${status ? `?status=${status}` : ''}`)
+  dashboard(status?: ListingStatus, q?: string) {
+    return apiRequest<MyMarketplaceDashboard>(`/marketplace/me/dashboard${toListingQuery({ status, q })}`)
+  },
+
+  // Seller plans, demo checkout, boosts, insights and inquiries.
+  sellerPlans() {
+    return apiRequest<{ plans: SellerPlan[]; demoPayments: boolean }>('/marketplace/seller-plans', { auth: false })
+  },
+  mySubscription() {
+    return apiRequest<SellerSubscriptionState>('/marketplace/me/subscription')
+  },
+  createSubscriptionOrder(planCode: string) {
+    return apiRequest<{ order: SellerOrder }>('/marketplace/me/subscription/orders', { method: 'POST', body: { planCode } })
+  },
+  resetDemoSubscription() {
+    return apiRequest<{ ended: number }>('/marketplace/me/subscription/demo-reset', { method: 'POST' })
+  },
+  getOrder(reference: string) {
+    return apiRequest<{ order: SellerOrder }>(`/marketplace/me/payments/orders/${reference}`)
+  },
+  simulateDemoPayment(reference: string, outcome: 'SUCCESS' | 'PENDING' | 'FAILED') {
+    return apiRequest<{ result: string; status: string; order: SellerOrder }>(`/marketplace/me/payments/orders/${reference}/demo`, {
+      method: 'POST',
+      body: { outcome },
+    })
+  },
+  boosts() {
+    return apiRequest<SellerBoosts>('/marketplace/me/boosts')
+  },
+  createBoostOrder(listingId: string, days: number) {
+    return apiRequest<{ order: SellerOrder }>('/marketplace/me/boosts/orders', { method: 'POST', body: { listingId, days } })
+  },
+  claimFreeBoost(listingId: string) {
+    return apiRequest<{ boost: { id: string; days: number; startsAt: string; endsAt: string } }>('/marketplace/me/boosts/free', {
+      method: 'POST',
+      body: { listingId },
+    })
+  },
+  insights(days: number) {
+    return apiRequest<{ insights: SellerInsights }>(`/marketplace/me/insights?days=${days}`)
+  },
+  inquiries(status?: InquiryStatus) {
+    return apiRequest<SellerInquiries>(`/marketplace/me/inquiries${status ? `?status=${status}` : ''}`)
+  },
+  updateInquiry(id: string, input: { status?: InquiryStatus; reply?: string; read?: boolean }) {
+    return apiRequest<{ inquiry: { id: string; status: InquiryStatus } }>(`/marketplace/me/inquiries/${id}`, { method: 'PATCH', body: input })
+  },
+  sendInquiry(listingId: string, message: string) {
+    return apiRequest<{ inquiry: { id: string } }>(`/marketplace/listings/${listingId}/inquiries`, { method: 'POST', body: { message } })
+  },
+  myInquiry(listingId: string) {
+    return apiRequest<{ inquiry: MyInquiry | null }>(`/marketplace/listings/${listingId}/inquiries/mine`)
+  },
+  recordView(listingId: string) {
+    return apiRequest<{ recorded: boolean }>(`/marketplace/listings/${listingId}/view`, { method: 'POST' })
   },
   createListing(input: ListingFormValues) {
     return apiRequest<{ listing: { id: string; moderationStatus: string } }>('/marketplace/me/listings', {

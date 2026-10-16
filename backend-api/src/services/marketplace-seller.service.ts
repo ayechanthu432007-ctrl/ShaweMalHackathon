@@ -13,7 +13,15 @@ import {
   resolveSellerContactValues,
   sellerBadges
 } from './marketplace-shared';
-import { yangonMonthRange } from './subscription.service';
+import {
+  activeListingBoostWhere,
+  boostStatus,
+  cancelListingBoosts,
+  getCurrentBoosts,
+  getListingAllowance,
+  getSellerEffectivePlan,
+  withListingSlot
+} from './marketplace-plan.service';
 import { marketplaceVariantPaths } from './upload.service';
 
 export interface ListingInput {
@@ -264,58 +272,30 @@ const notifyAdminsOfFlaggedListing = async (listingId: string, title: string, hi
   });
 };
 
-/** New Marketplace posts each person may publish per Asia/Yangon calendar month. */
-export const MARKETPLACE_MONTHLY_POST_LIMIT = 5;
 export const MARKETPLACE_LISTING_CREATED_ACTION = 'MARKETPLACE_LISTING_CREATED';
 
 /**
- * Posts created this month. Creations are counted from the audit log, so deleting a post does
- * not hand the slot back and editing never uses one; posts that predate the log are counted from
- * the listings that still exist.
+ * Publishing takes one of the seller plan's active-product slots (Free Seller: 5, Premium:
+ * unlimited). The check and the insert share a per-seller lock, so it holds under double submits.
  */
-export const getMarketplacePostQuota = async (userId: string, now = new Date()) => {
-  const range = yangonMonthRange(now);
-  const createdAt = { gte: range.start, lt: range.end };
-  const [logged, existing] = await Promise.all([
-    prisma.auditLog.count({ where: { actorUserId: userId, action: MARKETPLACE_LISTING_CREATED_ACTION, createdAt } }),
-    prisma.listing.count({ where: { sellerId: userId, createdAt } })
-  ]);
-  // A missing count is treated as zero, never as "no limit".
-  const used = Math.max(Number(logged) || 0, Number(existing) || 0);
-  return {
-    month: range.month,
-    used,
-    limit: MARKETPLACE_MONTHLY_POST_LIMIT,
-    remaining: Math.max(0, MARKETPLACE_MONTHLY_POST_LIMIT - used),
-    resetsAt: range.end.toISOString()
-  };
-};
-
 export const createMyListing = async (userId: string, input: ListingInput) => {
-  const quota = await getMarketplacePostQuota(userId);
-  if (quota.remaining <= 0) {
-    throw new ApiError(
-      403,
-      'MARKETPLACE_MONTHLY_LIMIT_REACHED',
-      `You have used all ${MARKETPLACE_MONTHLY_POST_LIMIT} Marketplace posts for this month. New posts open again next month.`
-    );
-  }
-
   const seller = await requireSeller(userId);
   const resolved = await resolveListingData(userId, seller.phone, input);
   const now = new Date();
 
-  const listing = await prisma.listing.create({
-    data: {
-      ...resolved.scalars,
-      sellerId: userId,
-      status: 'ACTIVE',
-      moderationStatus: 'APPROVED',
-      policyAcceptedAt: now,
-      publishedAt: now,
-      images: { create: resolved.images }
-    }
-  });
+  const listing = await withListingSlot(userId, (tx) =>
+    tx.listing.create({
+      data: {
+        ...resolved.scalars,
+        sellerId: userId,
+        status: 'ACTIVE',
+        moderationStatus: 'APPROVED',
+        policyAcceptedAt: now,
+        publishedAt: now,
+        images: { create: resolved.images }
+      }
+    })
+  );
 
   await writeAuditLog({ actorUserId: userId, action: MARKETPLACE_LISTING_CREATED_ACTION, targetType: 'Listing', targetId: listing.id });
 
@@ -415,6 +395,7 @@ export const updateMyListing = async (userId: string, listingId: string, input: 
 
 export const deleteMyListing = async (userId: string, listingId: string) => {
   await findOwnedListing(userId, listingId);
+  // Boost and view records cascade with the listing; deleting frees its active slot.
   await prisma.listing.delete({ where: { id: listingId } });
 };
 
@@ -455,6 +436,8 @@ export const updateMyListingStatus = async (userId: string, listingId: string, i
       where: { id: listingId },
       data: { status: 'SOLD', soldAt: new Date(), buyerId: input.buyerId ?? null }
     });
+    // A sold product is no longer promoted; unused boost time is not returned.
+    await cancelListingBoosts(listingId);
 
     if (input.buyerId) {
       await prisma.notification.create({
@@ -473,39 +456,66 @@ export const updateMyListingStatus = async (userId: string, listingId: string, i
     throw new ApiError(409, 'LISTING_ALREADY_REVIEWED', 'A reviewed sale cannot be reopened.');
   }
 
-  await prisma.listing.update({
-    where: { id: listingId },
-    data: { status: 'ACTIVE', soldAt: null, buyerId: null }
-  });
+  if (listing.status === 'ACTIVE') {
+    return { id: listingId, status: 'ACTIVE' as const };
+  }
+
+  // Relisting takes an active-product slot again.
+  await withListingSlot(userId, (tx) =>
+    tx.listing.update({
+      where: { id: listingId },
+      data: { status: 'ACTIVE', soldAt: null, buyerId: null }
+    })
+  );
 
   return { id: listingId, status: 'ACTIVE' as const };
 };
 
-export const getMyMarketplaceDashboard = async (userId: string, filter: { status?: 'ACTIVE' | 'SOLD' }) => {
-  const [activeCount, soldCount, pendingCount, listings, movingOutSales, postQuota] = await Promise.all([
+export const getMyMarketplaceDashboard = async (userId: string, filter: { status?: 'ACTIVE' | 'SOLD'; q?: string }) => {
+  const now = new Date();
+  const q = filter.q?.trim();
+  const [activeCount, soldCount, pendingCount, listings, movingOutSales, allowance, effective, activeBoosts, newInquiries, views] = await Promise.all([
     prisma.listing.count({ where: { sellerId: userId, status: 'ACTIVE' } }),
     prisma.listing.count({ where: { sellerId: userId, status: 'SOLD' } }),
     prisma.listing.count({ where: { sellerId: userId, moderationStatus: { in: ['PENDING', 'REJECTED', 'REMOVED'] } } }),
     prisma.listing.findMany({
-      where: { sellerId: userId, ...(filter.status ? { status: filter.status } : {}) },
-      include: { ...LISTING_CARD_INCLUDE, _count: { select: { contactReveals: true, wishlists: true } } },
+      where: {
+        sellerId: userId,
+        ...(filter.status ? { status: filter.status } : {}),
+        ...(q ? { title: { contains: q, mode: 'insensitive' as const } } : {})
+      },
+      include: { ...LISTING_CARD_INCLUDE, _count: { select: { contactReveals: true, wishlists: true, inquiries: true, events: true } } },
       orderBy: { createdAt: 'desc' }
     }),
     listMyMovingOutSales(userId),
-    getMarketplacePostQuota(userId)
+    getListingAllowance(userId, now),
+    getSellerEffectivePlan(userId, now),
+    prisma.listingBoost.count({ where: { userId, ...activeListingBoostWhere(now) } }),
+    prisma.listingInquiry.count({ where: { sellerId: userId, status: 'NEW' } }),
+    prisma.listingEvent.count({ where: { sellerId: userId, type: 'VIEW' } })
   ]);
 
+  const boosts = await getCurrentBoosts(listings.map((listing) => listing.id), now);
+
   return {
-    postQuota,
+    allowance,
+    plan: { code: effective.plan.code, name: effective.plan.name, endsAt: effective.subscription?.endsAt ?? null },
     activeCount,
     soldCount,
     needsAttentionCount: pendingCount,
-    listings: listings.map((listing) => ({
-      ...mapListingCard(listing),
-      moderationNote: listing.moderationNote,
-      contactCount: listing._count.contactReveals,
-      saveCount: listing._count.wishlists
-    })),
+    summary: { totalProducts: activeCount + soldCount, totalViews: views, newInquiries, activeBoosts },
+    listings: listings.map((listing) => {
+      const boost = boosts.get(listing.id);
+      return {
+        ...mapListingCard(listing),
+        moderationNote: listing.moderationNote,
+        contactCount: listing._count.contactReveals,
+        saveCount: listing._count.wishlists,
+        inquiryCount: listing._count.inquiries,
+        viewCount: listing._count.events,
+        boost: boost ? { source: boost.source, startsAt: boost.startsAt, endsAt: boost.endsAt, status: boostStatus({ ...boost, cancelledAt: null }, listing, now) } : null
+      };
+    }),
     movingOutSales
   };
 };

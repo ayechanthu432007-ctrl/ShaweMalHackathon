@@ -39,6 +39,12 @@ jest.mock('../../src/prisma/client', () => {
       wishlist: model(),
       movingOutSale: model(),
       refreshSession: model(),
+      subscriptionPlan: model(),
+      sellerSubscription: model(),
+      listingBoost: model(),
+      listingEvent: model(),
+      listingInquiry: model(),
+      $executeRaw: jest.fn(),
       $transaction: jest.fn()
     }
   };
@@ -78,11 +84,20 @@ const validListingBody = {
   policyAccepted: true
 };
 
+const SELLER_FREE_PLAN = { id: 'plan_seller_free', code: 'SELLER_FREE', name: 'Free Seller', rank: 0, activeListingLimit: 5, freeBoostDays: 0, badgeEligible: false, performanceLevel: 'BASIC', homepageFeatured: false };
+const SELLER_PREMIUM_PLAN = { id: 'plan_seller_premium', code: 'SELLER_PREMIUM', name: 'Premium Seller', rank: 1, activeListingLimit: null, freeBoostDays: 3, badgeEligible: true, performanceLevel: 'DETAILED', homepageFeatured: true };
+
 beforeEach(() => {
   jest.resetAllMocks();
   db.notification.create.mockResolvedValue({});
   db.auditLog.create.mockResolvedValue({});
   db.ratingReview.groupBy.mockResolvedValue([]);
+  db.$executeRaw.mockResolvedValue(1);
+  db.$transaction.mockImplementation(async (work: unknown) => (typeof work === 'function' ? work(db) : Promise.all(work as unknown[])));
+  db.subscriptionPlan.findUnique.mockResolvedValue(SELLER_FREE_PLAN);
+  db.sellerSubscription.findMany.mockResolvedValue([]);
+  db.listingBoost.findMany.mockResolvedValue([]);
+  db.listingBoost.updateMany.mockResolvedValue({ count: 0 });
 });
 
 describe('marketplace listings - seller', () => {
@@ -167,37 +182,56 @@ describe('marketplace listings - seller', () => {
     ]);
   });
 
-  it('allows the fifth post of the month, records it, and refuses the sixth', async () => {
+  it('lets a Free Seller publish a fifth active product, records it, and refuses a sixth', async () => {
     mockValidCatalog();
     db.listing.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'listing-5', title: data.title, status: data.status, moderationStatus: data.moderationStatus }));
 
-    db.auditLog.count.mockResolvedValue(4);
-    db.listing.count.mockResolvedValue(3);
+    db.listing.count.mockResolvedValue(4);
     const fifth = await request(app).post('/api/v1/marketplace/me/listings').set('Authorization', bearer('seller-1')).send(validListingBody);
     expect(fifth.status).toBe(201);
     expect(db.auditLog.create).toHaveBeenCalledWith(
       expect.objectContaining({ data: expect.objectContaining({ actorUserId: 'seller-1', action: 'MARKETPLACE_LISTING_CREATED', targetId: 'listing-5' }) })
     );
+    // Only live products count: sold, rejected and removed ones do not use a slot.
+    expect(db.listing.count.mock.calls.at(-1)[0].where).toEqual({ sellerId: 'seller-1', status: 'ACTIVE', moderationStatus: { in: ['APPROVED', 'PENDING'] } });
+    // The check runs under the seller's lock, so two quick submits cannot both take the last slot.
+    expect(db.$executeRaw).toHaveBeenCalled();
 
-    // Five used this month (from the log, so deleted posts still count): the sixth is refused before anything is saved.
     db.listing.create.mockClear();
-    db.auditLog.count.mockResolvedValue(5);
-    db.listing.count.mockResolvedValue(2);
+    db.listing.count.mockResolvedValue(5);
     const sixth = await request(app).post('/api/v1/marketplace/me/listings').set('Authorization', bearer('seller-1')).send(validListingBody);
     expect(sixth.status).toBe(403);
-    expect(sixth.body.errors.code).toBe('MARKETPLACE_MONTHLY_LIMIT_REACHED');
+    expect(sixth.body.errors.code).toBe('LISTING_LIMIT_REACHED');
     expect(db.listing.create).not.toHaveBeenCalled();
   });
 
-  it('counts the month in Asia/Yangon time and reports what is left', async () => {
-    const { getMarketplacePostQuota } = await import('../../src/services/marketplace-seller.service');
-    db.auditLog.count.mockResolvedValue(3);
-    db.listing.count.mockResolvedValue(1);
-    const quota = await getMarketplacePostQuota('seller-1', new Date('2026-10-31T18:00:00.000Z'));
-    // 18:00 UTC on 31 Oct is already 1 Nov in Yangon, so this is November's quota.
-    expect(quota).toMatchObject({ month: '2026-11', used: 3, limit: 5, remaining: 2 });
-    const where = db.auditLog.count.mock.calls.at(-1)[0].where;
-    expect(where).toMatchObject({ actorUserId: 'seller-1', action: 'MARKETPLACE_LISTING_CREATED' });
+  it('lets a Premium Seller publish more than five active products', async () => {
+    mockValidCatalog();
+    const now = Date.now();
+    db.sellerSubscription.findMany.mockResolvedValue([
+      { id: 'sub-1', userId: 'seller-1', planId: SELLER_PREMIUM_PLAN.id, plan: SELLER_PREMIUM_PLAN, startsAt: new Date(now - 86_400_000), endsAt: new Date(now + 86_400_000) }
+    ]);
+    db.listing.count.mockResolvedValue(12);
+    db.listing.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ id: 'listing-13', title: data.title, status: data.status, moderationStatus: data.moderationStatus }));
+
+    const response = await request(app).post('/api/v1/marketplace/me/listings').set('Authorization', bearer('seller-1')).send(validListingBody);
+    expect(response.status).toBe(201);
+    // The plan comes from the seller's own persisted subscription rows.
+    expect(db.sellerSubscription.findMany.mock.calls[0][0].where).toEqual({ userId: 'seller-1' });
+  });
+
+  it('refuses to relist a sold product when the Free Seller limit is full', async () => {
+    db.user.findUnique.mockResolvedValue(activeUser('seller-1'));
+    db.listing.findUnique.mockResolvedValue({ id: 'listing-1', sellerId: 'seller-1', status: 'SOLD', moderationStatus: 'APPROVED', publishedAt: new Date(), review: null });
+    db.listing.count.mockResolvedValue(5);
+
+    const response = await request(app)
+      .patch('/api/v1/marketplace/me/listings/listing-1/status')
+      .set('Authorization', bearer('seller-1'))
+      .send({ status: 'ACTIVE' });
+    expect(response.status).toBe(403);
+    expect(response.body.errors.code).toBe('LISTING_LIMIT_REACHED');
+    expect(db.listing.update).not.toHaveBeenCalled();
   });
 
   it('lets a user without a verified phone publish immediately', async () => {
