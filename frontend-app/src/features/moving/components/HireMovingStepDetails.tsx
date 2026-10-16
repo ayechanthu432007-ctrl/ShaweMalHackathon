@@ -1,3 +1,4 @@
+import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { FieldErrors, UseFormRegister } from 'react-hook-form'
 
@@ -11,7 +12,7 @@ import { INVENTORY_CATEGORY_ORDER } from '../constants/inventory-catalog'
 import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import { HireMovingField } from './HireMovingField'
 import { InventoryItemRow } from './InventoryItemRow'
-import { HireMovingStepNav } from './HireMovingStepNav'
+import { HireMovingStepNav, MOVING_FORWARD_BUTTON_CLASS } from './HireMovingStepNav'
 
 const textareaClassName =
   'flex min-h-20 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
@@ -134,7 +135,10 @@ export function HireMovingStepDetails({
         </HireMovingField>
 
       <HireMovingStepNav onBack={onBack}>
-        <Button type="submit">{t('moving.continue')}</Button>
+        <Button type="submit" className={MOVING_FORWARD_BUTTON_CLASS}>
+          {t('moving.continue')}
+          <ArrowRight aria-hidden />
+        </Button>
       </HireMovingStepNav>
     </div>
   )

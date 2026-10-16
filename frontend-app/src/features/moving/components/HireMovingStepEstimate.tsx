@@ -9,7 +9,7 @@ import type { MasterDataItem } from '@/features/master-data/types'
 import { todayDateInputValue, type MovingRequestFormValues } from '../schemas/moving-request-schema'
 import type { MovingQuote } from '../types'
 import { HireMovingField } from './HireMovingField'
-import { HireMovingStepNav } from './HireMovingStepNav'
+import { HireMovingStepNav, MOVING_FORWARD_BUTTON_CLASS } from './HireMovingStepNav'
 import { inventoryItemIcon } from './InventoryItemRow'
 
 const selectClassName =
@@ -180,7 +180,7 @@ export function HireMovingStepEstimate({
       </HireMovingField>
 
       <HireMovingStepNav onBack={onBack}>
-        <Button type="submit" disabled={isSubmitting || isQuoting || !quote}>
+        <Button type="submit" className={MOVING_FORWARD_BUTTON_CLASS} disabled={isSubmitting || isQuoting || !quote}>
           {isSubmitting ? t('common.loading') : t('moving.confirmBooking')}
         </Button>
       </HireMovingStepNav>

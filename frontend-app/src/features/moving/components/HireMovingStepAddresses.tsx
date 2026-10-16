@@ -12,6 +12,7 @@ import type { MasterDataItem } from '@/features/master-data/types'
 import { composeMovingAddress } from '../lib/moving-location'
 import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import { HireMovingEasySteps } from './HireMovingEasySteps'
+import { MOVING_FORWARD_BUTTON_CLASS } from './HireMovingStepNav'
 import { HireMovingField } from './HireMovingField'
 import { MovingRouteMap, type MovingPinRole } from './MovingRouteMap'
 
@@ -150,7 +151,7 @@ export function HireMovingStepAddresses({
       <div className="flex justify-end">
         <Button
           type="submit"
-          className="h-11 min-w-32 rounded-lg bg-highlight px-6 text-base font-semibold text-[#222222] shadow-sm transition-[background-color,transform] hover:bg-highlight/85 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#222222] focus-visible:ring-offset-2 disabled:bg-highlight/50 disabled:text-[#222222]/60"
+          className={MOVING_FORWARD_BUTTON_CLASS}
         >
           {t('moving.continue')}
           <ArrowRight aria-hidden />
