@@ -1819,7 +1819,19 @@
     "reportMonth": "အစီရင်ခံစာလ",
     "print": "ပုံနှိပ်ရန်",
     "change": "ပြောင်းလဲမှု",
-    "newListings": "အိမ်အသစ်များ"
+    "newListings": "အိမ်အသစ်များ",
+    "demoPlanSidebar": "Demo choice · real plan: {{plan}}",
+    "demoBoostNote": "DEMO MODE — boosts here are simulated in this browser. No payment is taken and your listing's public position does not change.",
+    "demoBoostTitle": "Boost this listing?",
+    "demoConfirmPayment": "Demo ငွေပေးချေမှု အတည်ပြုမည်",
+    "demoSimulateFailure": "Simulate failure",
+    "demoBoostDone": "“{{title}}” is boosted for {{days}} day(s) in the demo. No real payment was taken.",
+    "demoBoostFailed": "Payment failed for “{{title}}” (simulated). The listing was not boosted and nothing was charged.",
+    "demoBoostDuplicate": "This listing is already boosted in the demo until its current boost ends.",
+    "demoBoostActive": "Demo boost active",
+    "demoBoostsTitle": "Demo Boost များ",
+    "demoBoostBadge": "BOOSTED — DEMO",
+    "demoBoostReset": "Demo Boost များ ရှင်းလင်းရန်"
   },
   "match": {
     "score": "{{score}}% ကိုက်ညီမှု",

@@ -8,7 +8,6 @@ import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiRequestError } from '@/lib/api/client'
-import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
 import freeBasicArt from '@/assets/plans/free-basic.svg'
 import goldPremiumArt from '@/assets/plans/gold-premium.svg'
@@ -16,6 +15,7 @@ import silverPartnerArt from '@/assets/plans/silver-partner.svg'
 
 import { agentPlanApi, formatDate, formatMmk, type PaymentOrder, type Plan } from '../api/agent-plan-api'
 import { PageHeading, QueryState } from '../components/dashboard-parts'
+import { displayedPlan, useAgentDemoPreview } from '../lib/agent-demo-preview'
 import { AGENT_DASHBOARD_QUERY_KEY, useAgentDashboard } from '../layout/AgentDashboardLayout'
 
 /** Artwork and accent for each plan card; plans not listed fall back to the Free look. */
@@ -23,35 +23,6 @@ const PLAN_LOOK: Record<string, { art: string; ring: string; tint: string }> = {
   FREE: { art: freeBasicArt, ring: 'ring-[#5B9BD5]', tint: 'from-[#F4F8FC]' },
   SILVER: { art: silverPartnerArt, ring: 'ring-[#9AA6B6]', tint: 'from-[#F6F8FB]' },
   GOLD: { art: goldPremiumArt, ring: 'ring-[#C69245]', tint: 'from-[#FCF7EE]' },
-}
-
-/**
- * Demo preview: a plan choice kept only in this browser. It changes what this page shows and
- * nothing else; the server, and so every plan feature and limit, still uses the agent's real plan.
- * It is on only when the build sets VITE_DEMO_PLAN_PREVIEW=true, and only where the server's own
- * demo checkout is not available (which is always the case in production).
- */
-const isDemoPreviewEnabled = () => import.meta.env.VITE_DEMO_PLAN_PREVIEW === 'true'
-type DemoPreview = { code: string; billingMonths: 1 | 3 }
-const previewKey = (userId: string) => `shawemal.demoPlanPreview.${userId}`
-
-function readPreview(userId: string | undefined): DemoPreview | null {
-  if (!userId) return null
-  try {
-    const raw = localStorage.getItem(previewKey(userId))
-    return raw ? (JSON.parse(raw) as DemoPreview) : null
-  } catch {
-    return null
-  }
-}
-
-function writePreview(userId: string, value: DemoPreview | null) {
-  try {
-    if (value) localStorage.setItem(previewKey(userId), JSON.stringify(value))
-    else localStorage.removeItem(previewKey(userId))
-  } catch {
-    // Storage can be blocked; the choice then lasts until the page is left.
-  }
 }
 
 type DemoAction = { kind: 'choose'; plan: Plan; reset: boolean } | { kind: 'free'; plan: Plan }
@@ -79,7 +50,8 @@ export function AgentSubscriptionPage() {
   const { t } = useTranslation()
   const dashboardQuery = useAgentDashboard()
   const dashboard = dashboardQuery.data
-  const previewMode = Boolean(dashboard && !dashboard.demoPayments && isDemoPreviewEnabled())
+  const preview = useAgentDemoPreview(dashboard)
+  const previewMode = preview.enabled
   const [billingMonths, setBillingMonths] = useState<1 | 3>(1)
   const [error, setError] = useState<string | null>(null)
 
@@ -89,18 +61,13 @@ export function AgentSubscriptionPage() {
   // Demo mode (never in production): confirm in a dialog, then create the order and mark it paid
   // through the server's demo checkout. Switching to a lower plan first returns to Free Basic.
   const queryClient = useQueryClient()
-  const { user } = useAuth()
-  const [preview, setPreview] = useState<DemoPreview | null>(() => readPreview(user?.id))
-  useEffect(() => setPreview(readPreview(user?.id)), [user?.id])
   const [demoAction, setDemoAction] = useState<DemoAction | null>(null)
   const [demoNote, setDemoNote] = useState<string | null>(null)
   const demoMutation = useMutation({
     mutationFn: async (action: DemoAction) => {
       if (previewMode) {
-        // Nothing is sent to the server: the choice only changes this page, in this browser.
-        const next = action.kind === 'free' ? null : { code: action.plan.code, billingMonths }
-        if (user?.id) writePreview(user.id, next)
-        setPreview(next)
+        // Nothing is sent to the server: the choice is kept in this browser and shown on every agent page.
+        preview.update((current) => ({ ...current, plan: action.kind === 'free' ? null : { code: action.plan.code, billingMonths, chosenAt: Date.now() } }))
         return
       }
       if (action.kind === 'free' || action.reset) await agentPlanApi.resetDemoSubscription()
@@ -130,7 +97,8 @@ export function AgentSubscriptionPage() {
   }
 
   const realPlan = dashboard.plan
-  const previewPlan = previewMode && preview ? dashboard.plans.find((item) => item.code === preview.code) ?? null : null
+  const shown = displayedPlan(dashboard, preview)
+  const previewPlan = shown.isDemo ? shown.plan : null
   // In the preview the chosen plan is shown as current; everything the server decides stays on the real plan.
   const current = previewPlan ?? realPlan
   const isActive = previewPlan ? previewPlan.code !== 'FREE' : dashboard.subscription.status === 'ACTIVE'

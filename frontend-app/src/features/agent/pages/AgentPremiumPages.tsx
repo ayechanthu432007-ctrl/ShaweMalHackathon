@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BadgeCheck, Printer } from 'lucide-react'
-import { useState } from 'react'
+import { BadgeCheck, FlaskConical, Printer, Rocket } from 'lucide-react'
+import { useEffect, useId, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -14,6 +14,7 @@ import { agentHousesApi } from '../api/agent-houses-api'
 import { agentPlanApi, formatDate, formatMmk, type Boost, type Totals } from '../api/agent-plan-api'
 import { BarSeries, PageHeading, QueryState, StatTile, UpgradePrompt } from '../components/dashboard-parts'
 import { AGENT_DASHBOARD_QUERY_KEY, useAgentDashboard } from '../layout/AgentDashboardLayout'
+import { activeDemoBoost, DemoBoostError, useAgentDemoPreview, withDemoBoost } from '../lib/agent-demo-preview'
 
 const selectClassName =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
@@ -37,6 +38,14 @@ export function AgentBoostsPage() {
   const [message, setMessage] = useState<{ tone: 'ok' | 'error'; text: string } | null>(null)
 
   const housesQuery = useQuery({ queryKey: ['agent-houses'], queryFn: () => agentHousesApi.list() })
+  // Live site: the server refuses simulated payments, so boosts are tried as a browser-only demo.
+  const preview = useAgentDemoPreview(dashboard)
+  const [demoConfirm, setDemoConfirm] = useState<{ houseId: string; title: string; days: number; amountMmk: number } | null>(null)
+  const [, setTick] = useState(0)
+  useEffect(() => {
+    const id = window.setInterval(() => setTick((value) => value + 1), 60_000)
+    return () => window.clearInterval(id)
+  }, [])
   const boostsQuery = useQuery({ queryKey: ['agent', 'boosts'], queryFn: async () => (await agentPlanApi.boosts()).items })
 
   const onError = (err: unknown) => setMessage({ tone: 'error', text: err instanceof ApiRequestError ? err.message : t('agentDash.boostFailed') })
@@ -69,6 +78,24 @@ export function AgentBoostsPage() {
   const { freeBoost } = dashboard
   const busy = freeMutation.isPending || buyMutation.isPending
   const canSubmit = Boolean(houseId) && days >= 1 && days <= 30 && !busy
+  const now = Date.now()
+  const selectedDemoBoost = preview.enabled && houseId ? activeDemoBoost(preview.state, houseId, now) : null
+  const demoBoosts = preview.state.boosts
+  const finishDemo = (outcome: 'success' | 'failed') => {
+    if (!demoConfirm) return
+    if (outcome === 'failed') {
+      setMessage({ tone: 'error', text: t('agentDash.demoBoostFailed', { title: demoConfirm.title }) })
+      setDemoConfirm(null)
+      return
+    }
+    try {
+      preview.update((current) => withDemoBoost(current, demoConfirm))
+      setMessage({ tone: 'ok', text: t('agentDash.demoBoostDone', { title: demoConfirm.title, days: demoConfirm.days }) })
+    } catch (err) {
+      setMessage({ tone: 'error', text: err instanceof DemoBoostError && err.code === 'ALREADY_BOOSTED' ? t('agentDash.demoBoostDuplicate') : t('agentDash.boostFailed') })
+    }
+    setDemoConfirm(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -117,16 +144,38 @@ export function AgentBoostsPage() {
                 </div>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button type="button" disabled={!canSubmit || !dashboard.demoPayments} onClick={() => { setMessage(null); buyMutation.mutate() }}>
-                  {t('agentDash.buyBoost', { amount: formatMmk(dashboard.boostPricePerDay * days) })}
-                </Button>
+                {preview.enabled ? (
+                  <Button
+                    type="button"
+                    disabled={!canSubmit || Boolean(selectedDemoBoost)}
+                    onClick={() => {
+                      setMessage(null)
+                      const house = houses.find((item) => item.id === houseId)
+                      if (house) setDemoConfirm({ houseId, title: house.title, days, amountMmk: dashboard.boostPricePerDay * days })
+                    }}
+                  >
+                    <Rocket aria-hidden />
+                    {selectedDemoBoost ? t('agentDash.demoBoostActive') : t('agentDash.buyBoost', { amount: formatMmk(dashboard.boostPricePerDay * days) })}
+                  </Button>
+                ) : (
+                  <Button type="button" disabled={!canSubmit || !dashboard.demoPayments} onClick={() => { setMessage(null); buyMutation.mutate() }}>
+                    {t('agentDash.buyBoost', { amount: formatMmk(dashboard.boostPricePerDay * days) })}
+                  </Button>
+                )}
                 {freeBoost.granted > 0 ? (
                   <Button type="button" variant="outline" disabled={!canSubmit || days > freeBoost.remaining} onClick={() => { setMessage(null); freeMutation.mutate() }}>
                     {t('agentDash.useFreeDays', { count: days })}
                   </Button>
                 ) : null}
               </div>
-              {!dashboard.demoPayments ? <p className="text-muted-foreground">{t('agentDash.paymentsUnavailable')}</p> : null}
+              {preview.enabled ? (
+                <p className="flex items-start gap-2 rounded-lg border border-[#C69245]/40 bg-[#FCF7EE] p-3 text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200">
+                  <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden />
+                  {t('agentDash.demoBoostNote')}
+                </p>
+              ) : !dashboard.demoPayments ? (
+                <p className="text-muted-foreground">{t('agentDash.paymentsUnavailable')}</p>
+              ) : null}
             </>
           ) : null}
           {message ? (
@@ -137,6 +186,44 @@ export function AgentBoostsPage() {
           <p className="text-xs text-muted-foreground">{t('agentDash.boostRules')}</p>
         </CardContent>
       </Card>
+
+      {preview.enabled && demoBoosts.length > 0 ? (
+        <section className="space-y-3" aria-labelledby="demo-boosts-title">
+          <h2 id="demo-boosts-title" className="text-lg font-semibold">
+            {t('agentDash.demoBoostsTitle')}
+          </h2>
+          <ul className="space-y-2">
+            {demoBoosts.map((boost) => {
+              const live = boost.activatedAt <= now && now < boost.expiresAt
+              const hoursLeft = Math.max(0, Math.ceil((boost.expiresAt - now) / 3_600_000))
+              return (
+                <li key={boost.id} className={cn('flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card p-3 text-sm', live && 'border-[#C69245]/60 bg-[#FCF7EE]/60 dark:bg-amber-500/5')}>
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 font-medium">
+                      <span className="truncate">{boost.title}</span>
+                      {live ? (
+                        <span className="inline-flex items-center gap-1 rounded-md bg-[#C69245] px-2 py-0.5 text-[11px] font-bold text-white">
+                          <Rocket className="size-3" aria-hidden />
+                          {t('agentDash.demoBoostBadge')}
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {t('agentDash.boostDaysCount', { count: boost.days })} · {formatMmk(boost.amountMmk)} · {formatDate(new Date(boost.activatedAt).toISOString())} – {formatDate(new Date(boost.expiresAt).toISOString())}
+                    </p>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{live ? t('agentDash.hoursLeft', { count: hoursLeft }) : t('agentDash.boostStatus.EXPIRED')}</span>
+                </li>
+              )
+            })}
+          </ul>
+          <Button type="button" variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => preview.update((current) => ({ ...current, boosts: [] }))}>
+            {t('agentDash.demoBoostReset')}
+          </Button>
+        </section>
+      ) : null}
+
+      {demoConfirm ? <DemoBoostDialog boost={demoConfirm} onCancel={() => setDemoConfirm(null)} onFinish={finishDemo} /> : null}
 
       <section className="space-y-3">
         <h2 className="text-lg font-semibold">{t('agentDash.boostHistory')}</h2>
@@ -161,6 +248,67 @@ export function AgentBoostsPage() {
           </ul>
         ) : null}
       </section>
+    </div>
+  )
+}
+
+function DemoBoostDialog({
+  boost,
+  onCancel,
+  onFinish,
+}: {
+  boost: { title: string; days: number; amountMmk: number }
+  onCancel: () => void
+  onFinish: (outcome: 'success' | 'failed') => void
+}) {
+  const { t } = useTranslation()
+  const titleId = useId()
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onCancel()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [onCancel])
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div aria-hidden className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={onCancel} />
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md space-y-4 rounded-2xl border bg-card p-6 shadow-2xl">
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-[#FCF7EE] px-2.5 py-1 text-xs font-bold text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200">
+          <FlaskConical className="size-3.5" aria-hidden />
+          {t('agentDash.demoBadge')}
+        </p>
+        <h2 id={titleId} className="text-xl font-semibold tracking-tight">
+          {t('agentDash.demoBoostTitle')}
+        </h2>
+        <dl className="space-y-1.5 rounded-xl bg-muted p-4 text-sm">
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">{t('agentDash.listing')}</dt>
+            <dd className="text-right font-semibold">{boost.title}</dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">{t('agentDash.days')}</dt>
+            <dd className="font-semibold">{t('agentDash.boostDaysCount', { count: boost.days })}</dd>
+          </div>
+          <div className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">{t('agentDash.amount')}</dt>
+            <dd className="font-semibold tabular-nums">{formatMmk(boost.amountMmk)}</dd>
+          </div>
+        </dl>
+        <p className="text-xs text-muted-foreground">{t('agentDash.demoNoCharge')}</p>
+        <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button type="button" variant="outline" autoFocus onClick={onCancel}>
+            {t('common.cancel')}
+          </Button>
+          <Button type="button" variant="outline" className="text-destructive hover:text-destructive" onClick={() => onFinish('failed')}>
+            {t('agentDash.demoSimulateFailure')}
+          </Button>
+          <Button type="button" onClick={() => onFinish('success')}>
+            {t('agentDash.demoConfirmPayment')}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

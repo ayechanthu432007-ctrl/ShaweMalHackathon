@@ -17,6 +17,7 @@ import {
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { displayedPlan, useAgentDemoPreview } from '../lib/agent-demo-preview'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
@@ -66,6 +67,7 @@ export function AgentDashboardPage() {
   const { user } = useAuth()
   const query = useAgentDashboard()
   const dashboard = query.data
+  const preview = useAgentDemoPreview(dashboard)
 
   // The same day-by-day data the Performance page shows; plans without the chart get totals only.
   const performanceQuery = useQuery({
@@ -83,10 +85,12 @@ export function AgentDashboardPage() {
     )
   }
 
-  const { listingUsage: usage, subscription, plan, last30Days: stats, freeBoost, verification, features } = dashboard
+  const { listingUsage: usage, subscription, last30Days: stats, freeBoost, verification, features } = dashboard
   const usagePercent = usage.limit ? Math.min(100, Math.round((usage.used / usage.limit) * 100)) : 0
   const limitReached = usage.limit !== null && usage.remaining === 0
-  const isGold = plan.code === 'GOLD'
+  // In the demo preview the chosen plan is shown; limits and features below stay on the real plan.
+  const shown = displayedPlan(dashboard, preview)
+  const isGold = shown.plan.code === 'GOLD'
   const series = performanceQuery.data?.series ?? null
 
   return (
@@ -125,7 +129,8 @@ export function AgentDashboardPage() {
           <dl className="grid flex-1 grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
             <PlanFact label={t('agentDash.currentPlan')}>
               <span className="flex flex-wrap items-center gap-2">
-                {plan.name}
+                {shown.plan.name}
+                {shown.isDemo ? <span className="rounded bg-[#FCF7EE] px-1.5 py-0.5 text-[10px] font-semibold text-[#7A5418]">DEMO</span> : null}
                 {verification.badgeShown ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium text-primary">
                     <BadgeCheck className="size-3.5" aria-hidden />

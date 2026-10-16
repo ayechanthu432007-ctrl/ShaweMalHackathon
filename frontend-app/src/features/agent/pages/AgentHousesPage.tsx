@@ -10,6 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiRequestError } from '@/lib/api/client'
 
 import { agentHousesApi } from '../api/agent-houses-api'
+import { useAgentDashboard } from '../layout/AgentDashboardLayout'
+import { activeDemoBoost, useAgentDemoPreview } from '../lib/agent-demo-preview'
 
 function isVerifiedAgent(status: string | null | undefined): boolean {
   return (status ?? '').toUpperCase() === 'VERIFIED'
@@ -21,6 +23,8 @@ export function AgentHousesPage() {
   const location = useLocation()
   const { isAuthenticated, isBootstrapping, user } = useAuth()
   const queryClient = useQueryClient()
+  // Demo boosts made on the Boost page (browser-only on the live site) show on each listing.
+  const preview = useAgentDemoPreview(useAgentDashboard().data)
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
 
@@ -149,7 +153,12 @@ export function AgentHousesPage() {
             <li key={house.id}>
               <Card className="h-full">
                 <CardHeader className="space-y-1 pb-2">
-                  <CardTitle className="text-lg leading-snug">{house.title}</CardTitle>
+                  <CardTitle className="text-lg leading-snug">
+                    {house.title}
+                    {activeDemoBoost(preview.state, house.id) ? (
+                      <span className="ml-2 inline-flex items-center rounded-md bg-[#C69245] px-2 py-0.5 align-middle text-[11px] font-bold text-white">{t('agentDash.demoBoostBadge')}</span>
+                    ) : null}
+                  </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     {[house.city?.name, house.state?.name].filter(Boolean).join(', ') ||
                       t('houses.locationUnknown')}

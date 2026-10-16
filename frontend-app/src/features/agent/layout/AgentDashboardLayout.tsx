@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { displayedPlan, useAgentDemoPreview } from '../lib/agent-demo-preview'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
@@ -70,6 +71,8 @@ export function AgentDashboardLayout() {
   const dashboardQuery = useAgentDashboard()
   const dashboard = dashboardQuery.data
   const current = `${location.pathname}${location.search}`
+  // Hooks stay above the early returns below.
+  const preview = useAgentDemoPreview(dashboard)
 
   if (isBootstrapping) {
     return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
@@ -81,7 +84,8 @@ export function AgentDashboardLayout() {
   }
 
   const items = NAV_ITEMS.filter((item) => !item.show || (dashboard ? item.show(dashboard) : false))
-  const isGold = dashboard?.plan.code === 'GOLD'
+  const shown = dashboard ? displayedPlan(dashboard, preview) : null
+  const isGold = shown?.plan.code === 'GOLD'
 
   return (
     <div className="grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)]">
@@ -91,9 +95,11 @@ export function AgentDashboardLayout() {
             <p className="text-xs text-muted-foreground">{t('agentDash.currentPlan')}</p>
             <p className="flex items-center gap-1.5 text-lg font-semibold">
               {isGold ? <Crown className="size-4 text-amber-500" aria-hidden /> : null}
-              {dashboard.plan.name}
+              {shown?.plan.name}
+              {shown?.isDemo ? <span className="rounded bg-[#FCF7EE] px-1.5 py-0.5 text-[10px] font-semibold text-[#7A5418]">DEMO</span> : null}
             </p>
-            {dashboard.subscription.status === 'ACTIVE' ? (
+            {shown?.isDemo ? <p className="text-xs text-muted-foreground">{t('agentDash.demoPlanSidebar', { plan: dashboard.plan.name })}</p> : null}
+            {!shown?.isDemo && dashboard.subscription.status === 'ACTIVE' ? (
               <p className="text-xs text-muted-foreground">{t('agentDash.validUntil', { date: formatDate(dashboard.subscription.endsAt) })}</p>
             ) : null}
             {dashboard.subscription.status === 'EXPIRED' ? (
