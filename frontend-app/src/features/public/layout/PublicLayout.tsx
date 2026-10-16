@@ -61,7 +61,7 @@ function NavItem({ to, label, end, onClick }: { to: string; label: string; end?:
           'shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           // In the navy bar on desktop; inside the white dropdown on phones.
           'text-foreground/75 hover:bg-muted hover:text-foreground lg:text-header-foreground/80 lg:hover:bg-header-hover lg:hover:text-header-foreground',
-          isActive && 'bg-gold/15 text-gold-hover lg:bg-header-hover lg:text-gold-hover lg:hover:text-gold-hover dark:lg:text-gold',
+          isActive && 'bg-gold/15 text-gold-hover lg:bg-white/45 lg:font-semibold lg:text-header-foreground lg:hover:text-header-foreground dark:lg:bg-header-hover dark:lg:text-gold',
         )
       }
     >
@@ -77,10 +77,10 @@ function SubNavItem({ to, label }: { to: string; label: string }) {
       to={to}
       className={({ isActive }) =>
         cn(
-          'group relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium text-header-foreground/80 transition-colors duration-200 hover:bg-header-hover hover:text-header-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+          'group relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium text-header-foreground/85 transition-colors duration-200 hover:bg-header-hover hover:text-header-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
           // The brand-coloured bar under the current page.
-          'after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-gold after:opacity-0 after:transition-opacity after:duration-200 hover:after:opacity-30',
-          isActive && 'text-header-foreground after:opacity-100 hover:after:opacity-100',
+          'after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-header-foreground after:opacity-0 dark:after:bg-gold after:transition-opacity after:duration-200 hover:after:opacity-30',
+          isActive && 'font-semibold text-header-foreground after:opacity-100 hover:after:opacity-100',
         )
       }
     >

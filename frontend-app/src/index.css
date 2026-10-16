@@ -29,10 +29,11 @@
   --gold-foreground: #142b4a;
   --success: #16845b;
   --success-soft: #e7f5ef;
-  --header: #dceaf7;
-  --header-sub: #eaf2fa;
-  --header-foreground: #172b4d;
-  --header-hover: #c5d9ee;
+  /* Both header rows: sky blue with dark text. */
+  --header: #38b6ff;
+  --header-sub: #38b6ff;
+  --header-foreground: #222222;
+  --header-hover: rgb(255 255 255 / 0.28);
   /* Filled buttons: a softer blue than the navy text colour. */
   --button: #5b9bd5;
   --button-hover: #4a8ac6;
@@ -40,7 +41,7 @@
   --button-soft: #eaf2fa;
   --button-soft-hover: #dceaf7;
   --button-soft-foreground: #172b4d;
-  --header-line: #c5d9ee;
+  --header-line: rgb(34 34 34 / 0.15);
 }
 
 .dark {
