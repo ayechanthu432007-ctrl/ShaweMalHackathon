@@ -1,4 +1,4 @@
-import { Minus, Plus } from 'lucide-react'
+import { Armchair, Bed, BedDouble, BedSingle, DoorClosed, Lamp, LampDesk, Layers2, Library, Minus, Plus, ScanFace, type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import type { InventoryCatalogItem } from '../constants/inventory-catalog'
@@ -41,6 +41,31 @@ const ICON_BY_CODE: Record<string, string> = {
   other_motorcycle: '🏍️',
   other_plants: '🪴',
   other_boxes: '📦',
+}
+
+/**
+ * Bedroom items use plain line icons in one dark grey instead of colour emoji, so the list reads
+ * as one consistent set. Other rooms keep their pictures for now.
+ */
+const BEDROOM_ICON_BY_CODE: Record<string, LucideIcon> = {
+  bedroom_single_bed: BedSingle,
+  bedroom_couple_bed: BedDouble,
+  bedroom_king_bed: BedDouble,
+  bedroom_mattress: Layers2,
+  bedroom_wardrobe: DoorClosed,
+  bedroom_dressing_table: ScanFace,
+  bedroom_bedside_table: Lamp,
+  bedroom_chair: Armchair,
+  bedroom_study_table: LampDesk,
+  bedroom_bookshelf: Library,
+}
+
+function InventoryItemGlyph({ item }: { item: Pick<InventoryCatalogItem, 'code' | 'itemName' | 'category'> }) {
+  if (item.category === 'bedroom') {
+    const Icon = BEDROOM_ICON_BY_CODE[item.code] ?? Bed
+    return <Icon className="size-5 text-[#333333] dark:text-foreground" strokeWidth={1.75} aria-hidden data-inventory-icon="mono" />
+  }
+  return <>{inventoryItemIcon(item)}</>
 }
 
 /** Items an admin adds later still get a fitting picture from their name. */
@@ -89,7 +114,7 @@ export function InventoryItemRow({ item, count, onChange }: InventoryItemRowProp
     <li className="flex items-center justify-between gap-3 rounded-md border bg-card px-3 py-2">
       <div className="flex min-w-0 items-center gap-2">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-lg leading-none" aria-hidden>
-          {inventoryItemIcon(item)}
+          <InventoryItemGlyph item={item} />
         </span>
         <span className="min-w-0 text-sm">
           <span className="block truncate font-medium">{item.itemName}</span>

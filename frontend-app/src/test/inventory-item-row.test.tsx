@@ -28,7 +28,11 @@ describe('moving inventory row', () => {
     renderWithProviders(<Inventory />)
 
     const row = screen.getAllByRole('listitem')[0]!
-    expect(row.textContent).toMatch(/^🛏️Single bed.*0$/)
+    expect(row.textContent).toMatch(/^Single bed.*0$/)
+    // Bedroom items use one dark-grey line icon each, not colour emoji.
+    const icon = row.querySelector('svg[data-inventory-icon="mono"]')
+    expect(icon).not.toBeNull()
+    expect(icon?.getAttribute('class')).toContain('text-[#333333]')
     const controls = within(row).getByRole('group', { name: 'Quantity of Single bed' })
     expect([...controls.children].map((element) => element.getAttribute('aria-label') ?? element.textContent)).toEqual([
       'Remove one Single bed',
