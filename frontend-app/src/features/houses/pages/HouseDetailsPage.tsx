@@ -195,7 +195,8 @@ export function HouseDetailsPage() {
   ]
 
   const sectionTitle = 'border-b-2 border-primary pb-2 text-2xl font-bold capitalize tracking-tight'
-  const sideTitle = 'border-b-2 border-primary pb-2 text-2xl font-bold capitalize tracking-tight'
+  const roomTypeTitle = 'border-b-2 border-highlight pb-2 text-2xl font-bold capitalize tracking-tight'
+  const sideTitle = 'border-b-2 border-highlight pb-2 text-2xl font-bold capitalize tracking-tight'
   const amenityRow = 'flex items-center gap-4 py-2.5 text-[0.95rem]'
 
   return (
@@ -268,14 +269,14 @@ export function HouseDetailsPage() {
                   ) : null}
 
                   {myActiveBooking ? (
-                    <Button type="button" variant="outline" className="h-14 w-full border-primary text-base text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setCancelDialogOpen(true)}>
+                    <Button type="button" variant="outline" className="h-14 w-full border-highlight text-base text-primary hover:bg-primary/10 hover:text-primary" onClick={() => setCancelDialogOpen(true)}>
                       {t('houses.cancelBooking')}
                     </Button>
                   ) : (
                     <Button
                       type="button"
                       variant="outline"
-                      className="h-14 w-full border-primary text-base text-primary hover:bg-primary/10 hover:text-primary"
+                      className="h-14 w-full border-highlight text-base text-primary hover:bg-primary/10 hover:text-primary"
                       disabled={bookMutation.isPending || !available}
                       onClick={onBook}
                     >
@@ -358,10 +359,10 @@ export function HouseDetailsPage() {
             </div>
 
             <section className="mt-12" aria-labelledby="house-room-type-title">
-              <h2 id="house-room-type-title" className={sectionTitle}>
+              <h2 id="house-room-type-title" className={roomTypeTitle}>
                 {t('houses.roomType')}
               </h2>
-              <div className="mt-6 overflow-x-auto rounded-xl border border-l-4 border-l-primary bg-card px-6 py-6 shadow-md">
+              <div className="mt-6 overflow-x-auto rounded-xl border border-l-4 border-l-highlight bg-card px-6 py-6 shadow-md">
                 <table className="w-full min-w-[36rem] text-left text-sm">
                   <thead>
                     <tr className="text-muted-foreground">

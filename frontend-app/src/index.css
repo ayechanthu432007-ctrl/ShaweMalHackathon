@@ -104,6 +104,8 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  /* House page accent lines (Book house, section dividers, Room Type box). */
+  --color-highlight: #ffde59;
   --color-gold: var(--gold);
   --color-gold-hover: var(--gold-hover);
   --color-gold-foreground: var(--gold-foreground);
