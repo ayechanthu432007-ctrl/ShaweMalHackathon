@@ -35,21 +35,17 @@ const SUB_LINK_ICONS: Record<string, LucideIcon> = {
   '/agent/houses': Home,
   '/hire-moving': Truck,
   '/moving-status': ClipboardList,
-  '/driver/jobs': Truck,
   '/finding-roommates': Users,
   '/marketplace': Store,
 }
 
-function buildPublicSubLinks(options: { isDriver: boolean }) {
-  return [
-    { to: '/finding-house', labelKey: 'nav.sub.housing' },
-    { to: '/hire-moving', labelKey: 'nav.sub.moving' },
-    { to: '/moving-status', labelKey: 'nav.sub.trackMove' },
-    ...(options.isDriver ? [{ to: '/driver/jobs', labelKey: 'nav.driverJobs' }] : []),
-    { to: '/finding-roommates', labelKey: 'nav.sub.roommates' },
-    { to: '/marketplace', labelKey: 'nav.marketplace' },
-  ]
-}
+const publicSubLinks = [
+  { to: '/finding-house', labelKey: 'nav.sub.housing' },
+  { to: '/hire-moving', labelKey: 'nav.sub.moving' },
+  { to: '/moving-status', labelKey: 'nav.sub.trackMove' },
+  { to: '/finding-roommates', labelKey: 'nav.sub.roommates' },
+  { to: '/marketplace', labelKey: 'nav.marketplace' },
+] as const
 
 function NavItem({ to, label, end, onClick }: { to: string; label: string; end?: boolean; onClick?: () => void }) {
   return (
@@ -92,14 +88,14 @@ function SubNavItem({ to, label }: { to: string; label: string }) {
 }
 
 /**
- * The agent's main action, kept apart from the browsing links at the right end of the second row
+ * A role's main action, kept apart from the browsing links at the right end of the second row
  * (the pattern Booking.com and Zillow use for "List your property" / "Manage rentals"). Shown only
- * to signed-in agents; the page and its API check the agent role again.
+ * to signed-in agents (listings) and drivers (jobs); each page and its API check the role again.
  */
-function AgentPostAction({ label, shortLabel }: { label: string; shortLabel: string }) {
+function RoleAction({ to, icon: Icon, label, shortLabel }: { to: string; icon: LucideIcon; label: string; shortLabel: string }) {
   return (
     <NavLink
-      to="/agent/houses"
+      to={to}
       aria-label={label}
       className={({ isActive }) =>
         cn(
@@ -109,7 +105,7 @@ function AgentPostAction({ label, shortLabel }: { label: string; shortLabel: str
         )
       }
     >
-      <Plus className="size-4 shrink-0 text-gold-hover dark:text-gold" aria-hidden />
+      <Icon className="size-4 shrink-0 text-gold-hover dark:text-gold" aria-hidden />
       <span className="hidden sm:inline">{label}</span>
       <span className="sm:hidden">{shortLabel}</span>
     </NavLink>
@@ -122,7 +118,6 @@ export function PublicLayout() {
   const topLinks = isAuthenticated ? authTopLinks : guestTopLinks
   const isAgent = Boolean(user?.roles?.includes('agent'))
   const isDriver = Boolean(user?.roles?.includes('driver'))
-  const subLinks = buildPublicSubLinks({ isDriver })
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -219,15 +214,14 @@ export function PublicLayout() {
           {/* On narrow screens the row scrolls sideways inside itself; the page never does. */}
           <div className="mx-auto flex max-w-6xl items-center gap-2 px-2 sm:px-4">
             <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {subLinks.map((link) => (
+              {publicSubLinks.map((link) => (
                 <SubNavItem key={link.to} to={link.to} label={t(link.labelKey)} />
               ))}
             </div>
+            {isAgent || isDriver ? <span className="hidden h-6 w-px shrink-0 bg-header-line sm:block" aria-hidden /> : null}
+            {isDriver ? <RoleAction to="/driver/jobs" icon={Truck} label={t('nav.driverJobs')} shortLabel={t('nav.driverJobs')} /> : null}
             {isAgent ? (
-              <>
-                <span className="hidden h-6 w-px shrink-0 bg-header-line sm:block" aria-hidden />
-                <AgentPostAction label={t('nav.sub.listingDashboard')} shortLabel={t('nav.sub.listingDashboardShort')} />
-              </>
+              <RoleAction to="/agent/houses" icon={Plus} label={t('nav.sub.listingDashboard')} shortLabel={t('nav.sub.listingDashboardShort')} />
             ) : null}
           </div>
         </nav>

@@ -102,6 +102,8 @@ describe('driver jobs sub-header', () => {
     const jobsLink = subNav.querySelector('a[href="/driver/jobs"]')
     expect(jobsLink).not.toBeNull()
     expect(jobsLink).toHaveTextContent(/driver jobs/i)
+    // Like the agent's listing button, it sits at the right end, outside the scrolling browse links.
+    expect(jobsLink?.closest('.overflow-x-auto')).toBeNull()
 
     await user.click(screen.getByRole('button', { name: /alice user/i }))
     expect(screen.queryByRole('menuitem', { name: /driver jobs/i })).toBeNull()
