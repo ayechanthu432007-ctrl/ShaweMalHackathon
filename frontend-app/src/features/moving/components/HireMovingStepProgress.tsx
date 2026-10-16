@@ -26,8 +26,8 @@ export function HireMovingStepProgress({ current }: { current: 1 | 2 | 3 | 4 }) 
                 className={cn(
                   'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-all',
                   isCurrent &&
-                    'scale-110 bg-primary text-primary-foreground shadow-sm ring-4 ring-primary/30',
-                  isComplete && 'bg-primary text-primary-foreground',
+                    'scale-110 bg-highlight text-[#222222] shadow-sm ring-4 ring-highlight/40',
+                  isComplete && 'bg-highlight text-[#222222]',
                   !isCurrent && !isComplete && 'border-2 border-border bg-background text-muted-foreground',
                 )}
               >
@@ -35,7 +35,7 @@ export function HireMovingStepProgress({ current }: { current: 1 | 2 | 3 | 4 }) 
               </span>
               {index < STEP_IDS.length - 1 ? (
                 <span
-                  className={cn('mx-2 h-0.5 w-full rounded-full', isComplete ? 'bg-primary' : 'bg-border')}
+                  className={cn('mx-2 h-0.5 w-full rounded-full', isComplete ? 'bg-highlight' : 'bg-border')}
                   aria-hidden="true"
                 />
               ) : null}

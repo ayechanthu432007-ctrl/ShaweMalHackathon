@@ -72,7 +72,7 @@ export function AgentContactCard({ house, children }: AgentContactCardProps) {
 
         <div className="space-y-2">
           {callNumber ? (
-            <Button asChild className="w-full">
+            <Button asChild className="w-full bg-highlight text-[#222222] hover:bg-highlight/85">
               <a href={telHref(callNumber)} onClick={() => trackHouseEvent(house.id, 'CALL')}>
                 <Phone aria-hidden />
                 {t('houses.contactAgent')}

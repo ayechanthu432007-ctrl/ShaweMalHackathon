@@ -194,7 +194,7 @@ export function HouseDetailsPage() {
     ...(house.floorLevel?.name ? [{ label: t('houses.floorLevel'), value: house.floorLevel.name }] : []),
   ]
 
-  const sectionTitle = 'border-b-2 border-primary pb-2 text-2xl font-bold capitalize tracking-tight'
+  const sectionTitle = 'border-b-2 border-highlight pb-2 text-2xl font-bold capitalize tracking-tight'
   const roomTypeTitle = 'border-b-2 border-highlight pb-2 text-2xl font-bold capitalize tracking-tight'
   const sideTitle = 'border-b-2 border-highlight pb-2 text-2xl font-bold capitalize tracking-tight'
   const amenityRow = 'flex items-center gap-4 py-2.5 text-[0.95rem]'
