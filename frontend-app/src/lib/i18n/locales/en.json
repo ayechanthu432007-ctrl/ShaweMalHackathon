@@ -1574,6 +1574,12 @@
       "allSold": "Everything in this sale has been sold.",
       "notFound": "This moving-out sale could not be found.",
       "deleteConfirm": "Delete this moving-out sale? Its items stay listed."
+    },
+    "quota": {
+      "used": "{{used}}/{{limit}} posts used",
+      "remaining_one": "{{count}} post remaining this month",
+      "remaining_other": "{{count}} posts remaining this month",
+      "full": "Monthly limit reached — new posts open on {{date}}"
     }
   },
   "agentDash": {
@@ -1955,6 +1961,73 @@
         "SOMETIMES": "Sometimes",
         "OFTEN": "Often"
       }
+    }
+  },
+  "marketplaceDemo": {
+    "launch": "Try Marketplace Demo",
+    "badge": "DEMO MODE — SIMULATED",
+    "title": "Marketplace Demo",
+    "subtitle": "Try the monthly posting limit and paid boosts with sample data.",
+    "exit": "Exit demo",
+    "notice": "Demo mode: sample posts and simulated payments, kept in this browser only. Nothing here is sent to Shawe MaL, no real payment is taken, and real listings are never touched.",
+    "summary": "Demo summary",
+    "user": "Current demo user",
+    "boostPrice": "Boost price",
+    "boostDuration": "Boost duration",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "postTitle": "Item title",
+    "postTitlePlaceholder": "e.g. Wooden study desk",
+    "price": "Price (MMK)",
+    "createPost": "Create demo post",
+    "posts": "Demo posts",
+    "empty": "No demo posts yet. Create one, or use “Create Sample Posts”.",
+    "boostedBadge": "BOOSTED — DEMO",
+    "boostPost": "Boost Post",
+    "boostActive": "Boost active",
+    "activatedAt": "Boosted {{time}}",
+    "expiresAt": "Ends {{time}}",
+    "timeLeft": "{{hours}} h {{minutes}} min left",
+    "editPost": "Edit {{title}}",
+    "deletePost": "Delete {{title}}",
+    "created": "Demo post created. One of this month’s 5 posts is used.",
+    "edited": "Post updated. Editing does not use a post.",
+    "deleted": "Post deleted. Deleting does not give the monthly post back.",
+    "samplesCreated_one": "{{count}} sample post created.",
+    "samplesCreated_other": "{{count}} sample posts created.",
+    "controls": "Presenter controls",
+    "clock": "Demo clock",
+    "createSamples": "Create Sample Posts",
+    "simulateBoost": "Simulate Successful Boost",
+    "simulateFailure": "Simulate Failed Payment",
+    "viewExpiry": "View Boost Expiry",
+    "noBoosts": "No boosts yet.",
+    "expired": "expired",
+    "advance24": "Simulate 24 Hours Later",
+    "advanced24": "Demo clock moved 24 hours ahead.",
+    "advanceMonth": "Simulate Next Month",
+    "advancedMonth": "Demo clock moved to next month. The 5-post limit has reset.",
+    "reset": "Reset Demo Data",
+    "resetDone": "Demo data reset. Only this browser’s sample data was cleared.",
+    "payments": "Simulated payments",
+    "outcome": {
+      "SUCCESS": "paid (simulated)",
+      "FAILED": "failed (simulated)"
+    },
+    "boostTitle": "Boost this post?",
+    "post": "Post",
+    "noRealPayment": "This is a simulated payment. No money is taken.",
+    "payConfirm": "Confirm Demo Payment",
+    "payFail": "Simulate failure",
+    "processing": "Processing…",
+    "boostSuccess": "“{{title}}” is boosted for 24 hours and now shows first. This was a demo — no real payment was taken.",
+    "boostFailed": "Payment failed for “{{title}}” (simulated). The post was not boosted and nothing was charged.",
+    "error": {
+      "LIMIT_REACHED": "You have used all 5 posts for this month. New posts open again next month.",
+      "ALREADY_BOOSTED": "This post is already boosted. It can be boosted again when the current boost ends.",
+      "NOT_FOUND": "That post no longer exists.",
+      "PAYMENT_FAILED": "The payment failed.",
+      "INVALID": "Enter a title and a price."
     }
   }
 }

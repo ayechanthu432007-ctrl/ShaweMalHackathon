@@ -13,6 +13,7 @@ import {
   resolveSellerContactValues,
   sellerBadges
 } from './marketplace-shared';
+import { yangonMonthRange } from './subscription.service';
 import { marketplaceVariantPaths } from './upload.service';
 
 export interface ListingInput {
@@ -263,7 +264,43 @@ const notifyAdminsOfFlaggedListing = async (listingId: string, title: string, hi
   });
 };
 
+/** New Marketplace posts each person may publish per Asia/Yangon calendar month. */
+export const MARKETPLACE_MONTHLY_POST_LIMIT = 5;
+export const MARKETPLACE_LISTING_CREATED_ACTION = 'MARKETPLACE_LISTING_CREATED';
+
+/**
+ * Posts created this month. Creations are counted from the audit log, so deleting a post does
+ * not hand the slot back and editing never uses one; posts that predate the log are counted from
+ * the listings that still exist.
+ */
+export const getMarketplacePostQuota = async (userId: string, now = new Date()) => {
+  const range = yangonMonthRange(now);
+  const createdAt = { gte: range.start, lt: range.end };
+  const [logged, existing] = await Promise.all([
+    prisma.auditLog.count({ where: { actorUserId: userId, action: MARKETPLACE_LISTING_CREATED_ACTION, createdAt } }),
+    prisma.listing.count({ where: { sellerId: userId, createdAt } })
+  ]);
+  // A missing count is treated as zero, never as "no limit".
+  const used = Math.max(Number(logged) || 0, Number(existing) || 0);
+  return {
+    month: range.month,
+    used,
+    limit: MARKETPLACE_MONTHLY_POST_LIMIT,
+    remaining: Math.max(0, MARKETPLACE_MONTHLY_POST_LIMIT - used),
+    resetsAt: range.end.toISOString()
+  };
+};
+
 export const createMyListing = async (userId: string, input: ListingInput) => {
+  const quota = await getMarketplacePostQuota(userId);
+  if (quota.remaining <= 0) {
+    throw new ApiError(
+      403,
+      'MARKETPLACE_MONTHLY_LIMIT_REACHED',
+      `You have used all ${MARKETPLACE_MONTHLY_POST_LIMIT} Marketplace posts for this month. New posts open again next month.`
+    );
+  }
+
   const seller = await requireSeller(userId);
   const resolved = await resolveListingData(userId, seller.phone, input);
   const now = new Date();
@@ -279,6 +316,8 @@ export const createMyListing = async (userId: string, input: ListingInput) => {
       images: { create: resolved.images }
     }
   });
+
+  await writeAuditLog({ actorUserId: userId, action: MARKETPLACE_LISTING_CREATED_ACTION, targetType: 'Listing', targetId: listing.id });
 
   if (resolved.prohibitedHits.length > 0) {
     await notifyAdminsOfFlaggedListing(listing.id, listing.title, resolved.prohibitedHits);
@@ -443,7 +482,7 @@ export const updateMyListingStatus = async (userId: string, listingId: string, i
 };
 
 export const getMyMarketplaceDashboard = async (userId: string, filter: { status?: 'ACTIVE' | 'SOLD' }) => {
-  const [activeCount, soldCount, pendingCount, listings, movingOutSales] = await Promise.all([
+  const [activeCount, soldCount, pendingCount, listings, movingOutSales, postQuota] = await Promise.all([
     prisma.listing.count({ where: { sellerId: userId, status: 'ACTIVE' } }),
     prisma.listing.count({ where: { sellerId: userId, status: 'SOLD' } }),
     prisma.listing.count({ where: { sellerId: userId, moderationStatus: { in: ['PENDING', 'REJECTED', 'REMOVED'] } } }),
@@ -452,10 +491,12 @@ export const getMyMarketplaceDashboard = async (userId: string, filter: { status
       include: { ...LISTING_CARD_INCLUDE, _count: { select: { contactReveals: true, wishlists: true } } },
       orderBy: { createdAt: 'desc' }
     }),
-    listMyMovingOutSales(userId)
+    listMyMovingOutSales(userId),
+    getMarketplacePostQuota(userId)
   ]);
 
   return {
+    postQuota,
     activeCount,
     soldCount,
     needsAttentionCount: pendingCount,

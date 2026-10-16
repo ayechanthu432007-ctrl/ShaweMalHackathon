@@ -19,6 +19,7 @@ import { FindingHousePage } from '@/features/houses/pages/FindingHousePage'
 import { HouseDetailsPage } from '@/features/houses/pages/HouseDetailsPage'
 import { BookingConfirmationPage } from '@/features/houses/pages/BookingConfirmationPage'
 import { ListingDetailPage } from '@/features/marketplace/pages/ListingDetailPage'
+import { MarketplaceDemoPage } from '@/features/marketplace/demo/MarketplaceDemoPage'
 import { MarketplaceHomePage } from '@/features/marketplace/pages/MarketplaceHomePage'
 import { MarketplacePolicyPage } from '@/features/marketplace/pages/MarketplacePolicyPage'
 import { MarketplaceSearchPage } from '@/features/marketplace/pages/MarketplaceSearchPage'
@@ -78,6 +79,8 @@ export const publicRoutes: RouteObject = {
     { path: 'moving-status/:id/receipt', element: <MovingReceiptPage /> },
     { path: 'finding-roommates', element: <FindingRoommatesPage /> },
     { path: 'marketplace', element: <MarketplaceHomePage /> },
+    // Sample-data demo; it redirects to the Marketplace unless the build enables it.
+    { path: 'marketplace/demo', element: <MarketplaceDemoPage /> },
     { path: 'marketplace/search', element: <MarketplaceSearchPage /> },
     { path: 'marketplace/items/:id', element: <ListingDetailPage /> },
     { path: 'marketplace/sellers/:sellerId', element: <SellerProfilePage /> },

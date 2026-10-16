@@ -212,6 +212,8 @@ export type MyMovingOutSale = {
 }
 
 export type MyMarketplaceDashboard = {
+  /** This month's new-post allowance; the server refuses posts beyond it. */
+  postQuota?: { month: string; used: number; limit: number; remaining: number; resetsAt: string }
   activeCount: number
   soldCount: number
   needsAttentionCount: number

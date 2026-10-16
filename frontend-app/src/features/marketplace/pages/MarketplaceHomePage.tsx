@@ -3,6 +3,8 @@ import { ChevronRight, PackageOpen } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { FlaskConical } from 'lucide-react'
+import { isMarketplaceDemoEnabled } from '../demo/marketplace-demo'
 
 import { Button } from '@/components/ui/button'
 
@@ -44,6 +46,14 @@ export function MarketplaceHomePage() {
           <h1 className="text-3xl font-semibold tracking-tight">{t('marketplace.title')}</h1>
           <p className="mt-1 text-muted-foreground">{t('marketplace.subtitle')}</p>
         </div>
+        {isMarketplaceDemoEnabled() ? (
+          <Button asChild variant="outline" className="border-[#C69245]/60">
+            <Link to="/marketplace/demo">
+              <FlaskConical aria-hidden />
+              {t('marketplaceDemo.launch')}
+            </Link>
+          </Button>
+        ) : null}
         <MarketplaceSearchBar />
       </div>
 

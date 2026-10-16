@@ -3,6 +3,7 @@ import { ShieldCheck } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { PostQuotaMeter } from '../components/PostQuotaMeter'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
@@ -118,6 +119,9 @@ export function SellItemPage() {
     enabled: isAuthenticated,
     queryFn: () => marketplaceApi.dashboard(),
   })
+  const postQuota = dashboardQuery.data?.postQuota
+  // Editing never uses a post; only new posts stop once this month's allowance is used.
+  const quotaFull = !isEditing && Boolean(postQuota && postQuota.remaining <= 0)
   const existingQuery = useQuery({
     queryKey: ['marketplace', 'my-listing', editingId],
     enabled: isAuthenticated && isEditing,
@@ -278,6 +282,7 @@ export function SellItemPage() {
         <h1 className="text-3xl font-semibold tracking-tight">{isEditing ? t('marketplace.sell.editTitle') : t('marketplace.sell.title')}</h1>
         <p className="mt-1 text-muted-foreground">{t('marketplace.sell.subtitle')}</p>
       </div>
+      {!isEditing && postQuota ? <PostQuotaMeter quota={postQuota} /> : null}
 
       <Card>
         <CardHeader>
@@ -484,7 +489,7 @@ export function SellItemPage() {
             <Button asChild variant="ghost">
               <Link to={isEditing ? '/marketplace/my' : '/marketplace'}>{t('common.cancel')}</Link>
             </Button>
-            <Button type="button" disabled={publishMutation.isPending} onClick={onPublish}>
+            <Button type="button" disabled={publishMutation.isPending || quotaFull} onClick={onPublish}>
               {publishMutation.isPending ? t('common.loading') : isEditing ? t('marketplace.sell.saveChanges') : t('marketplace.sell.publish')}
             </Button>
           </div>

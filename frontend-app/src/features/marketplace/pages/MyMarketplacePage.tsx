@@ -3,6 +3,7 @@ import { Eye, Heart, PackagePlus, Pencil, RotateCcw, Trash2, Truck } from 'lucid
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
+import { PostQuotaMeter } from '../components/PostQuotaMeter'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
@@ -173,6 +174,8 @@ export function MyMarketplacePage() {
           </Link>
         </Button>
       </div>
+
+      {dashboard.postQuota ? <PostQuotaMeter quota={dashboard.postQuota} /> : null}
 
       <dl className="grid grid-cols-3 gap-3">
         {stats.map((stat) => (

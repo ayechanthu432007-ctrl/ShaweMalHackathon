@@ -1574,6 +1574,12 @@
       "allSold": "ဤရောင်းပွဲရှိ ပစ္စည်းအားလုံး ရောင်းပြီးပါပြီ။",
       "notFound": "ဤအိမ်ပြောင်းရောင်းပွဲကို ရှာမတွေ့ပါ။",
       "deleteConfirm": "ဤအိမ်ပြောင်းရောင်းပွဲကို ဖျက်မလား? ပစ္စည်းများမူ ဆက်ရှိနေမည်။"
+    },
+    "quota": {
+      "used": "ပို့စ် {{used}}/{{limit}} အသုံးပြုပြီး",
+      "remaining_one": "ဤလ ပို့စ် {{count}} ခု ကျန်သည်",
+      "remaining_other": "ဤလ ပို့စ် {{count}} ခု ကျန်သည်",
+      "full": "လစဉ်ကန့်သတ်ချက် ပြည့်ပြီ — {{date}} တွင် ပြန်တင်နိုင်ပါမည်"
     }
   },
   "agentDash": {
@@ -1955,6 +1961,73 @@
         "SOMETIMES": "တစ်ခါတစ်ရံ",
         "OFTEN": "မကြာခဏ"
       }
+    }
+  },
+  "marketplaceDemo": {
+    "launch": "Marketplace Demo စမ်းကြည့်ရန်",
+    "badge": "DEMO MODE — SIMULATED",
+    "title": "Marketplace Demo",
+    "subtitle": "လစဉ် ပို့စ်ကန့်သတ်ချက်နှင့် Boost ကို နမူနာဒေတာဖြင့် စမ်းကြည့်ပါ။",
+    "exit": "Demo မှ ထွက်ရန်",
+    "notice": "Demo mode — နမူနာ ပို့စ်များနှင့် အတုငွေပေးချေမှုများကို ဤ browser တွင်သာ သိမ်းသည်။ Shawe MaL သို့ ဘာမျှ မပို့ပါ၊ ငွေ မကောက်ပါ၊ တကယ့်ကြော်ငြာများကို မထိခိုက်ပါ။",
+    "summary": "Demo summary",
+    "user": "Current demo user",
+    "boostPrice": "Boost price",
+    "boostDuration": "Boost duration",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "postTitle": "Item title",
+    "postTitlePlaceholder": "e.g. Wooden study desk",
+    "price": "Price (MMK)",
+    "createPost": "Create demo post",
+    "posts": "Demo posts",
+    "empty": "No demo posts yet. Create one, or use “Create Sample Posts”.",
+    "boostedBadge": "BOOSTED — DEMO",
+    "boostPost": "ပို့စ် Boost လုပ်ရန်",
+    "boostActive": "Boost active",
+    "activatedAt": "Boosted {{time}}",
+    "expiresAt": "Ends {{time}}",
+    "timeLeft": "{{hours}} h {{minutes}} min left",
+    "editPost": "Edit {{title}}",
+    "deletePost": "Delete {{title}}",
+    "created": "Demo post created. One of this month’s 5 posts is used.",
+    "edited": "Post updated. Editing does not use a post.",
+    "deleted": "Post deleted. Deleting does not give the monthly post back.",
+    "samplesCreated_one": "{{count}} sample post created.",
+    "samplesCreated_other": "{{count}} sample posts created.",
+    "controls": "Presenter controls",
+    "clock": "Demo clock",
+    "createSamples": "နမူနာ ပို့စ်များ ဖန်တီးရန်",
+    "simulateBoost": "Simulate Successful Boost",
+    "simulateFailure": "ငွေပေးချေမှု မအောင်မြင်မှု အတုပြရန်",
+    "viewExpiry": "View Boost Expiry",
+    "noBoosts": "No boosts yet.",
+    "expired": "expired",
+    "advance24": "၂၄ နာရီ နောက်သို့ အတုရွှေ့ရန်",
+    "advanced24": "Demo clock moved 24 hours ahead.",
+    "advanceMonth": "Simulate Next Month",
+    "advancedMonth": "Demo clock moved to next month. The 5-post limit has reset.",
+    "reset": "Demo ဒေတာ ပြန်စရန်",
+    "resetDone": "Demo data reset. Only this browser’s sample data was cleared.",
+    "payments": "Simulated payments",
+    "outcome": {
+      "SUCCESS": "paid (simulated)",
+      "FAILED": "failed (simulated)"
+    },
+    "boostTitle": "Boost this post?",
+    "post": "Post",
+    "noRealPayment": "This is a simulated payment. No money is taken.",
+    "payConfirm": "Demo ငွေပေးချေမှု အတည်ပြုမည်",
+    "payFail": "Simulate failure",
+    "processing": "Processing…",
+    "boostSuccess": "“{{title}}” is boosted for 24 hours and now shows first. This was a demo — no real payment was taken.",
+    "boostFailed": "Payment failed for “{{title}}” (simulated). The post was not boosted and nothing was charged.",
+    "error": {
+      "LIMIT_REACHED": "You have used all 5 posts for this month. New posts open again next month.",
+      "ALREADY_BOOSTED": "This post is already boosted. It can be boosted again when the current boost ends.",
+      "NOT_FOUND": "That post no longer exists.",
+      "PAYMENT_FAILED": "The payment failed.",
+      "INVALID": "Enter a title and a price."
     }
   }
 }
