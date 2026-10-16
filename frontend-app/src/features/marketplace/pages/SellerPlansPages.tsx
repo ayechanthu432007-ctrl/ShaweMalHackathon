@@ -74,16 +74,19 @@ function CellValue({ cell }: { cell: Cell }) {
 
 function planBenefits(plan: SellerPlan, t: (key: string, options?: Record<string, unknown>) => string): string[] {
   const items = [plan.activeListingLimit === null ? t('sellerPlans.benefit.unlimited') : t('sellerPlans.benefit.limited', { count: plan.activeListingLimit })]
+  if (!plan.homepageFeatured) items.push(t('sellerPlans.benefit.standardVisibility'))
   if (plan.premiumBadge) items.push(t('sellerPlans.benefit.badge'))
   if (plan.homepageFeatured) items.push(t('sellerPlans.benefit.featured'))
   if (plan.freeBoostDays > 0) items.push(t('sellerPlans.benefit.freeBoost', { count: plan.freeBoostDays }))
-  items.push(plan.insightsLevel === 'DETAILED' ? t('sellerPlans.benefit.detailedInsights') : t('sellerPlans.benefit.basicViews'))
-  items.push(t('sellerPlans.benefit.inquiries'))
-  if (plan.monthlyPriceMmk === 0) items.push(t('sellerPlans.benefit.manage'))
+  if (plan.insightsLevel === 'DETAILED') {
+    items.push(t('sellerPlans.benefit.detailedInsights'), t('sellerPlans.benefit.inquiryManagement'))
+  } else {
+    items.push(t('sellerPlans.benefit.inquiries'), t('sellerPlans.benefit.basicViews'), t('sellerPlans.benefit.manage'))
+  }
   return items
 }
 
-/** Plan cards + comparison table. Used on its own page and inside the Seller Dashboard. */
+/** Free Seller / Premium Seller cards and the comparison table, shown on My Marketplace > Seller Plans. */
 export function SellerPlanComparison({ compact = false }: { compact?: boolean }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -119,7 +122,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
 
   const onChoose = (plan: SellerPlan) => {
     if (!isAuthenticated) {
-      navigate('/sign-in', { state: { from: '/marketplace/plans' } })
+      navigate('/sign-in', { state: { from: '/marketplace/my/plans' } })
       return
     }
     if (plan.monthlyPriceMmk === 0) {
@@ -261,20 +264,6 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
   )
 }
 
-export function SellerPlansPage() {
-  const { t } = useTranslation()
-  return (
-    <div className="mx-auto max-w-4xl space-y-6">
-      <BackButton fallback="/marketplace/my" />
-      <div className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('sellerPlans.title')}</h1>
-        <p className="text-muted-foreground">{t('sellerPlans.subtitle')}</p>
-      </div>
-      <SellerPlanComparison />
-    </div>
-  )
-}
-
 const STATUS_TONE: Record<SellerOrder['status'], string> = {
   PENDING: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
   PAID: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
@@ -315,7 +304,7 @@ export function SellerCheckoutPage() {
   }
 
   const isBoost = order.kind === 'LISTING_BOOST'
-  const doneLink = isBoost ? '/marketplace/my?section=boost' : '/marketplace/my?section=subscription'
+  const doneLink = isBoost ? '/marketplace/my/boosts' : '/marketplace/my/subscription'
 
   return (
     <div className="mx-auto max-w-xl space-y-4">

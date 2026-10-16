@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils'
 
 import { marketplaceApi } from '../api/marketplace-api'
 import { formatDate, formatPrice } from '../lib/marketplace-format'
-import { SELLER_SUBSCRIPTION_QUERY_KEY, SellerPlanComparison } from '../pages/SellerPlansPages'
+import { SELLER_SUBSCRIPTION_QUERY_KEY } from '../pages/SellerPlansPages'
 import type { BoostStatus, InquiryStatus, MyListing, SellerInquiry, SellerInsights } from '../types'
 import { textareaClassName } from './MarketplaceDialog'
 
@@ -564,12 +564,9 @@ export function SubscriptionSection() {
           ) : null}
         </CardContent>
       </Card>
-      <SellerPlanComparison compact />
-      <p className="text-center text-sm">
-        <Link to="/marketplace/plans" className="font-medium text-primary hover:underline">
-          {t('sellerDash.subscription.compareLink')}
-        </Link>
-      </p>
+      <Button asChild variant="outline" className="w-full sm:w-auto">
+        <Link to="/marketplace/my/plans">{t('sellerDash.subscription.compareLink')}</Link>
+      </Button>
     </div>
   )
 }

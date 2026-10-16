@@ -2079,7 +2079,7 @@
     "upgrade": "Upgrade to Premium",
     "renew": "Renew for another month",
     "renewalQueued": "Next month already paid",
-    "startFree": "Start for free",
+    "startFree": "Start for Free",
     "activeUntil": "Active until {{date}}",
     "compareTitle": "Package comparison",
     "feature": "Feature",
@@ -2107,15 +2107,17 @@
     },
     "benefit": {
       "unlimited": "Unlimited product listings",
-      "limited_one": "Up to {{count}} active product listing",
-      "limited_other": "Up to {{count}} active product listings",
-      "badge": "Instant Premium Seller badge",
+      "limited_one": "Up to {{count}} product listing",
+      "limited_other": "Up to {{count}} product listings",
+      "badge": "Premium Seller badge",
       "featured": "Homepage featured placement",
       "freeBoost": "{{count}}-day free product boost",
-      "detailedInsights": "Daily product performance insights",
+      "detailedInsights": "Detailed daily product performance insights",
       "basicViews": "Basic product views",
-      "inquiries": "Buyer inquiry management",
-      "manage": "Edit and manage listings"
+      "inquiries": "Buyer inquiries",
+      "manage": "Edit and manage listings",
+      "standardVisibility": "Standard product visibility",
+      "inquiryManagement": "Buyer inquiry management"
     },
     "demoNote": "Demo mode: payments here are simulated and no money is charged.",
     "demoNoCharge": "This is a demo transaction. No real payment is taken.",
@@ -2155,7 +2157,7 @@
     "startAgain": "Start again"
   },
   "sellerDash": {
-    "title": "Seller Dashboard",
+    "title": "My Marketplace",
     "navLabel": "Seller Dashboard sections",
     "currentPlanLabel": "Current plan: {{plan}}",
     "until": "until {{date}}",
@@ -2164,7 +2166,9 @@
       "inquiries": "Buyer Inquiries",
       "insights": "Product Insights",
       "boost": "Boost Products",
-      "subscription": "Seller Subscription"
+      "subscription": "My Subscription",
+      "overview": "Overview",
+      "plans": "Seller Plans"
     },
     "summary": {
       "products": "Total products",
@@ -2270,12 +2274,21 @@
       "renewManually": "Renew from the plan card",
       "expiredNote": "Your Premium plan has ended, so you are back on Free Seller. Renew to restore Premium benefits.",
       "demoReset": "Demo: return to Free Seller",
-      "compareLink": "See the full package comparison",
+      "compareLink": "See Seller Plans",
       "statusValue": {
         "FREE": "Free plan",
         "ACTIVE": "Active",
         "EXPIRED": "Expired (on Free Seller)"
       }
+    },
+    "subtitle": "Your seller dashboard: products, buyer inquiries, insights, boosts and your seller plan.",
+    "toolDescriptions": {
+      "products": "Manage, edit, and remove product listings.",
+      "inquiries": "View and respond to interested buyers.",
+      "insights": "Track product views, inquiries, and daily performance.",
+      "boost": "Promote selected products for more visibility.",
+      "plans": "Compare Free Seller and Premium Seller.",
+      "subscription": "View plan, expiry date, and renewal options."
     }
   }
 }

@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { BarChart3, Box, CheckCircle2, Crown, Eye, Heart, MessageSquare, PackagePlus, Pencil, RotateCcw, Search, Trash2, TrendingUp, Truck } from 'lucide-react'
+import { BarChart3, Box, CheckCircle2, Crown, Eye, Heart, LayoutDashboard, MessageSquare, PackagePlus, Pencil, RotateCcw, Search, Tags, Trash2, TrendingUp, Truck } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
+import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
@@ -20,7 +20,8 @@ import { BOOST_TONE, BoostSection, InquiriesSection, InsightsSection, Subscripti
 import { SellerBadges } from '../components/SellerBadges'
 import { useSellerStatus } from '../hooks/useMarketplaceData'
 import { formatDate } from '../lib/marketplace-format'
-import type { ListingAllowance, ListingStatus, MyListing, MyMovingOutSale } from '../types'
+import type { ListingAllowance, ListingStatus, MyListing, MyMarketplaceDashboard, MyMovingOutSale } from '../types'
+import { SellerPlanComparison } from './SellerPlansPages'
 
 const MODERATION_TONE: Record<string, string> = {
   PENDING: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
@@ -28,14 +29,30 @@ const MODERATION_TONE: Record<string, string> = {
   REMOVED: 'bg-destructive/10 text-destructive',
 }
 
-const SECTIONS = [
-  { id: 'products', icon: Box },
-  { id: 'inquiries', icon: MessageSquare },
-  { id: 'insights', icon: BarChart3 },
-  { id: 'boost', icon: TrendingUp },
-  { id: 'subscription', icon: CheckCircle2 },
+export const MY_MARKETPLACE_BASE = '/marketplace/my'
+
+/** The My Marketplace dashboard's own pages. Everything Marketplace-seller lives under /marketplace/my. */
+const NAV_ITEMS = [
+  { to: '', key: 'overview', icon: LayoutDashboard },
+  { to: 'products', key: 'products', icon: Box },
+  { to: 'inquiries', key: 'inquiries', icon: MessageSquare },
+  { to: 'insights', key: 'insights', icon: BarChart3 },
+  { to: 'boosts', key: 'boost', icon: TrendingUp },
+  { to: 'plans', key: 'plans', icon: Tags },
+  { to: 'subscription', key: 'subscription', icon: CheckCircle2 },
 ] as const
-type SectionId = (typeof SECTIONS)[number]['id']
+
+/** Old ?section= links (and the old /marketplace/plans address) land on the matching page. */
+const LEGACY_SECTIONS: Record<string, string> = {
+  products: 'products',
+  inquiries: 'inquiries',
+  insights: 'insights',
+  boost: 'boosts',
+  subscription: 'subscription',
+}
+
+type DashboardContext = { dashboard: MyMarketplaceDashboard }
+const useDashboard = () => useOutletContext<DashboardContext>().dashboard
 
 /** Active products against the plan's limit; Premium shows "unlimited". */
 export function ListingAllowanceMeter({ allowance, className }: { allowance: ListingAllowance; className?: string }) {
@@ -62,7 +79,7 @@ export function ListingAllowanceMeter({ allowance, className }: { allowance: Lis
       </div>
       {full ? (
         <Button asChild size="sm" className="mt-3 bg-[#FFDE59] text-[#3d2f00] hover:bg-[#f5d03f]">
-          <Link to="/marketplace/plans">
+          <Link to={`${MY_MARKETPLACE_BASE}/plans`}>
             <Crown aria-hidden />
             {t('sellerPlans.upgrade')}
           </Link>
@@ -162,23 +179,19 @@ function MyListingFooter({
   )
 }
 
-export function MyMarketplacePage() {
+/** Shell for every My Marketplace page: heading, plan badge, summary and the dashboard navigation. */
+export function MyMarketplaceLayout() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
-  const queryClient = useQueryClient()
-  const [searchParams, setSearchParams] = useSearchParams()
+  const [searchParams] = useSearchParams()
   const { isAuthenticated, isBootstrapping } = useAuth()
-  const [tab, setTab] = useState<ListingStatus | 'ALL'>('ALL')
-  const [search, setSearch] = useState('')
-  const [q, setQ] = useState('')
-  const [soldTarget, setSoldTarget] = useState<MyListing | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<MyListing | null>(null)
-  const [saleDialog, setSaleDialog] = useState<{ open: boolean; sale: MyMovingOutSale | null }>({ open: false, sale: null })
-
-  const requested = searchParams.get('section')
-  const section: SectionId = SECTIONS.some((item) => item.id === requested) ? (requested as SectionId) : 'products'
-  const goTo = (id: SectionId) => setSearchParams(id === 'products' ? {} : { section: id }, { replace: true })
+  const statusQuery = useSellerStatus()
+  const dashboardQuery = useQuery({
+    queryKey: ['marketplace', 'my-dashboard', 'ALL', ''],
+    enabled: isAuthenticated,
+    queryFn: () => marketplaceApi.dashboard(),
+  })
 
   useEffect(() => {
     if (!isBootstrapping && !isAuthenticated) {
@@ -186,31 +199,10 @@ export function MyMarketplacePage() {
     }
   }, [isAuthenticated, isBootstrapping, location.pathname, location.search, navigate])
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setQ(search.trim()), 300)
-    return () => window.clearTimeout(timer)
-  }, [search])
-
-  const statusQuery = useSellerStatus()
-  const dashboardQuery = useQuery({
-    queryKey: ['marketplace', 'my-dashboard', tab, q],
-    enabled: isAuthenticated,
-    placeholderData: (previous) => previous,
-    queryFn: () => marketplaceApi.dashboard(tab === 'ALL' ? undefined : tab, q || undefined),
-  })
-
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => marketplaceApi.deleteListing(id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['marketplace'] })
-      setDeleteTarget(null)
-    },
-  })
-
-  const deleteSaleMutation = useMutation({
-    mutationFn: (id: string) => marketplaceApi.deleteMovingOutSale(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['marketplace'] }),
-  })
+  const legacy = searchParams.get('section')
+  if (legacy && LEGACY_SECTIONS[legacy]) {
+    return <Navigate to={`${MY_MARKETPLACE_BASE}/${LEGACY_SECTIONS[legacy]}`} replace />
+  }
 
   if (isBootstrapping || !isAuthenticated || dashboardQuery.isLoading) {
     return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
@@ -229,23 +221,17 @@ export function MyMarketplacePage() {
 
   const dashboard = dashboardQuery.data
   const isPremium = dashboard.plan.code !== 'SELLER_FREE'
-  const stats = [
-    { label: t('sellerDash.summary.products'), value: dashboard.summary.totalProducts, icon: Box, section: 'products' as const },
-    { label: t('sellerDash.summary.views'), value: dashboard.summary.totalViews, icon: Eye, section: 'insights' as const },
-    { label: t('sellerDash.summary.inquiries'), value: dashboard.summary.newInquiries, icon: MessageSquare, section: 'inquiries' as const },
-    { label: t('sellerDash.summary.boosts'), value: dashboard.summary.activeBoosts, icon: TrendingUp, section: 'boost' as const },
-  ]
 
   return (
     <div className="space-y-6">
       <BackButton fallback="/marketplace" />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{t('sellerDash.title')}</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">{t('marketplace.myMarketplace')}</h1>
+          <p className="text-sm text-muted-foreground">{t('sellerDash.subtitle')}</p>
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => goTo('subscription')}
+            <Link
+              to={`${MY_MARKETPLACE_BASE}/subscription`}
               className={cn(
                 'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold',
                 isPremium ? 'border-[#e6c13f] bg-[#FFDE59]/50 text-[#3d2f00] dark:text-[#FFDE59]' : 'bg-muted',
@@ -255,7 +241,7 @@ export function MyMarketplacePage() {
               {isPremium ? <Crown className="size-3.5" aria-hidden /> : null}
               {dashboard.plan.name}
               {dashboard.plan.endsAt ? <span className="font-normal"> · {t('sellerDash.until', { date: formatDate(dashboard.plan.endsAt) })}</span> : null}
-            </button>
+            </Link>
             {statusQuery.data ? <SellerBadges badges={statusQuery.data.badges} /> : null}
           </div>
         </div>
@@ -267,167 +253,275 @@ export function MyMarketplacePage() {
         </Button>
       </div>
 
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <button key={stat.label} type="button" onClick={() => goTo(stat.section)} className="rounded-xl border bg-card p-4 text-left transition-colors hover:bg-muted/50">
-            <dt className="flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
-              <stat.icon className="size-4" aria-hidden />
-              {stat.label}
-            </dt>
-            <dd className="text-3xl font-semibold tabular-nums">{stat.value}</dd>
-          </button>
-        ))}
-      </dl>
-
-      <ListingAllowanceMeter allowance={dashboard.allowance} />
-
       <nav className="-mx-4 overflow-x-auto px-4" aria-label={t('sellerDash.navLabel')}>
         <ul className="flex min-w-max gap-1 rounded-xl bg-muted p-1">
-          {SECTIONS.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                aria-current={section === item.id ? 'page' : undefined}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  section === item.id ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
-                )}
-                onClick={() => goTo(item.id)}
+          {NAV_ITEMS.map((item) => (
+            <li key={item.key}>
+              <NavLink
+                to={item.to ? `${MY_MARKETPLACE_BASE}/${item.to}` : MY_MARKETPLACE_BASE}
+                end={!item.to}
+                className={({ isActive }) =>
+                  cn(
+                    'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                    isActive ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                  )
+                }
               >
                 <item.icon className="size-4" aria-hidden />
-                {t(`sellerDash.sections.${item.id}`)}
-                {item.id === 'inquiries' && dashboard.summary.newInquiries > 0 ? (
+                {t(`sellerDash.sections.${item.key}`)}
+                {item.key === 'inquiries' && dashboard.summary.newInquiries > 0 ? (
                   <span className="rounded-full bg-sky-600 px-1.5 text-xs text-white">{dashboard.summary.newInquiries}</span>
                 ) : null}
-              </button>
+              </NavLink>
             </li>
           ))}
         </ul>
       </nav>
 
-      {section === 'inquiries' ? <InquiriesSection /> : null}
-      {section === 'insights' ? <InsightsSection onUpgrade={() => goTo('subscription')} /> : null}
-      {section === 'boost' ? <BoostSection listings={dashboard.listings} /> : null}
-      {section === 'subscription' ? <SubscriptionSection /> : null}
+      <Outlet context={{ dashboard } satisfies DashboardContext} />
+    </div>
+  )
+}
 
-      {section === 'products' ? (
-        <>
-          <section className="space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="text-xl font-semibold">{t('sellerDash.sections.products')}</h2>
-              <div className="flex flex-wrap items-center gap-2">
-                <label className="relative">
-                  <span className="sr-only">{t('sellerDash.products.search')}</span>
-                  <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
-                  <input
-                    type="search"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder={t('sellerDash.products.search')}
-                    className="h-9 w-48 rounded-md border bg-background pl-8 pr-2 text-sm"
-                  />
-                </label>
-                <div className="flex gap-1 rounded-lg bg-muted p-1" role="tablist" aria-label={t('marketplace.my.filterLabel')}>
-                  {(['ALL', 'ACTIVE', 'SOLD'] as const).map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      role="tab"
-                      aria-selected={tab === value}
-                      className={cn(
-                        'rounded-md px-3 py-1 text-sm font-medium transition-colors',
-                        tab === value ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
-                      )}
-                      onClick={() => setTab(value)}
-                    >
-                      {value === 'ALL' ? t('marketplace.my.all') : t(`marketplace.status.${value}`)}
-                    </button>
-                  ))}
-                </div>
-              </div>
+/** Overview: summary numbers, the plan's product allowance and shortcuts to each tool. */
+export function MyMarketplaceOverviewPage() {
+  const { t } = useTranslation()
+  const dashboard = useDashboard()
+  const stats = [
+    { label: t('sellerDash.summary.products'), value: dashboard.summary.totalProducts, icon: Box, to: 'products' },
+    { label: t('sellerDash.summary.views'), value: dashboard.summary.totalViews, icon: Eye, to: 'insights' },
+    { label: t('sellerDash.summary.inquiries'), value: dashboard.summary.newInquiries, icon: MessageSquare, to: 'inquiries' },
+    { label: t('sellerDash.summary.boosts'), value: dashboard.summary.activeBoosts, icon: TrendingUp, to: 'boosts' },
+  ]
+  const tools = NAV_ITEMS.filter((item) => item.to)
+
+  return (
+    <div className="space-y-6">
+      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <Link key={stat.label} to={`${MY_MARKETPLACE_BASE}/${stat.to}`} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50">
+            <dt className="flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
+              <stat.icon className="size-4" aria-hidden />
+              {stat.label}
+            </dt>
+            <dd className="text-3xl font-semibold tabular-nums">{stat.value}</dd>
+          </Link>
+        ))}
+      </dl>
+
+      <ListingAllowanceMeter allowance={dashboard.allowance} />
+
+      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {tools.map((item) => (
+          <li key={item.key}>
+            <Link to={`${MY_MARKETPLACE_BASE}/${item.to}`} className="flex h-full items-start gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+                <item.icon className="size-5" aria-hidden />
+              </span>
+              <span>
+                <span className="block font-semibold">{t(`sellerDash.sections.${item.key}`)}</span>
+                <span className="block text-sm text-muted-foreground">{t(`sellerDash.toolDescriptions.${item.key}`)}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+export function MyInquiriesPage() {
+  return <InquiriesSection />
+}
+
+export function MyInsightsPage() {
+  const navigate = useNavigate()
+  return <InsightsSection onUpgrade={() => navigate(`${MY_MARKETPLACE_BASE}/plans`)} />
+}
+
+export function MyBoostsPage() {
+  return <BoostSection listings={useDashboard().listings} />
+}
+
+export function MySellerPlansPage() {
+  return <SellerPlanComparison />
+}
+
+export function MySubscriptionPage() {
+  return <SubscriptionSection />
+}
+
+/** /marketplace/plans used to be a standalone page; it now lives inside My Marketplace. */
+export function LegacySellerPlansRedirect() {
+  return <Navigate to={`${MY_MARKETPLACE_BASE}/plans`} replace />
+}
+
+/** My Products: the seller's own listings (search, filter, edit, sell, relist, delete) and moving-out sales. */
+export function MyProductsPage() {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [tab, setTab] = useState<ListingStatus | 'ALL'>('ALL')
+  const [search, setSearch] = useState('')
+  const [q, setQ] = useState('')
+  const [soldTarget, setSoldTarget] = useState<MyListing | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<MyListing | null>(null)
+  const [saleDialog, setSaleDialog] = useState<{ open: boolean; sale: MyMovingOutSale | null }>({ open: false, sale: null })
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setQ(search.trim()), 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
+
+  const productsQuery = useQuery({
+    queryKey: ['marketplace', 'my-dashboard', tab, q],
+    placeholderData: (previous) => previous,
+    queryFn: () => marketplaceApi.dashboard(tab === 'ALL' ? undefined : tab, q || undefined),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => marketplaceApi.deleteListing(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['marketplace'] })
+      setDeleteTarget(null)
+    },
+  })
+
+  const deleteSaleMutation = useMutation({
+    mutationFn: (id: string) => marketplaceApi.deleteMovingOutSale(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['marketplace'] }),
+  })
+
+  const data = productsQuery.data
+
+  return (
+    <div className="space-y-6">
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xl font-semibold">{t('sellerDash.sections.products')}</h2>
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="relative">
+              <span className="sr-only">{t('sellerDash.products.search')}</span>
+              <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={t('sellerDash.products.search')}
+                className="h-9 w-48 rounded-md border bg-background pl-8 pr-2 text-sm"
+              />
+            </label>
+            <div className="flex gap-1 rounded-lg bg-muted p-1" role="tablist" aria-label={t('marketplace.my.filterLabel')}>
+              {(['ALL', 'ACTIVE', 'SOLD'] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === value}
+                  className={cn(
+                    'rounded-md px-3 py-1 text-sm font-medium transition-colors',
+                    tab === value ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                  )}
+                  onClick={() => setTab(value)}
+                >
+                  {value === 'ALL' ? t('marketplace.my.all') : t(`marketplace.status.${value}`)}
+                </button>
+              ))}
             </div>
+          </div>
+        </div>
 
-            {dashboard.listings.length === 0 ? (
-              <div className="rounded-xl border border-dashed p-8 text-center">
-                <p className="font-medium">{q || tab !== 'ALL' ? t('sellerDash.products.noMatch') : t('marketplace.my.empty')}</p>
-                {!q && tab === 'ALL' ? (
-                  <Button asChild className="mt-3">
-                    <Link to="/marketplace/sell">{t('marketplace.sellItem')}</Link>
-                  </Button>
-                ) : null}
-              </div>
-            ) : (
-              <ListingGrid className="lg:grid-cols-3">
-                {dashboard.listings.map((listing) => (
-                  <ListingCard
-                    key={listing.id}
-                    listing={listing}
-                    hideSave
-                    footer={<MyListingFooter listing={listing} onMarkSold={setSoldTarget} onDelete={setDeleteTarget} />}
-                  />
-                ))}
-              </ListingGrid>
-            )}
-          </section>
+        {productsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {productsQuery.isError ? (
+          <div className="space-y-2">
+            <p className="text-sm text-destructive">{t('marketplace.loadError')}</p>
+            <Button type="button" variant="outline" onClick={() => void productsQuery.refetch()}>
+              {t('common.retry')}
+            </Button>
+          </div>
+        ) : null}
 
-          <Card>
-            <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
-              <div className="space-y-1">
-                <CardTitle className="flex items-center gap-2">
-                  <Truck className="size-5 text-primary" aria-hidden />
-                  {t('marketplace.movingOut.sectionTitle')}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">{t('marketplace.movingOut.mySubtitle')}</p>
-              </div>
-              <Button type="button" variant="outline" onClick={() => setSaleDialog({ open: true, sale: null })}>
-                {t('marketplace.movingOut.createTitle')}
+        {data && data.listings.length === 0 ? (
+          <div className="rounded-xl border border-dashed p-8 text-center">
+            <p className="font-medium">{q || tab !== 'ALL' ? t('sellerDash.products.noMatch') : t('marketplace.my.empty')}</p>
+            {!q && tab === 'ALL' ? (
+              <Button asChild className="mt-3">
+                <Link to="/marketplace/sell">{t('marketplace.sellItem')}</Link>
               </Button>
-            </CardHeader>
-            <CardContent>
-              {dashboard.movingOutSales.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t('marketplace.movingOut.myEmpty')}</p>
-              ) : (
-                <ul className="divide-y">
-                  {dashboard.movingOutSales.map((sale) => (
-                    <li key={sale.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                      <div>
-                        <Link to={`/marketplace/moving-out-sales/${sale.id}`} className="font-medium hover:underline">
-                          {sale.title}
-                        </Link>
-                        <p className="text-xs text-muted-foreground">
-                          {sale.destinationCity
-                            ? t('marketplace.movingOut.route', { from: sale.originCity.name, to: sale.destinationCity.name })
-                            : t('marketplace.movingOut.from', { from: sale.originCity.name })}
-                          {' · '}
-                          {t('marketplace.movingOut.itemCount', { count: sale.listingCount })}
-                          {sale.moveOutDate ? ` · ${formatDate(sale.moveOutDate)}` : ''}
-                          {!sale.isActive ? ` · ${t('marketplace.movingOut.ended')}` : ''}
-                        </p>
-                      </div>
-                      <div className="flex gap-1.5">
-                        <Button type="button" size="sm" variant="outline" onClick={() => setSaleDialog({ open: true, sale })}>
-                          {t('marketplace.actions.edit')}
-                        </Button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          className="text-destructive"
-                          disabled={deleteSaleMutation.isPending}
-                          onClick={() => {
-                            if (window.confirm(t('marketplace.movingOut.deleteConfirm'))) deleteSaleMutation.mutate(sale.id)
-                          }}
-                        >
-                          {t('marketplace.actions.delete')}
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </Card>
-        </>
+            ) : null}
+          </div>
+        ) : null}
+        {data && data.listings.length > 0 ? (
+          <ListingGrid className="lg:grid-cols-3">
+            {data.listings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                hideSave
+                footer={<MyListingFooter listing={listing} onMarkSold={setSoldTarget} onDelete={setDeleteTarget} />}
+              />
+            ))}
+          </ListingGrid>
+        ) : null}
+      </section>
+
+      {data ? (
+        <Card>
+          <CardHeader className="flex-row flex-wrap items-center justify-between gap-2 space-y-0">
+            <div className="space-y-1">
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="size-5 text-primary" aria-hidden />
+                {t('marketplace.movingOut.sectionTitle')}
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">{t('marketplace.movingOut.mySubtitle')}</p>
+            </div>
+            <Button type="button" variant="outline" onClick={() => setSaleDialog({ open: true, sale: null })}>
+              {t('marketplace.movingOut.createTitle')}
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {data.movingOutSales.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t('marketplace.movingOut.myEmpty')}</p>
+            ) : (
+              <ul className="divide-y">
+                {data.movingOutSales.map((sale) => (
+                  <li key={sale.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                    <div>
+                      <Link to={`/marketplace/moving-out-sales/${sale.id}`} className="font-medium hover:underline">
+                        {sale.title}
+                      </Link>
+                      <p className="text-xs text-muted-foreground">
+                        {sale.destinationCity
+                          ? t('marketplace.movingOut.route', { from: sale.originCity.name, to: sale.destinationCity.name })
+                          : t('marketplace.movingOut.from', { from: sale.originCity.name })}
+                        {' · '}
+                        {t('marketplace.movingOut.itemCount', { count: sale.listingCount })}
+                        {sale.moveOutDate ? ` · ${formatDate(sale.moveOutDate)}` : ''}
+                        {!sale.isActive ? ` · ${t('marketplace.movingOut.ended')}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex gap-1.5">
+                      <Button type="button" size="sm" variant="outline" onClick={() => setSaleDialog({ open: true, sale })}>
+                        {t('marketplace.actions.edit')}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive"
+                        disabled={deleteSaleMutation.isPending}
+                        onClick={() => {
+                          if (window.confirm(t('marketplace.movingOut.deleteConfirm'))) deleteSaleMutation.mutate(sale.id)
+                        }}
+                      >
+                        {t('marketplace.actions.delete')}
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
       ) : null}
 
       <MarkSoldDialog listing={soldTarget} onDismiss={() => setSoldTarget(null)} />

@@ -24,9 +24,19 @@ import { MarketplaceHomePage } from '@/features/marketplace/pages/MarketplaceHom
 import { MarketplacePolicyPage } from '@/features/marketplace/pages/MarketplacePolicyPage'
 import { MarketplaceSearchPage } from '@/features/marketplace/pages/MarketplaceSearchPage'
 import { MovingOutSalePage } from '@/features/marketplace/pages/MovingOutSalePage'
-import { MyMarketplacePage } from '@/features/marketplace/pages/MyMarketplacePage'
+import {
+  LegacySellerPlansRedirect,
+  MyBoostsPage,
+  MyInquiriesPage,
+  MyInsightsPage,
+  MyMarketplaceLayout,
+  MyMarketplaceOverviewPage,
+  MyProductsPage,
+  MySellerPlansPage,
+  MySubscriptionPage,
+} from '@/features/marketplace/pages/MyMarketplacePage'
 import { SellerProfilePage } from '@/features/marketplace/pages/SellerProfilePage'
-import { SellerCheckoutPage, SellerPlansPage } from '@/features/marketplace/pages/SellerPlansPages'
+import { SellerCheckoutPage } from '@/features/marketplace/pages/SellerPlansPages'
 import { SellItemPage } from '@/features/marketplace/pages/SellItemPage'
 import { HireMovingPage } from '@/features/moving/pages/HireMovingPage'
 import { MovingRequestDetailPage } from '@/features/moving/pages/MovingRequestDetailPage'
@@ -88,10 +98,23 @@ export const publicRoutes: RouteObject = {
     { path: 'marketplace/moving-out-sales/:saleId', element: <MovingOutSalePage /> },
     { path: 'marketplace/policy', element: <MarketplacePolicyPage /> },
     { path: 'marketplace/sell', element: <SellItemPage /> },
-    { path: 'marketplace/my', element: <MyMarketplacePage /> },
-    { path: 'marketplace/plans', element: <SellerPlansPage /> },
-    { path: 'marketplace/checkout/:reference', element: <SellerCheckoutPage /> },
+    {
+      // My Marketplace: the Marketplace seller's own dashboard (separate from the agent dashboard).
+      path: 'marketplace/my',
+      element: <MyMarketplaceLayout />,
+      children: [
+        { index: true, element: <MyMarketplaceOverviewPage /> },
+        { path: 'products', element: <MyProductsPage /> },
+        { path: 'inquiries', element: <MyInquiriesPage /> },
+        { path: 'insights', element: <MyInsightsPage /> },
+        { path: 'boosts', element: <MyBoostsPage /> },
+        { path: 'plans', element: <MySellerPlansPage /> },
+        { path: 'subscription', element: <MySubscriptionPage /> },
+      ],
+    },
     { path: 'marketplace/my/listings/:id/edit', element: <SellItemPage /> },
+    { path: 'marketplace/plans', element: <LegacySellerPlansRedirect /> },
+    { path: 'marketplace/checkout/:reference', element: <SellerCheckoutPage /> },
     { path: 'profile', element: <ProfilePage /> },
     { path: 'profile/wishlist', element: <WishlistPage /> },
     { path: 'profile/history', element: <HistoryPage /> },
