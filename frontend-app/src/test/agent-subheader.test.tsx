@@ -101,6 +101,21 @@ describe('agent post housing sub-header', () => {
     expect(postLink).toHaveTextContent(/post house information/i)
   })
 
+  it('places the agent action at the right end, apart from the scrolling browse links', async () => {
+    stubAuthFetch(['agent'])
+    renderLayout()
+
+    await screen.findByRole('button', { name: /alice user/i })
+    const subNav = screen.getByRole('navigation', { name: /sub/i })
+    const postLink = screen.getByRole('link', { name: 'Post House Information' })
+    const row = postLink.parentElement as HTMLElement
+    // Last item of the row, and not inside the group of browse links that scrolls on phones.
+    expect(row.lastElementChild).toBe(postLink)
+    const browseLinks = subNav.querySelector('a[href="/finding-house"]')?.parentElement as HTMLElement
+    expect(browseLinks.contains(postLink)).toBe(false)
+    expect(browseLinks.className).toContain('overflow-x-auto')
+  })
+
   it('hides Post Housing Information in sub-header for non-agent users', async () => {
     stubAuthFetch(['normal'])
     renderLayout()

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { ClipboardList, Home, Menu, Store, Truck, Users, X, type LucideIcon } from 'lucide-react'
+import { ClipboardList, Home, Menu, Plus, Store, Truck, Users, X, type LucideIcon } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -39,10 +39,9 @@ const SUB_LINK_ICONS: Record<string, LucideIcon> = {
   '/marketplace': Store,
 }
 
-function buildPublicSubLinks(options: { isAgent: boolean; isDriver: boolean }) {
+function buildPublicSubLinks(options: { isDriver: boolean }) {
   return [
     { to: '/finding-house', labelKey: 'nav.findingHouse' },
-    ...(options.isAgent ? [{ to: '/agent/houses', labelKey: 'nav.postHousingInformation' }] : []),
     { to: '/hire-moving', labelKey: 'nav.hireMoving' },
     { to: '/moving-status', labelKey: 'nav.movingStatus' },
     ...(options.isDriver ? [{ to: '/driver/jobs', labelKey: 'nav.driverJobs' }] : []),
@@ -91,13 +90,38 @@ function SubNavItem({ to, label }: { to: string; label: string }) {
   )
 }
 
+/**
+ * The agent's main action, kept apart from the browsing links at the right end of the second row
+ * (the pattern Booking.com and Zillow use for "List your property" / "Manage rentals"). Shown only
+ * to signed-in agents; the page and its API check the agent role again.
+ */
+function AgentPostAction({ label, shortLabel }: { label: string; shortLabel: string }) {
+  return (
+    <NavLink
+      to="/agent/houses"
+      aria-label={label}
+      className={({ isActive }) =>
+        cn(
+          'my-1.5 inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+          'border-gold/50 bg-white/70 text-header-foreground hover:border-gold hover:bg-gold/10 dark:bg-white/5',
+          isActive && 'border-gold bg-gold/15',
+        )
+      }
+    >
+      <Plus className="size-4 shrink-0 text-gold-hover dark:text-gold" aria-hidden />
+      <span className="hidden sm:inline">{label}</span>
+      <span className="sm:hidden">{shortLabel}</span>
+    </NavLink>
+  )
+}
+
 export function PublicLayout() {
   const { t } = useTranslation()
   const { isAuthenticated, isBootstrapping, user } = useAuth()
   const topLinks = isAuthenticated ? authTopLinks : guestTopLinks
   const isAgent = Boolean(user?.roles?.includes('agent'))
   const isDriver = Boolean(user?.roles?.includes('driver'))
-  const subLinks = buildPublicSubLinks({ isAgent, isDriver })
+  const subLinks = buildPublicSubLinks({ isDriver })
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   useEffect(() => {
@@ -192,10 +216,18 @@ export function PublicLayout() {
         </div>
         <nav className="border-t border-header-line bg-header-sub" aria-label="Sub">
           {/* On narrow screens the row scrolls sideways inside itself; the page never does. */}
-          <div className="mx-auto flex max-w-6xl gap-1 overflow-x-auto px-2 [scrollbar-width:none] sm:px-4 [&::-webkit-scrollbar]:hidden">
-            {subLinks.map((link) => (
-              <SubNavItem key={link.to} to={link.to} label={t(link.labelKey)} />
-            ))}
+          <div className="mx-auto flex max-w-6xl items-center gap-2 px-2 sm:px-4">
+            <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {subLinks.map((link) => (
+                <SubNavItem key={link.to} to={link.to} label={t(link.labelKey)} />
+              ))}
+            </div>
+            {isAgent ? (
+              <>
+                <span className="hidden h-6 w-px shrink-0 bg-header-line sm:block" aria-hidden />
+                <AgentPostAction label={t('nav.postHousingInformation')} shortLabel={t('nav.postHouseShort')} />
+              </>
+            ) : null}
           </div>
         </nav>
       </header>
