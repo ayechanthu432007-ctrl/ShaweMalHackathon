@@ -41,11 +41,11 @@ const SUB_LINK_ICONS: Record<string, LucideIcon> = {
 
 function buildPublicSubLinks(options: { isDriver: boolean }) {
   return [
-    { to: '/finding-house', labelKey: 'nav.findingHouse' },
-    { to: '/hire-moving', labelKey: 'nav.hireMoving' },
-    { to: '/moving-status', labelKey: 'nav.movingStatus' },
+    { to: '/finding-house', labelKey: 'nav.sub.housing' },
+    { to: '/hire-moving', labelKey: 'nav.sub.moving' },
+    { to: '/moving-status', labelKey: 'nav.sub.trackMove' },
     ...(options.isDriver ? [{ to: '/driver/jobs', labelKey: 'nav.driverJobs' }] : []),
-    { to: '/finding-roommates', labelKey: 'nav.findingRoommates' },
+    { to: '/finding-roommates', labelKey: 'nav.sub.roommates' },
     { to: '/marketplace', labelKey: 'nav.marketplace' },
   ]
 }
@@ -225,7 +225,7 @@ export function PublicLayout() {
             {isAgent ? (
               <>
                 <span className="hidden h-6 w-px shrink-0 bg-header-line sm:block" aria-hidden />
-                <AgentPostAction label={t('nav.postHousingInformation')} shortLabel={t('nav.postHouseShort')} />
+                <AgentPostAction label={t('nav.sub.listingDashboard')} shortLabel={t('nav.sub.listingDashboardShort')} />
               </>
             ) : null}
           </div>

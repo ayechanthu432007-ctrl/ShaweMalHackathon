@@ -53,7 +53,15 @@
     "notifications": "Notifications",
     "marketplace": "Marketplace",
     "myMarketplace": "My Marketplace",
-    "agentDashboard": "Agent dashboard"
+    "agentDashboard": "Agent dashboard",
+    "sub": {
+      "housing": "Housing",
+      "moving": "Moving",
+      "trackMove": "Track Move",
+      "roommates": "Roommates",
+      "listingDashboard": "Listing Dashboard",
+      "listingDashboardShort": "Listings"
+    }
   },
   "public": {
     "homeTitle": "Home",

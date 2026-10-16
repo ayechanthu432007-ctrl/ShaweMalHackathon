@@ -53,7 +53,15 @@
     "notifications": "အသိပေးချက်များ",
     "marketplace": "ဈေးကွက်",
     "myMarketplace": "ကျွန်ုပ်၏ ဈေးကွက်",
-    "agentDashboard": "Agent Dashboard"
+    "agentDashboard": "Agent Dashboard",
+    "sub": {
+      "housing": "အိမ်ရာ",
+      "moving": "ရွှေ့ပြောင်းရေး",
+      "trackMove": "ရွှေ့ပြောင်းမှု ခြေရာခံ",
+      "roommates": "အခန်းဖော်",
+      "listingDashboard": "ကြော်ငြာ ဒက်ရှ်ဘုတ်",
+      "listingDashboardShort": "ကြော်ငြာများ"
+    }
   },
   "public": {
     "homeTitle": "ပင်မ",

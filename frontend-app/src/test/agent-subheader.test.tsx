@@ -98,7 +98,17 @@ describe('agent post housing sub-header', () => {
     const subNav = screen.getByRole('navigation', { name: /sub/i })
     const postLink = subNav.querySelector('a[href="/agent/houses"]')
     expect(postLink).not.toBeNull()
-    expect(postLink).toHaveTextContent(/post house information/i)
+    expect(postLink).toHaveTextContent(/listing dashboard/i)
+  })
+
+  it('uses the short second-row names', async () => {
+    stubAuthFetch(['agent'])
+    renderLayout()
+
+    await screen.findByRole('button', { name: /alice user/i })
+    const subNav = screen.getByRole('navigation', { name: /sub/i })
+    const names = [...subNav.querySelectorAll('a')].map((link) => link.getAttribute('aria-label') ?? link.textContent)
+    expect(names).toEqual(['Housing', 'Moving', 'Track Move', 'Roommates', 'Marketplace', 'Listing Dashboard'])
   })
 
   it('places the agent action at the right end, apart from the scrolling browse links', async () => {
@@ -107,7 +117,7 @@ describe('agent post housing sub-header', () => {
 
     await screen.findByRole('button', { name: /alice user/i })
     const subNav = screen.getByRole('navigation', { name: /sub/i })
-    const postLink = screen.getByRole('link', { name: 'Post House Information' })
+    const postLink = screen.getByRole('link', { name: 'Listing Dashboard' })
     const row = postLink.parentElement as HTMLElement
     // Last item of the row, and not inside the group of browse links that scrolls on phones.
     expect(row.lastElementChild).toBe(postLink)
@@ -123,6 +133,6 @@ describe('agent post housing sub-header', () => {
     await screen.findByRole('button', { name: /alice user/i })
     const subNav = screen.getByRole('navigation', { name: /sub/i })
     expect(subNav.querySelector('a[href="/agent/houses"]')).toBeNull()
-    expect(screen.queryByRole('link', { name: /post house information/i })).toBeNull()
+    expect(screen.queryByRole('link', { name: /listing dashboard/i })).toBeNull()
   })
 })
