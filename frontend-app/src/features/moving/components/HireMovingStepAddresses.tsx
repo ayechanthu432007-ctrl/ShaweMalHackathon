@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
+import { ArrowRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,7 +14,6 @@ import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import { HireMovingEasySteps } from './HireMovingEasySteps'
 import { HireMovingField } from './HireMovingField'
 import { MovingRouteMap, type MovingPinRole } from './MovingRouteMap'
-import { HireMovingStepNav } from './HireMovingStepNav'
 
 const selectClassName =
   'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50'
@@ -146,6 +146,16 @@ export function HireMovingStepAddresses({
 
   return (
     <div className="space-y-8">
+      {/* Step 1's only forward button sits at the top right, so it is reachable without scrolling. */}
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          className="h-11 min-w-32 rounded-lg bg-highlight px-6 text-base font-semibold text-[#222222] shadow-sm transition-[background-color,transform] hover:bg-highlight/85 active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-[#222222] focus-visible:ring-offset-2 disabled:bg-highlight/50 disabled:text-[#222222]/60"
+        >
+          {t('moving.continue')}
+          <ArrowRight aria-hidden />
+        </Button>
+      </div>
       <div className="grid gap-6">
         <AddressBlock
           streetName="pickupStreet"
@@ -220,9 +230,6 @@ export function HireMovingStepAddresses({
         />
       </section>
 
-      <HireMovingStepNav>
-        <Button type="submit">{t('moving.continue')}</Button>
-      </HireMovingStepNav>
     </div>
   )
 }
