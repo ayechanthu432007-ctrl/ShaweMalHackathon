@@ -52,6 +52,13 @@ describe('home page', () => {
 
     expect(await screen.findByRole('heading', { name: /myanmar.?s all-in-one relocation platform/i })).toBeInTheDocument()
     expect(screen.getByText(/find homes, meet roommates, arrange your move/i)).toBeInTheDocument()
+
+    // The hero visual is the turning Shawe Mal logo, never a house or kitchen photo.
+    const hero = screen.getByRole('heading', { level: 1 }).closest('section') as HTMLElement
+    expect(within(hero).getByRole('img', { name: 'Shawe Mal logo' })).toBeInTheDocument()
+    const heroImages = [...hero.querySelectorAll('img')].map((img) => img.getAttribute('src') ?? '')
+    expect(heroImages.length).toBeGreaterThan(0)
+    expect(heroImages.every((src) => src.includes('shawemal-logo-mark'))).toBe(true)
     expect(await screen.findByText('Welcome to ShweMal')).toBeInTheDocument()
 
     // Required section order.

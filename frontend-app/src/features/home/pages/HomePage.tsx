@@ -15,7 +15,7 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
 
@@ -27,7 +27,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { marketplaceApi } from '@/features/marketplace/api/marketplace-api'
 import { ListingCard, ListingGrid } from '@/features/marketplace/components/ListingCard'
 import { StarRating } from '@/features/reviews/components/StarRating'
-import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 import { cn } from '@/lib/utils'
 
 import { homeApi } from '../api/home-api'
@@ -76,14 +75,10 @@ export function HomePage() {
   const marketQuery = useQuery({ queryKey: ['marketplace', 'home'], queryFn: () => marketplaceApi.home() })
 
   const data = homeQuery.data
-  // The hero shows a real listing photo when one exists; otherwise the brand panel.
-  const heroPhoto = resolvePublicUploadUrl(
-    data?.popularRecommended.find((house) => house.thumbnail)?.thumbnail ?? data?.featuredHouses.find((house) => house.thumbnail)?.thumbnail ?? null,
-  )
 
   return (
     <div className="space-y-14">
-      <Hero photo={heroPhoto} hasVerifiedAgents={Boolean(data?.verifiedAgents.some((agent) => agent.hasVerifiedBadge))} hasPartners={Boolean(data?.partnerMovingServices.length)} />
+      <Hero hasVerifiedAgents={Boolean(data?.verifiedAgents.some((agent) => agent.hasVerifiedBadge))} hasPartners={Boolean(data?.partnerMovingServices.length)} />
 
       <FeatureCards />
 
@@ -233,9 +228,8 @@ export function HomePage() {
   )
 }
 
-function Hero({ photo, hasVerifiedAgents, hasPartners }: { photo: string | null; hasVerifiedAgents: boolean; hasPartners: boolean }) {
+function Hero({ hasVerifiedAgents, hasPartners }: { hasVerifiedAgents: boolean; hasPartners: boolean }) {
   const { t } = useTranslation()
-  const [photoFailed, setPhotoFailed] = useState(false)
   // Only claims the platform can back: verification exists for agents, partners are listed when present.
   const trust: { icon: LucideIcon; key: string }[] = [
     ...(hasVerifiedAgents ? [{ icon: BadgeCheck, key: 'home.trust.verifiedAgents' }] : []),
@@ -258,20 +252,11 @@ function Hero({ photo, hasVerifiedAgents, hasPartners }: { photo: string | null;
             ))}
           </ul>
         </div>
-        <div className="relative">
-          {photo && !photoFailed ? (
-            <img
-              src={photo}
-              alt={t('home.heroPhotoAlt')}
-              className="aspect-[4/3] w-full rounded-2xl object-cover shadow-lg"
-              onError={() => setPhotoFailed(true)}
-            />
-          ) : (
-            <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-surface-warm via-surface-warm-2 to-surface-warm-3 dark:from-muted dark:via-card dark:to-secondary">
-              <div className="pointer-events-none absolute -right-10 top-6 size-56 rounded-full bg-primary/25 blur-3xl" />
-              <RotatingLogo alt={t('home.newPlaceLogoAlt')} className="z-10" />
-            </div>
-          )}
+        {/* The Shawe Mal logo as a turning 3D object (reduced motion: standing still at an angle). */}
+        <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-white via-brand-sky-soft to-surface-warm-2 p-8 sm:p-10 dark:from-card dark:via-muted dark:to-secondary">
+          <div className="pointer-events-none absolute -right-12 -top-10 size-56 rounded-full bg-primary/15 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute -bottom-12 -left-10 size-48 rounded-full bg-sky-300/30 blur-3xl dark:bg-sky-400/15" aria-hidden />
+          <RotatingLogo alt={t('home.heroLogoAlt')} className="z-10 max-w-[13rem] sm:max-w-[15rem] lg:max-w-[17rem]" />
         </div>
       </div>
     </section>

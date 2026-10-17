@@ -611,7 +611,6 @@
     "anonymousReviewer": "Anonymous",
     "browseHint": "Looking for more options? Use filters on Finding House.",
     "heroDescription": "Find homes, meet roommates, arrange your move, and discover affordable essentials — all in one place.",
-    "heroPhotoAlt": "A home listed on Shawe Mal",
     "trust": {
       "verifiedAgents": "Verified agents",
       "partners": "Partner moving services",
@@ -676,7 +675,8 @@
       "housing": "Housing",
       "moving": "Moving",
       "marketplace": "Marketplace"
-    }
+    },
+    "heroLogoAlt": "Shawe Mal logo"
   },
   "houses": {
     "priceFrom": "From",
