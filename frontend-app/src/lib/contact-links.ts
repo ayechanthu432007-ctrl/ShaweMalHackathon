@@ -21,6 +21,20 @@ export function telegramBotLink(username: string): string | null {
   return /^[A-Za-z0-9_]{4,32}$/.test(username) ? `https://t.me/${username}?start=web` : null
 }
 
+/**
+ * The same bot as `telegramBotLink`, as Telegram's app scheme. Phones open the Telegram app with
+ * it directly; the https link stays as the fallback when the app is not installed.
+ */
+export function telegramBotAppLink(username: string): string | null {
+  if (!telegramBotLink(username)) return null
+  return `tg://resolve?domain=${username}&start=web`
+}
+
+/** Phones and tablets, where links that open a new tab often fail to hand off to the Telegram app. */
+export function isMobileDevice(userAgent: string = typeof navigator === 'undefined' ? '' : navigator.userAgent): boolean {
+  return /Android|iPhone|iPad|iPod|Mobile|FBAN|FBAV|Viber|Line\//i.test(userAgent)
+}
+
 /** Link to a person's Telegram profile from a stored username or t.me address. */
 export function telegramProfileLink(value: string | null | undefined): string | null {
   const username = (value ?? '').trim().replace(/^https?:\/\/t\.me\//i, '').replace(/^@/, '')

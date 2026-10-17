@@ -1,8 +1,8 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { telegramBotLink, toInternationalPhone, viberChatLink } from '@/lib/contact-links'
+import { isMobileDevice, telegramBotAppLink, telegramBotLink, toInternationalPhone, viberChatLink } from '@/lib/contact-links'
 import { i18n } from '@/lib/i18n'
 
 async function renderButtons(env: Record<string, string>) {
@@ -19,6 +19,39 @@ async function renderButtons(env: Record<string, string>) {
 describe('floating contact buttons', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
+    vi.unstubAllGlobals()
+    vi.useRealTimers()
+  })
+
+  it('builds the app link for the same bot and recognises phones', () => {
+    expect(telegramBotAppLink('shawemalbot')).toBe('tg://resolve?domain=shawemalbot&start=web')
+    expect(telegramBotAppLink('')).toBeNull()
+    expect(isMobileDevice('Mozilla/5.0 (Linux; Android 14; Pixel 8) Mobile Safari/537.36')).toBe(true)
+    expect(isMobileDevice('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1')).toBe(true)
+    expect(isMobileDevice('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0 Safari/537.36')).toBe(false)
+  })
+
+  it('keeps the normal new-tab link on desktop', async () => {
+    vi.stubGlobal('navigator', { ...navigator, userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/130.0' })
+    await renderButtons({ VITE_TELEGRAM_BOT_USERNAME: 'shawemalbot' })
+    const telegram = screen.getByRole('link', { name: /telegram/i })
+    // Not prevented: the browser follows href in a new tab as before.
+    expect(fireEvent.click(telegram)).toBe(true)
+  })
+
+  it('opens the Telegram app in the same tab on phones, then falls back to t.me', async () => {
+    vi.useFakeTimers()
+    vi.stubGlobal('navigator', { ...navigator, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Safari/604.1' })
+    const visited: string[] = []
+    vi.stubGlobal('location', { set href(value: string) { visited.push(value) }, get href() { return visited.at(-1) ?? '' } })
+    await renderButtons({ VITE_TELEGRAM_BOT_USERNAME: 'shawemalbot' })
+
+    const telegram = screen.getByRole('link', { name: /telegram/i })
+    expect(fireEvent.click(telegram)).toBe(false)
+    expect(visited).toEqual(['tg://resolve?domain=shawemalbot&start=web'])
+    vi.advanceTimersByTime(1600)
+    // The app did not take over (page still visible): same bot, web link, same tab.
+    expect(visited).toEqual(['tg://resolve?domain=shawemalbot&start=web', 'https://t.me/shawemalbot?start=web'])
   })
 
   it('builds Telegram and Viber links from public values only', () => {

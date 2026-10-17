@@ -1,6 +1,7 @@
+import type { MouseEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { TELEGRAM_FALLBACK_LINK, telegramBotLink, viberChatLink } from '@/lib/contact-links'
+import { isMobileDevice, TELEGRAM_FALLBACK_LINK, telegramBotAppLink, telegramBotLink, viberChatLink } from '@/lib/contact-links'
 
 /**
  * Public contact details only. The Telegram bot token is a server secret and must never
@@ -34,7 +35,30 @@ export function FloatingContactButtons() {
   const { t } = useTranslation()
   // The Telegram button is always shown. It needs only the bot's public username, never the token.
   const telegramHref = telegramBotLink(TELEGRAM_BOT_USERNAME) ?? TELEGRAM_FALLBACK_LINK
+  const telegramAppHref = telegramBotAppLink(TELEGRAM_BOT_USERNAME)
   const viberHref = viberChatLink(VIBER_PHONE)
+
+  /**
+   * Desktop keeps the normal link (new tab to t.me). On phones a new tab often never reaches the
+   * app (in-app browsers block it; iOS does not hand it over), so open the Telegram app in the same
+   * tab and, if the app does not take over, go to the same bot's t.me page in the same tab.
+   */
+  const openTelegram = (event: MouseEvent<HTMLAnchorElement>) => {
+    if (!telegramAppHref || !isMobileDevice()) return
+    event.preventDefault()
+    let handedOff = false
+    const markHandedOff = () => {
+      if (document.visibilityState === 'hidden') handedOff = true
+    }
+    document.addEventListener('visibilitychange', markHandedOff)
+    window.addEventListener('pagehide', markHandedOff)
+    window.location.href = telegramAppHref
+    window.setTimeout(() => {
+      document.removeEventListener('visibilitychange', markHandedOff)
+      window.removeEventListener('pagehide', markHandedOff)
+      if (!handedOff && document.visibilityState === 'visible') window.location.href = telegramHref
+    }, 1500)
+  }
 
   return (
     <aside
@@ -46,6 +70,7 @@ export function FloatingContactButtons() {
         href={telegramHref}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={openTelegram}
         aria-label={t('contact.telegram')}
         title={t('contact.telegram')}
         className={`${buttonClassName} bg-telegram`}
