@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import { Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -43,41 +43,51 @@ describe('home page', () => {
     )
   })
 
-  it('renders home sections from API without a global search box', async () => {
+  it('renders the redesigned homepage in the required order from real data', async () => {
     renderWithProviders(
       <Routes>
         <Route path="/" element={<HomePage />} />
       </Routes>,
     )
 
-    expect(
-      await screen.findByRole('heading', { name: /myanmar.?s all-in-one relocation platform/i }),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Find Your Place. Plan Your Move. Settle In.')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'From personalized home searching to trusted moving services — everything you need, all in one place',
-      ),
-    ).toBeInTheDocument()
-    expect(await screen.findByRole('heading', { name: /your new place\. your new chapter\./i })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: /featured houses/i })).not.toBeInTheDocument()
-    expect(screen.queryByText('Golden Condo')).not.toBeInTheDocument()
-    expect(screen.getByText('Simple & Convenient')).toBeInTheDocument()
-    expect(screen.getByText('Relocation Marketplace')).toBeInTheDocument()
-    expect(screen.getByText('Support Every Step')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /how shawe mal works\?/i })).toBeInTheDocument()
-    expect(screen.getByText('Find Your Home')).toBeInTheDocument()
-    expect(screen.getByText('Stay Updated')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Sell Your Unwanted Items' })).toHaveAttribute('href', '/marketplace')
-    expect(screen.getByText('Welcome to ShweMal')).toBeInTheDocument()
-    expect(screen.getByText('Agent A')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Housing agents' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: /verified housing agents/i })).not.toBeInTheDocument()
-    // Only the agent holding the badge is marked as verified.
-    expect(screen.getAllByText('Verified')).toHaveLength(1)
+    expect(await screen.findByRole('heading', { name: /myanmar.?s all-in-one relocation platform/i })).toBeInTheDocument()
+    expect(screen.getByText(/find homes, meet roommates, arrange your move/i)).toBeInTheDocument()
+    expect(await screen.findByText('Welcome to ShweMal')).toBeInTheDocument()
+
+    // Required section order.
+    const order = [
+      /myanmar.?s all-in-one relocation platform/i,
+      /popular houses/i,
+      /ready to take the next step/i,
+      /how shawe mal works/i,
+      /housing agents/i,
+      /partner moving services/i,
+      /marketplace highlights/i,
+      /services & customer reviews/i,
+    ].map((name) => screen.getByRole('heading', { name }))
+    for (let i = 1; i < order.length; i += 1) {
+      expect(order[i - 1].compareDocumentPosition(order[i]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    }
+
+    // Four feature cards link to existing pages.
+    const features = within(screen.getByRole('navigation', { name: 'Main services' }))
+    expect(features.getByRole('link', { name: /find a home/i })).toHaveAttribute('href', '/finding-house')
+    expect(features.getByRole('link', { name: /find roommates/i })).toHaveAttribute('href', '/finding-roommates')
+    expect(features.getByRole('link', { name: /moving services/i })).toHaveAttribute('href', '/hire-moving')
+    expect(features.getByRole('link', { name: /marketplace/i })).toHaveAttribute('href', '/marketplace')
+
+    // The two primary CTAs live in the banner after Popular Houses, not in the hero.
+    const cta = within(screen.getByRole('region', { name: /ready to take the next step/i }))
+    expect(cta.getByRole('link', { name: /find your home/i })).toHaveAttribute('href', '/finding-house')
+    expect(cta.getByRole('link', { name: /plan your move/i })).toHaveAttribute('href', '/hire-moving')
+
+    // Real agents; only the badge holder is marked verified.
     expect(screen.getByText('Agent A').parentElement).toHaveTextContent('Verified')
     expect(screen.getByText('Agent B').parentElement).not.toHaveTextContent('Verified')
-    expect(screen.queryByLabelText(/search houses by city/i)).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /search houses/i })).not.toBeInTheDocument()
+
+    // No reviews in the data: an honest empty state, no invented ratings.
+    expect(screen.getByRole('heading', { name: 'What Our Customers Say' })).toBeInTheDocument()
+    expect(screen.getByText('Customer reviews will appear here when available.')).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /stars?/i })).not.toBeInTheDocument()
   })
 })
