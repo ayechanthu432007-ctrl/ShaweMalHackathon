@@ -102,6 +102,8 @@ export function FindingHousePage() {
 
       <FeatureHouses />
 
+      <RecommendedHouses />
+
       <HouseFilterForm
         defaultValues={{
           city: filters.city,
@@ -114,8 +116,6 @@ export function FindingHousePage() {
         isLoadingOptions={citiesQuery.isLoading || propertyTypesQuery.isLoading}
         onSubmit={applyFilters}
       />
-
-      <RecommendedHouses />
 
       {housesQuery.isLoading ? <CardGridSkeleton count={6} /> : null}
 
