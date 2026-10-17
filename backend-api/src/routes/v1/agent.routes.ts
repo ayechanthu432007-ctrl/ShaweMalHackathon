@@ -22,7 +22,7 @@ import {
   simulateDemoPaymentController,
   resetDemoSubscriptionController
 } from '../../controllers/agent-plan.controller';
-import { tenantMatchesController } from '../../controllers/recommendation.controller';
+import { occupationCompatibilityController, tenantMatchesController } from '../../controllers/recommendation.controller';
 import { requireAuth, requireRole } from '../../middleware/auth.middleware';
 import { validateMiddleware } from '../../middleware/validate.middleware';
 import { asyncHandler } from '../../utils/async-handler';
@@ -40,7 +40,7 @@ import {
   performanceQueryValidator,
   subscriptionOrderValidator
 } from '../../validators/agent-plan.validator';
-import { tenantMatchesValidator } from '../../validators/recommendation.validator';
+import { occupationCompatibilityValidator, tenantMatchesValidator } from '../../validators/recommendation.validator';
 
 const agentRouter = Router();
 
@@ -48,6 +48,7 @@ agentRouter.use(requireAuth, requireRole(['agent']));
 agentRouter.post('/profile', agentProfileUpsertValidator, validateMiddleware, asyncHandler(upsertAgentProfileController));
 agentRouter.post('/houses', agentHouseCreateValidator, validateMiddleware, asyncHandler(createAgentHouseController));
 agentRouter.get('/houses', asyncHandler(listAgentHousesController));
+agentRouter.post('/houses/occupation-compatibility', occupationCompatibilityValidator, validateMiddleware, asyncHandler(occupationCompatibilityController));
 agentRouter.post('/houses/tenant-matches', tenantMatchesValidator, validateMiddleware, asyncHandler(tenantMatchesController));
 agentRouter.get('/bookings', asyncHandler(listAgentBookingsController));
 agentRouter.patch('/houses/:id', agentHouseUpdateValidator, validateMiddleware, asyncHandler(updateAgentHouseController));

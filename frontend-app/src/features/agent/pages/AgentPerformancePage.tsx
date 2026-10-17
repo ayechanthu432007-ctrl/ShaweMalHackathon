@@ -106,7 +106,7 @@ export function AgentPerformancePage() {
             performance.listings.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('agentDash.noListings')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto">
                 <table className="w-full min-w-[28rem] text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">

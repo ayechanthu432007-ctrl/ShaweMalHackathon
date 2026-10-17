@@ -67,7 +67,8 @@ describe('finding house page', () => {
     )
 
     expect(await screen.findByRole('heading', { name: /featured houses/i })).toBeInTheDocument()
-    expect(screen.getByText('Golden Condo')).toBeInTheDocument()
+    // The heading shows while loading (no layout jump); the cards follow once the data arrives.
+    expect(await screen.findByText('Golden Condo')).toBeInTheDocument()
 
     const featuredHeading = screen.getByRole('heading', { name: /featured houses/i })
     const filterForm = screen.getByRole('button', { name: /^search$/i }).closest('form')

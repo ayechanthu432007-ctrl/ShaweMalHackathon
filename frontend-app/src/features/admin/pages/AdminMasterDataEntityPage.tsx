@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,9 +20,6 @@ import {
   type MasterDataFieldConfig,
 } from '../constants/master-data-entities'
 import type { AdminMasterDataEntity, AdminMasterDataItem } from '../types'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 function isAdminMasterDataEntity(value: string): value is AdminMasterDataEntity {
   return (ADMIN_MASTER_DATA_ENTITIES as string[]).includes(value)
@@ -152,7 +150,7 @@ export function AdminMasterDataEntityPage() {
   if (!entity) {
     return (
       <section className="space-y-4">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.masterData.invalidEntity')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.masterData.invalidEntity')}</h1>
         <Button asChild variant="outline">
           <Link to="/admin/master-data">{t('admin.masterData.back')}</Link>
         </Button>
@@ -167,7 +165,7 @@ export function AdminMasterDataEntityPage() {
       <BackLink to="/admin/master-data" label={t('admin.masterData.back')} />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
             {t(`admin.masterData.entities.${entity}`)}
           </h1>
           <p className="mt-2 text-muted-foreground">{t('admin.masterData.entitySubtitle')}</p>

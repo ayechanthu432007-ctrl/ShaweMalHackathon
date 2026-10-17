@@ -8,13 +8,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LOCALE_STORAGE_KEY, type AppLocale } from '@/lib/i18n'
+import { LOCALE_STORAGE_KEY, setAppLocale, type AppLocale } from '@/lib/i18n'
 
 export function LanguageToggle() {
-  const { i18n, t } = useTranslation()
+  const { t } = useTranslation()
 
   const changeLanguage = (locale: AppLocale) => {
-    void i18n.changeLanguage(locale)
+    void setAppLocale(locale)
     localStorage.setItem(LOCALE_STORAGE_KEY, locale)
   }
 

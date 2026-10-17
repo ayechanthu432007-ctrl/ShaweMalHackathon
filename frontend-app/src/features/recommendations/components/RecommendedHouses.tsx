@@ -2,9 +2,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { CoverImage } from '@/components/common/CoverImage'
+import { CardGridSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useViewportReady } from '@/lib/use-viewport-ready'
 import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 
 import { recommendationsApi } from '../api/recommendations-api'
@@ -16,10 +19,11 @@ const formatFees = (amount: number) => new Intl.NumberFormat('en-US').format(amo
 export function RecommendedHouses() {
   const { t } = useTranslation()
   const { isAuthenticated, isBootstrapping, user } = useAuth()
+  const { ref, isVisible } = useViewportReady({ rootMargin: '200px 0px', initialVisible: false })
 
   const query = useQuery({
     queryKey: ['recommendations', 'houses', user?.id],
-    enabled: isAuthenticated,
+    enabled: isAuthenticated && isVisible,
     queryFn: () => recommendationsApi.houses(),
   })
 
@@ -27,7 +31,7 @@ export function RecommendedHouses() {
 
   const heading = (
     <div>
-      <h2 className="text-xl font-semibold tracking-tight">
+      <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">
         {isAuthenticated && user?.name ? t('match.houses.titleFor', { name: user.name }) : t('match.houses.title')}
       </h2>
       <p className="mt-1 text-sm text-muted-foreground">{t('match.houses.subtitle')}</p>
@@ -54,10 +58,11 @@ export function RecommendedHouses() {
   const needsProfile = data && (!data.hasPreferences || !data.hasOccupation)
 
   return (
-    <section className="space-y-3" aria-label={t('match.houses.title')}>
+    <section ref={ref} className="space-y-3" aria-label={t('match.houses.title')}>
       {heading}
 
-      {query.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {!isVisible && !query.data ? <CardGridSkeleton /> : null}
+      {query.isLoading ? <CardGridSkeleton /> : null}
 
       {query.isError ? (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
@@ -87,11 +92,7 @@ export function RecommendedHouses() {
               <li key={house.id} className="w-64 shrink-0 snap-start lg:w-auto">
                 <Card className="flex h-full flex-col overflow-hidden">
                   <div className="aspect-[2/1] bg-muted">
-                    {thumbnail ? (
-                      <img src={thumbnail} alt={house.title} loading="lazy" className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-sm text-muted-foreground">{t('houses.noPhoto')}</div>
-                    )}
+                    <CoverImage src={thumbnail} alt={house.title} fallbackLabel={t('houses.noPhoto')} />
                   </div>
                   <CardContent className="flex flex-1 flex-col gap-1.5 p-3">
                     <MatchScore match={match} />

@@ -1,3 +1,4 @@
+import { LoadingState } from '@/components/common/PageStates'
 import { HousingPreferencesCard } from '@/features/recommendations/components/HousingPreferencesCard'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useEffect, useState } from 'react'
@@ -93,17 +94,17 @@ export function ProfilePage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (profileQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (profileQuery.isError || !profileQuery.data?.user) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('profile.loadError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('profile.loadError')}</h1>
         <Button type="button" variant="outline" onClick={() => void profileQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -116,7 +117,7 @@ export function ProfilePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">{t('nav.profile')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('nav.profile')}</h1>
         <p className="text-sm text-muted-foreground">{t('profile.subtitle')}</p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Button asChild size="sm" variant="outline">

@@ -17,31 +17,75 @@
   --secondary: #f4f7fb;
   --secondary-foreground: #172b4d;
   --muted: #f4f7fb;
-  --muted-foreground: #64748b;
+  /* Secondary text: 5.9:1 on white, 5.4:1 on the muted and sky-tint surfaces. */
+  --muted-foreground: #556275;
   --accent: #eaf0f7;
   --accent-foreground: #142b4a;
-  --destructive: #c43d3d;
+  --destructive: #b3302f;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #c69245;
+  /* Focus ring: navy reads at 3:1+ on white, the sky-blue header and the yellow buttons. */
+  --ring: #142b4a;
   --gold: #c69245;
   --gold-hover: #a8752f;
   --gold-foreground: #142b4a;
   --success: #16845b;
   --success-soft: #e7f5ef;
-  /* Both header rows: sky blue with dark text. */
+  /* Top header row: the strong Shawe Mal sky blue with dark text. */
   --header: #38b6ff;
-  --header-sub: #38b6ff;
   --header-foreground: #222222;
   --header-hover: rgb(255 255 255 / 0.28);
-  /* Filled buttons: a softer blue than the navy text colour. */
-  --button: #5b9bd5;
-  --button-hover: #4a8ac6;
+  /* Second (section) row: a pale tint of the same blue, so the two levels read as one family
+     but clearly separate. Text and the active bar are deep blue for contrast (8:1 / 5.5:1). */
+  --header-sub: #eaf6ff;
+  --header-sub-foreground: #173a5c;
+  --header-sub-muted: #3b5b7a;
+  --header-sub-hover: rgb(56 182 255 / 0.14);
+  --header-sub-active: #0b6aa0;
+  --header-sub-border: #cde8fb;
+  /* Filled buttons: a softer blue than the navy text colour, dark enough for white text (4.9:1). */
+  --button: #3574b5;
+  --button-hover: #2b6299;
   --button-foreground: #ffffff;
   --button-soft: #eaf2fa;
   --button-soft-hover: #dceaf7;
   --button-soft-foreground: #172b4d;
   --header-line: rgb(34 34 34 / 0.15);
+
+  /* ---- Design system tokens (shared by components/ui) ---- */
+  /* Brand sky blue (header) and its readable/soft variants for text and fills on light surfaces. */
+  --brand-sky: #38b6ff;
+  --brand-sky-strong: #0b6aa0;
+  --brand-sky-soft: rgb(56 182 255 / 0.14);
+  /* Brand yellow: forward / primary actions (Book, Next, Upgrade, Activate). */
+  --cta: #ffde59;
+  --cta-hover: #f5d03f;
+  --cta-border: #e6c13f;
+  --cta-foreground: #222222;
+  --cta-soft: rgb(255 222 89 / 0.35);
+  --cta-soft-foreground: #4a3a00;
+  /* Gold: demo labels and paid placement (boosts). */
+  --gold-soft: #fcf7ee;
+  --gold-ink: #7a5418;
+  /* Warm sand surfaces (home "Your new place" band). */
+  --surface-warm: #faf6f4;
+  --surface-warm-2: #f4e8dc;
+  --surface-warm-3: #e8d4be;
+  /* Status colours: text colours meet 4.5:1 on their soft fill and on white. */
+  --info: #0b6aa0;
+  --info-soft: #e6f4fd;
+  --warning: #92560a;
+  --warning-soft: #fdf3e1;
+  --danger-soft: #fbeaea;
+  --success-ink: #136b4b;
+  /* Elevation scale. */
+  --elevation-card: 0 1px 2px rgb(20 43 74 / 0.06), 0 1px 3px rgb(20 43 74 / 0.08);
+  --elevation-raised: 0 10px 24px -12px rgb(20 43 74 / 0.28);
+  --elevation-overlay: 0 24px 48px -16px rgb(20 43 74 / 0.35);
+  /* Control heights (buttons, inputs, selects). */
+  --control-sm: 2rem;
+  --control-md: 2.25rem;
+  --control-lg: 2.75rem;
 }
 
 .dark {
@@ -70,9 +114,14 @@
   --success: oklch(0.72 0.15 160);
   --success-soft: oklch(0.3 0.06 160);
   --header: oklch(0.18 0.015 55);
-  --header-sub: oklch(0.24 0.018 55);
   --header-foreground: oklch(0.96 0.01 95);
   --header-hover: oklch(1 0 0 / 0.1);
+  --header-sub: oklch(0.235 0.018 55);
+  --header-sub-foreground: oklch(0.96 0.01 95);
+  --header-sub-muted: oklch(0.8 0.02 90);
+  --header-sub-hover: oklch(1 0 0 / 0.07);
+  --header-sub-active: oklch(0.72 0.12 80);
+  --header-sub-border: oklch(0.3 0.02 55);
   --button: oklch(0.72 0.12 80);
   --button-hover: oklch(0.66 0.12 80);
   --button-foreground: oklch(0.2 0.02 55);
@@ -80,6 +129,30 @@
   --button-soft-hover: oklch(0.32 0.02 55);
   --button-soft-foreground: oklch(0.96 0.01 95);
   --header-line: oklch(1 0 0 / 0.15);
+
+  --brand-sky: #38b6ff;
+  --brand-sky-strong: #7fd0ff;
+  --brand-sky-soft: rgb(56 182 255 / 0.16);
+  --cta: #ffde59;
+  --cta-hover: #f5d03f;
+  --cta-border: #e6c13f;
+  --cta-foreground: #222222;
+  --cta-soft: rgb(255 222 89 / 0.18);
+  --cta-soft-foreground: #ffe58a;
+  --gold-soft: rgb(245 158 11 / 0.1);
+  --gold-ink: #fcd38d;
+  --surface-warm: oklch(0.28 0.02 55);
+  --surface-warm-2: oklch(0.22 0.015 55);
+  --surface-warm-3: oklch(0.32 0.02 55);
+  --info: #7fd0ff;
+  --info-soft: rgb(56 182 255 / 0.14);
+  --warning: #fcd38d;
+  --warning-soft: rgb(245 158 11 / 0.14);
+  --danger-soft: rgb(239 68 68 / 0.14);
+  --success-ink: oklch(0.8 0.13 160);
+  --elevation-card: 0 1px 2px rgb(0 0 0 / 0.3);
+  --elevation-raised: 0 10px 24px -12px rgb(0 0 0 / 0.6);
+  --elevation-overlay: 0 24px 48px -16px rgb(0 0 0 / 0.7);
 }
 
 @theme inline {
@@ -106,7 +179,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   /* House page accent lines (Book house, section dividers, Room Type box). */
-  --color-highlight: #ffde59;
+  --color-highlight: var(--cta);
   --color-gold: var(--gold);
   --color-gold-hover: var(--gold-hover);
   --color-gold-foreground: var(--gold-foreground);
@@ -114,6 +187,11 @@
   --color-success-soft: var(--success-soft);
   --color-header: var(--header);
   --color-header-sub: var(--header-sub);
+  --color-header-sub-foreground: var(--header-sub-foreground);
+  --color-header-sub-muted: var(--header-sub-muted);
+  --color-header-sub-hover: var(--header-sub-hover);
+  --color-header-sub-active: var(--header-sub-active);
+  --color-header-sub-border: var(--header-sub-border);
   --color-header-foreground: var(--header-foreground);
   --color-header-hover: var(--header-hover);
   --color-button: var(--button);
@@ -123,6 +201,36 @@
   --color-button-soft-hover: var(--button-soft-hover);
   --color-button-soft-foreground: var(--button-soft-foreground);
   --color-header-line: var(--header-line);
+  --color-brand-sky: var(--brand-sky);
+  --color-brand-sky-strong: var(--brand-sky-strong);
+  --color-brand-sky-soft: var(--brand-sky-soft);
+  --color-cta: var(--cta);
+  --color-cta-hover: var(--cta-hover);
+  --color-cta-border: var(--cta-border);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-cta-soft: var(--cta-soft);
+  --color-cta-soft-foreground: var(--cta-soft-foreground);
+  --color-gold-soft: var(--gold-soft);
+  --color-gold-ink: var(--gold-ink);
+  /* Third-party brand colours for the chat buttons (same in both themes). */
+  --color-viber: #7360f2;
+  --color-viber-hover: #5e4bd1;
+  --color-telegram: #229ed9;
+  --color-surface-warm: var(--surface-warm);
+  --color-surface-warm-2: var(--surface-warm-2);
+  --color-surface-warm-3: var(--surface-warm-3);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger-soft: var(--danger-soft);
+  --color-success-ink: var(--success-ink);
+  --shadow-card: var(--elevation-card);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-overlay: var(--elevation-overlay);
+  --spacing-control-sm: var(--control-sm);
+  --spacing-control-md: var(--control-md);
+  --spacing-control-lg: var(--control-lg);
   --font-sans: "Segoe UI", "Noto Sans Myanmar", "Padauk", sans-serif;
 }
 
@@ -138,6 +246,12 @@
 
   #root {
     min-height: 100vh;
+  }
+
+  /* Fallback focus indicator for links and controls that do not style their own. */
+  :where(a, button, [role='button'], [tabindex]:not([tabindex='-1']), summary):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
@@ -275,4 +389,32 @@ select optgroup {
 /* In-page jumps and focus scrolling stop below the sticky site header. */
 html {
   scroll-padding-top: calc(var(--site-header-h, 0px) + 0.75rem);
+}
+
+/*
+ * Leaflet positions its tile panes (z-index 400+) and zoom/attribution controls (800-1000)
+ * against the page. Making each map its own stacking context keeps those layers inside the map,
+ * so maps scroll underneath the sticky site header (z-40) instead of painting over it.
+ */
+.leaflet-container {
+  isolation: isolate;
+}
+
+/* Leaflet gives its panes and controls z-indexes up to 1000. Containing them in the map's own
+   stacking context keeps maps under the sticky header, menus and dialogs. */
+.leaflet-container {
+  isolation: isolate;
+}
+
+/* Sideways-scrolling tables keep a slim scrollbar (it shows there is more) instead of the heavy default. */
+.overflow-x-auto {
+  scrollbar-width: thin;
+}
+
+/* Chip and tab rows that scroll sideways hide the bar entirely (after the rule above, so it wins). */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }

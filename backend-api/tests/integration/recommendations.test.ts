@@ -85,7 +85,7 @@ jest.mock('../../src/prisma/client', () => {
     roommatePost: { findMany: jest.fn(async () => []) },
     amenity: { findMany: jest.fn(async () => [{ id: 'a-wifi', name: 'WIFI' }]) },
     contractType: { findUnique: jest.fn(async () => ({ durationMonths: 6 })) },
-    occupation: { findFirst: jest.fn(async () => ({ id: 'occ-student' })) },
+    occupation: { findFirst: jest.fn(async () => ({ id: 'occ-student' })), findMany: jest.fn(async () => []) },
     city: { findFirst: jest.fn(async () => ({ id: 'city-yangon' })) },
     propertyType: { findFirst: jest.fn(async () => ({ id: 'type-apartment' })) },
     housingPreference: { upsert: jest.fn(async () => ({})) }
@@ -281,6 +281,97 @@ describe('recommendations', () => {
     expect(items[0].match.score).toBeGreaterThan(items[1].match.score);
     expect(items[1].match.conflicts).toContain('budget');
     expect(JSON.stringify(response.body)).not.toMatch(/example\.com|0999|0988/);
+  });
+
+  describe('tenant compatibility summary', () => {
+    const draft = { monthlyFees: 300000, cityId: yangon.id, stateId: yangon.stateId, propertyTypeId: 'type-apartment', bedrooms: 2, amenityIds: ['a-wifi'] };
+    const ask = (body: Record<string, unknown>) =>
+      request(app).post('/api/v1/agent/houses/tenant-matches').set('Authorization', authHeader('agent-1', ['agent'])).send(body);
+
+    it('scores people over budget instead of hiding them, and summarises the result', async () => {
+      prisma.user.findMany.mockResolvedValue([
+        { id: 'user-2', name: 'Aung', profilePicturePath: null, occupation: null, housingPreference: preference({ budgetMax: 150000 }) },
+        { id: 'user-1', name: 'Thiri', profilePicturePath: null, occupation: seeker.occupation, housingPreference: preference() },
+        // Saved preferences with no budget and no location: too little to score.
+        { id: 'user-3', name: 'Mya', profilePicturePath: null, occupation: null, housingPreference: preference({ budgetMax: null, preferredCityId: null, preferredCity: null }) }
+      ]);
+
+      const response = await ask(draft);
+      expect(response.status).toBe(200);
+      const data = response.body.data;
+
+      // No budget pre-filter in the query any more.
+      expect(JSON.stringify(prisma.user.findMany.mock.calls[0][0].where)).not.toContain('budgetMax');
+      expect(data).toMatchObject({ basis: 'DRAFT', evaluated: 3, insufficient: 1, scoredCount: 2 });
+      expect(data.items.map((item: { user: { name: string } }) => item.user.name)).toEqual(['Thiri', 'Aung']);
+
+      const aung = data.items[1];
+      expect(aung.match.tier).toBe('LOW');
+      expect(aung.match.reasons).toEqual(expect.arrayContaining([expect.objectContaining({ code: 'budget.over', status: 'conflict' })]));
+
+      const scores = data.items.map((item: { match: { score: number } }) => item.match.score);
+      expect(data.overallScore).toBe(Math.round((scores[0] + scores[1]) / 2));
+      expect(data.bestScore).toBe(scores[0]);
+      expect(data.tiers.LOW).toBeGreaterThanOrEqual(1);
+      expect(data.factorSummary.find((row: { key: string }) => row.key === 'budget')).toMatchObject({ conflict: 1 });
+      expect(data.method.weights).toEqual({ budget: 30, location: 20, amenities: 20, space: 15, timing: 10, rules: 5 });
+    });
+
+    it('explains an empty result instead of inventing matches', async () => {
+      prisma.user.findMany.mockResolvedValue([]);
+      const response = await ask(draft);
+      expect(response.body.data).toMatchObject({ evaluated: 0, scoredCount: 0, overallScore: null, bestScore: null, strongMatches: 0, items: [] });
+    });
+
+    it('recalculates when the listing details change', async () => {
+      const people = [{ id: 'user-1', name: 'Thiri', profilePicturePath: null, occupation: null, housingPreference: preference({ bedroomsMin: 2 }) }];
+      prisma.user.findMany.mockResolvedValue(people);
+      const affordable = await ask(draft);
+      const expensive = await ask({ ...draft, monthlyFees: 900000 });
+      const fewerRooms = await ask({ ...draft, bedrooms: 1 });
+
+      const score = (res: typeof affordable) => res.body.data.items[0].match.score;
+      expect(score(expensive)).toBeLessThan(score(affordable));
+      expect(score(fewerRooms)).toBeLessThan(score(affordable));
+      expect(expensive.body.data.items[0].match.reasons.map((reason: { code: string }) => reason.code)).toContain('budget.over');
+    });
+  });
+
+  describe('occupation compatibility', () => {
+    const occupations = ['Engineer', 'General Worker', 'Healthcare Professional', 'Other', 'Remote Worker', 'Software / IT Professional', 'Student', 'Teacher / Educator'].map((name, i) => ({ id: `o${i}`, name }));
+    const ask = (body: Record<string, unknown>, roles = ['agent']) =>
+      request(app).post('/api/v1/agent/houses/occupation-compatibility').set('Authorization', authHeader('agent-1', roles)).send(body);
+
+    it('scores every active occupation from the unsaved draft, without any tenant records', async () => {
+      prisma.occupation.findMany.mockResolvedValue(occupations);
+      prisma.house.findMany.mockResolvedValue([{ monthlyFees: 300000 }, { monthlyFees: 400000 }]);
+      const response = await ask({ monthlyFees: 300000, bedrooms: 2, amenityIds: ['a-wifi'], nearbyPlaces: 'near the university', houseRules: 'quiet hours' });
+
+      expect(response.status).toBe(200);
+      expect(prisma.occupation.findMany.mock.calls[0][0].where).toEqual({ isActive: true });
+      expect(prisma.user.findMany).not.toHaveBeenCalled();
+      const items = response.body.data.items;
+      expect(items).toHaveLength(8);
+      expect(response.body.data).toMatchObject({ basis: 'DRAFT', typicalRent: 350000 });
+      const scores = items.map((item: { score: number }) => item.score);
+      expect(scores).toEqual([...scores].sort((a: number, b: number) => b - a));
+    });
+
+    it('updates the scores when the draft changes', async () => {
+      prisma.occupation.findMany.mockResolvedValue(occupations);
+      prisma.house.findMany.mockResolvedValue([{ monthlyFees: 300000 }]);
+      const student = async (body: Record<string, unknown>) =>
+        (await ask(body)).body.data.items.find((item: { name: string }) => item.name === 'Student').score;
+      expect(await student({ monthlyFees: 600000, bedrooms: 1 })).toBeLessThan(await student({ monthlyFees: 200000, bedrooms: 1 }));
+    });
+
+    it('works with an almost empty draft and is limited to agents', async () => {
+      prisma.occupation.findMany.mockResolvedValue(occupations);
+      const empty = await ask({});
+      expect(empty.status).toBe(200);
+      expect(empty.body.data.items.every((item: { score: number | null }) => item.score === null)).toBe(true);
+      expect((await ask({}, ['normal'])).status).toBe(403);
+    });
   });
 
   it('rejects an incomplete listing draft', async () => {

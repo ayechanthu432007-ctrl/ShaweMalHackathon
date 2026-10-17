@@ -13,13 +13,16 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
+import { Suspense } from 'react'
 import { NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { LanguageToggle } from '@/components/common/LanguageToggle'
+import { LoadingState } from '@/components/common/PageStates'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
+import shawemalLogo from '@/assets/shawemal-logo-mark.png'
 import { cn } from '@/lib/utils'
 
 type NavItem = { to: string; labelKey: string; icon: LucideIcon; end?: boolean }
@@ -45,13 +48,17 @@ export function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-secondary text-secondary-foreground">
+      {/* Same brand-blue bar as the public site, so the admin portal reads as part of one product. */}
+      <header className="bg-header text-header-foreground shadow-raised">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3">
-          <div className="min-w-0">
-            <p className="text-lg font-semibold">{t('admin.title')}</p>
-            <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
+          <div className="flex min-w-0 items-center gap-3">
+            <img src={shawemalLogo} alt="" className="size-10 shrink-0 object-contain" />
+            <div className="min-w-0">
+              <p className="text-lg font-extrabold tracking-tight">{t('admin.title')}</p>
+              <p className="truncate text-sm text-header-foreground/80">{user?.email}</p>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 [&_button]:border-header-line [&_button]:bg-white/60 [&_button]:text-header-foreground [&_button]:shadow-none [&_button:hover]:bg-header-hover dark:[&_button]:bg-white/10">
             <LanguageToggle />
             <ThemeToggle />
             <Button variant="outline" onClick={() => void logout()}>
@@ -67,7 +74,7 @@ export function AdminLayout() {
         <aside className="min-w-0 lg:sticky lg:top-[calc(var(--site-header-h,0px)+1rem)] lg:self-start">
           <nav
             aria-label={t('admin.navLabel')}
-            className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:rounded-xl lg:border lg:bg-card lg:p-2 lg:shadow-sm"
+            className="scrollbar-none flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:rounded-xl lg:border lg:bg-card lg:p-2 lg:shadow-card"
           >
             {navItems.map((item) => (
               <NavLink
@@ -89,7 +96,9 @@ export function AdminLayout() {
         </aside>
 
         <main className="min-w-0">
-          <Outlet />
+          <Suspense fallback={<LoadingState />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
     </div>

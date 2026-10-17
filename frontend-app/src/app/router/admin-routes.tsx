@@ -1,41 +1,47 @@
 import { Navigate, type RouteObject } from 'react-router'
 
-import { SignInPage } from '@/features/auth/pages/SignInPage'
-import { SignUpPage } from '@/features/auth/pages/SignUpPage'
-import { AdminLayout } from '@/features/admin/layout/AdminLayout'
-import { AdminDashboardPage } from '@/features/admin/pages/AdminDashboardPage'
-import { AdminMarketplaceListingPage } from '@/features/admin/pages/AdminMarketplaceListingPage'
-import { AdminMarketplaceListingsPage } from '@/features/admin/pages/AdminMarketplaceListingsPage'
-import { AdminMarketplacePage } from '@/features/admin/pages/AdminMarketplacePage'
-import { AdminMarketplaceReportsPage } from '@/features/admin/pages/AdminMarketplaceReportsPage'
-import { AdminMarketplaceUserPage } from '@/features/admin/pages/AdminMarketplaceUserPage'
-import { AdminMarketplaceUsersPage } from '@/features/admin/pages/AdminMarketplaceUsersPage'
-import { AdminMasterDataEntityPage } from '@/features/admin/pages/AdminMasterDataEntityPage'
-import { AdminMasterDataPage } from '@/features/admin/pages/AdminMasterDataPage'
-import { AdminMovingAssignPage } from '@/features/admin/pages/AdminMovingAssignPage'
-import { AdminReportsPage } from '@/features/admin/pages/AdminReportsPage'
-import { AdminHouseBookingReportPage } from '@/features/admin/pages/AdminHouseBookingReportPage'
-import { AdminMovingRequestDetailPage } from '@/features/admin/pages/AdminMovingRequestDetailPage'
-import { AdminMovingRequestReportPage } from '@/features/admin/pages/AdminMovingRequestReportPage'
-import { AdminSubscriptionsPage } from '@/features/admin/pages/AdminSubscriptionsPage'
-import { AdminUsersPage } from '@/features/admin/pages/AdminUsersPage'
-import { AdminVerificationDetailPage } from '@/features/admin/pages/AdminVerificationDetailPage'
-import { AdminVerificationQueuePage } from '@/features/admin/pages/AdminVerificationQueuePage'
-import { AdminVerificationsPage } from '@/features/admin/pages/AdminVerificationsPage'
 import { AdminAuthGuard } from '@/app/router/guards'
+import { RouteError } from '@/components/common/RouteError'
+import { lazyPage } from './lazy-page'
+
+const SignInPage = lazyPage(() => import('@/features/auth/pages/SignInPage'), 'SignInPage')
+const SignUpPage = lazyPage(() => import('@/features/auth/pages/SignUpPage'), 'SignUpPage')
+const AdminLayout = lazyPage(() => import('@/features/admin/layout/AdminLayout'), 'AdminLayout')
+const AdminDashboardPage = lazyPage(() => import('@/features/admin/pages/AdminDashboardPage'), 'AdminDashboardPage')
+const AdminMarketplaceListingPage = lazyPage(() => import('@/features/admin/pages/AdminMarketplaceListingPage'), 'AdminMarketplaceListingPage')
+const AdminMarketplaceListingsPage = lazyPage(() => import('@/features/admin/pages/AdminMarketplaceListingsPage'), 'AdminMarketplaceListingsPage')
+const AdminMarketplacePage = lazyPage(() => import('@/features/admin/pages/AdminMarketplacePage'), 'AdminMarketplacePage')
+const AdminMarketplaceReportsPage = lazyPage(() => import('@/features/admin/pages/AdminMarketplaceReportsPage'), 'AdminMarketplaceReportsPage')
+const AdminMarketplaceUserPage = lazyPage(() => import('@/features/admin/pages/AdminMarketplaceUserPage'), 'AdminMarketplaceUserPage')
+const AdminMarketplaceUsersPage = lazyPage(() => import('@/features/admin/pages/AdminMarketplaceUsersPage'), 'AdminMarketplaceUsersPage')
+const AdminMasterDataEntityPage = lazyPage(() => import('@/features/admin/pages/AdminMasterDataEntityPage'), 'AdminMasterDataEntityPage')
+const AdminMasterDataPage = lazyPage(() => import('@/features/admin/pages/AdminMasterDataPage'), 'AdminMasterDataPage')
+const AdminMovingAssignPage = lazyPage(() => import('@/features/admin/pages/AdminMovingAssignPage'), 'AdminMovingAssignPage')
+const AdminReportsPage = lazyPage(() => import('@/features/admin/pages/AdminReportsPage'), 'AdminReportsPage')
+const AdminHouseBookingReportPage = lazyPage(() => import('@/features/admin/pages/AdminHouseBookingReportPage'), 'AdminHouseBookingReportPage')
+const AdminMovingRequestDetailPage = lazyPage(() => import('@/features/admin/pages/AdminMovingRequestDetailPage'), 'AdminMovingRequestDetailPage')
+const AdminMovingRequestReportPage = lazyPage(() => import('@/features/admin/pages/AdminMovingRequestReportPage'), 'AdminMovingRequestReportPage')
+const AdminSubscriptionsPage = lazyPage(() => import('@/features/admin/pages/AdminSubscriptionsPage'), 'AdminSubscriptionsPage')
+const AdminUsersPage = lazyPage(() => import('@/features/admin/pages/AdminUsersPage'), 'AdminUsersPage')
+const AdminVerificationDetailPage = lazyPage(() => import('@/features/admin/pages/AdminVerificationDetailPage'), 'AdminVerificationDetailPage')
+const AdminVerificationQueuePage = lazyPage(() => import('@/features/admin/pages/AdminVerificationQueuePage'), 'AdminVerificationQueuePage')
+const AdminVerificationsPage = lazyPage(() => import('@/features/admin/pages/AdminVerificationsPage'), 'AdminVerificationsPage')
 
 export const adminRoutes: RouteObject[] = [
   {
     path: '/admin/sign-in',
+    errorElement: <RouteError />,
     element: <SignInPage redirectTo="/admin/dashboard" titleKey="admin.signInTitle" />,
   },
   {
     path: '/admin/register',
+    errorElement: <RouteError />,
     element: <SignUpPage redirectTo="/admin/sign-in" titleKey="admin.registerTitle" />,
   },
   {
     path: '/admin',
     element: <AdminAuthGuard />,
+    errorElement: <RouteError />,
     children: [
       {
         element: <AdminLayout />,

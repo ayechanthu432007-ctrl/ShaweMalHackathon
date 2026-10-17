@@ -3,6 +3,7 @@ import { ArrowRight, CalendarDays, Truck } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -30,14 +31,14 @@ export function MovingOutSalePage() {
   })
 
   if (saleQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   const sale = saleQuery.data?.sale
   if (saleQuery.isError || !sale) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('marketplace.movingOut.notFound')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('marketplace.movingOut.notFound')}</h1>
         <Button asChild variant="outline">
           <Link to="/marketplace">{t('marketplace.backToMarketplace')}</Link>
         </Button>
@@ -54,7 +55,7 @@ export function MovingOutSalePage() {
             <Truck className="size-3.5" aria-hidden />
             {t('marketplace.movingOut.badge')}
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight">{sale.title}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{sale.title}</h1>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
               {sale.originCity.name}
@@ -85,8 +86,8 @@ export function MovingOutSalePage() {
       </Card>
 
       <section className="space-y-3">
-        <h2 className="text-xl font-semibold">{t('marketplace.movingOut.itemCount', { count: listingsQuery.data?.total ?? sale.activeListingCount })}</h2>
-        {listingsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('marketplace.movingOut.itemCount', { count: listingsQuery.data?.total ?? sale.activeListingCount })}</h2>
+        {listingsQuery.isLoading ? <LoadingState /> : null}
         {listingsQuery.data?.items.length === 0 ? <p className="text-sm text-muted-foreground">{t('marketplace.movingOut.allSold')}</p> : null}
         <ListingGrid>
           {listingsQuery.data?.items.map((listing) => (

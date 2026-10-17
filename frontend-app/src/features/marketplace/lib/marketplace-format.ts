@@ -1,8 +1,8 @@
+import { formatMmk } from '@/lib/format'
+
 import type { CategoryRef } from '../types'
 
-export function formatPrice(value: number) {
-  return `${new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(value)} MMK`
-}
+export const formatPrice = formatMmk
 
 export function categoryLabel(category: Pick<CategoryRef, 'name' | 'nameMy'> | null | undefined, language: string) {
   if (!category) return ''

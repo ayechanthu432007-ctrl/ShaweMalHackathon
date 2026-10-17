@@ -1,3 +1,5 @@
+import { selectClassName, textareaClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { TenantCompatibility } from '@/features/recommendations/components/TenantCompatibility'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
@@ -25,9 +27,6 @@ import {
   type AgentHouseFormErrorKey,
   type AgentHouseFormValues,
 } from '../schemas/agent-house-schema'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 function isVerifiedAgent(status: string | null | undefined): boolean {
   return (status ?? '').toUpperCase() === 'VERIFIED'
@@ -133,7 +132,7 @@ export function AgentHouseFormPage() {
   const image4 = watch('image4')
   const image5 = watch('image5')
   // The listing as typed so far, for the tenant compatibility analysis above the Post button.
-  const [draftFees, draftBedrooms, draftPropertyTypeId, draftContractTypeId, draftAmenityIds, draftNearbyPlaces, draftDescription] = watch([
+  const [draftFees, draftBedrooms, draftPropertyTypeId, draftContractTypeId, draftAmenityIds, draftNearbyPlaces, draftDescription, draftHouseRules, draftBathrooms, draftAreaSize] = watch([
     'monthlyFees',
     'bedrooms',
     'propertyTypeId',
@@ -141,6 +140,9 @@ export function AgentHouseFormPage() {
     'amenityIds',
     'nearbyPlaces',
     'description',
+    'houseRules',
+    'bathrooms',
+    'areaSize',
   ])
   const imagePaths = useMemo(
     () => [image1, image2, image3, image4, image5].map((path) => path.trim()).filter(Boolean),
@@ -218,13 +220,13 @@ export function AgentHouseFormPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (!isAgent) {
     return (
       <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('agent.houses.formTitle')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('agent.houses.formTitle')}</h1>
         <p className="text-sm text-muted-foreground">{t('agent.houses.roleRequired')}</p>
         <Button asChild variant="outline">
           <Link to="/agent-register">{t('nav.agentRegister')}</Link>
@@ -234,7 +236,7 @@ export function AgentHouseFormPage() {
   }
 
   if (isEdit && housesQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (isEdit && housesQuery.isError) {
@@ -253,7 +255,7 @@ export function AgentHouseFormPage() {
   if (isEdit && !existingHouse) {
     return (
       <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('agent.houses.editTitle')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('agent.houses.editTitle')}</h1>
         <p className="text-sm text-muted-foreground">{t('agent.houses.notFound')}</p>
         <Button asChild variant="outline">
           <Link to="/agent/houses">{t('agent.houses.backToList')}</Link>
@@ -266,7 +268,7 @@ export function AgentHouseFormPage() {
     <section className="mx-auto max-w-3xl space-y-6">
       <BackButton fallback="/agent/houses" confirmMessage={isDirty && !isSubmitting ? t('common.discardChanges') : null} />
       <div className="space-y-1">
-        <h1 className="text-3xl font-semibold tracking-tight">
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">
           {isEdit ? t('agent.houses.editTitle') : t('agent.houses.createTitle')}
         </h1>
         <p className="text-sm text-muted-foreground">{t('agent.houses.formSubtitle')}</p>
@@ -282,7 +284,7 @@ export function AgentHouseFormPage() {
       ) : null}
 
       {masterDataLoading ? (
-        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+        <LoadingState />
       ) : null}
 
       <Card>
@@ -604,7 +606,7 @@ export function AgentHouseFormPage() {
                 <textarea
                   id="houseRules"
                   rows={3}
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className={textareaClassName}
                   {...register('houseRules')}
                   disabled={!verified}
                 />
@@ -615,7 +617,7 @@ export function AgentHouseFormPage() {
                 <textarea
                   id="description"
                   rows={3}
-                  className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className={textareaClassName}
                   {...register('description')}
                   disabled={!verified}
                 />
@@ -635,6 +637,9 @@ export function AgentHouseFormPage() {
                   amenityIds: draftAmenityIds ?? [],
                   nearbyPlaces: draftNearbyPlaces,
                   description: draftDescription,
+                  houseRules: draftHouseRules,
+                  bathrooms: Number(draftBathrooms) || 0,
+                  areaSize: draftAreaSize,
                 }}
               />
             ) : null}

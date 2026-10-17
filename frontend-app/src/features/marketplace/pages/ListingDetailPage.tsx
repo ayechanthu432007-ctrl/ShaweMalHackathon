@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { textareaClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -17,7 +19,6 @@ import { marketplaceApi } from '../api/marketplace-api'
 import { AskSellerCard } from '../components/AskSellerCard'
 import { ContactSellerButtons } from '../components/ContactSellerButtons'
 import { ListingStatusBadge } from '../components/ListingCard'
-import { textareaClassName } from '../components/MarketplaceDialog'
 import { ReportDialog } from '../components/ReportDialog'
 import { SellerAvatar } from '../components/SellerAvatar'
 import { SellerBadges } from '../components/SellerBadges'
@@ -141,14 +142,14 @@ export function ListingDetailPage() {
   }, [loadedId, isOwnerView])
 
   if (listingQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   const listing = listingQuery.data?.item
   if (listingQuery.isError || !listing) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('marketplace.detail.notFound')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('marketplace.detail.notFound')}</h1>
         <Button asChild variant="outline">
           <Link to="/marketplace">{t('marketplace.backToMarketplace')}</Link>
         </Button>
@@ -265,7 +266,7 @@ export function ListingDetailPage() {
           </div>
 
           <section className="space-y-2">
-            <h2 className="text-lg font-semibold">{t('marketplace.fields.description')}</h2>
+            <h2 className="text-lg font-semibold tracking-tight">{t('marketplace.fields.description')}</h2>
             <p className="whitespace-pre-line text-sm leading-relaxed">{listing.description}</p>
             <p className="text-xs text-muted-foreground">
               {t('marketplace.detail.listedOn', { date: formatDate(listing.publishedAt ?? listing.createdAt) })}

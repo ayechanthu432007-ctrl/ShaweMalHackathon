@@ -11,7 +11,7 @@ export function AdminMasterDataPage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.masterData.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.masterData.title')}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t('admin.masterData.subtitle')}</p>
       </div>
 

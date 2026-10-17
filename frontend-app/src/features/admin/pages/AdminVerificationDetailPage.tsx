@@ -1,3 +1,4 @@
+import { textareaClassName } from '@/components/ui/field-styles'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
@@ -146,7 +147,7 @@ export function AdminVerificationDetailPage({ kind }: { kind: DetailKind }) {
     <section className="space-y-6">
       <div>
         <BackLink to={queuePath} label={t('admin.verifications.backToQueue')} />
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight">{t(titleKey)}</h1>
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight sm:text-3xl">{t(titleKey)}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t('admin.verifications.detailSubtitle')}</p>
       </div>
 
@@ -237,7 +238,7 @@ function DecisionPanel({
           <Label htmlFor="rejection-reason">{t('admin.verifications.rejectionReason')}</Label>
           <textarea
             id="rejection-reason"
-            className="min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className={textareaClassName}
             maxLength={500}
             value={rejectionReason}
             onChange={(event) => onRejectionReasonChange(event.target.value)}

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -31,17 +32,17 @@ export function HistoryPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (historyQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (historyQuery.isError || !historyQuery.data) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('profile.historyError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('profile.historyError')}</h1>
         <Button type="button" variant="outline" onClick={() => void historyQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -55,7 +56,7 @@ export function HistoryPage() {
     <div className="space-y-6">
       <BackLink to="/profile" label={t('nav.profile')} />
       <div>
-        <h1 className="text-2xl font-semibold">{t('nav.history')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('nav.history')}</h1>
         <p className="text-sm text-muted-foreground">{t('profile.historySubtitle')}</p>
       </div>
 

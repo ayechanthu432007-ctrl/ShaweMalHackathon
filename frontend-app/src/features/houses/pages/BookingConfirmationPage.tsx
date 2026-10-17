@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -29,17 +30,17 @@ export function BookingConfirmationPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (bookingQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (bookingQuery.isError || !bookingQuery.data?.booking) {
     return (
       <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-        <p className="text-sm text-destructive">{t('houses.confirmation.loadError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('houses.confirmation.loadError')}</h1>
         <Button type="button" variant="outline" onClick={() => void bookingQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -55,7 +56,7 @@ export function BookingConfirmationPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            <h1 className="text-2xl">{t('houses.confirmation.title')}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{t('houses.confirmation.title')}</h1>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -68,7 +69,7 @@ export function BookingConfirmationPage() {
             {t('houses.confirmation.statusLabel')}: {booking.status}
           </p>
           <div className="rounded-lg border bg-muted/40 p-4">
-            <h2 className="text-lg font-semibold">{t('houses.movingUpsell.title')}</h2>
+            <h2 className="text-lg font-semibold tracking-tight">{t('houses.movingUpsell.title')}</h2>
             <p className="mt-2 text-sm text-muted-foreground">{t('houses.confirmation.movingOffer')}</p>
             <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="outline" asChild>

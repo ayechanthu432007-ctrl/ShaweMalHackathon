@@ -3,6 +3,7 @@ import { PackageCheck } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { ApiRequestError } from '@/lib/api/client'
 
@@ -53,7 +54,7 @@ export function MarkSoldDialog({ listing, onDismiss }: { listing: MyListing | nu
       >
         <fieldset className="space-y-2">
           <legend className="mb-1 text-sm font-medium">{t('marketplace.markSold.whoBought')}</legend>
-          {buyersQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+          {buyersQuery.isLoading ? <LoadingState /> : null}
           {buyers.map((buyer) => (
             <label key={buyer.id} className="flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/5">
               <input type="radio" name="buyer" value={buyer.id} checked={buyerId === buyer.id} onChange={() => setBuyerId(buyer.id)} />

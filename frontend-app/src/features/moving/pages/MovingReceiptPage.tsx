@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import logo from '@/assets/shawemal-logo.png'
 import { BackLink } from '@/components/common/BackButton'
@@ -63,7 +64,7 @@ export function MovingReceiptPage() {
   })
 
   if (isBootstrapping || !isAuthenticated || detailQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   const request = detailQuery.data?.movingRequest
@@ -152,7 +153,7 @@ export function MovingReceiptPage() {
 
         <footer className="mt-8 grid gap-6 border-t pt-6 sm:grid-cols-[minmax(0,1fr)_auto]">
           <div>
-            <h2 className="text-2xl font-bold">{t('moving.receiptThankYou')}</h2>
+            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('moving.receiptThankYou')}</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{t('moving.receiptThankYouBody')}</p>
             <p className="mt-3 text-sm font-semibold italic text-primary">{t('moving.receiptJourney')}</p>
           </div>

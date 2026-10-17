@@ -3,6 +3,10 @@ import { type ReactNode, useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { Badge } from '@/components/ui/badge'
+import { formatMmk } from '@/lib/format'
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -30,9 +34,6 @@ const DRIVER_ETA_STAGES = [
   { value: 'on_the_way', labelKey: 'driver.statusOnTheWay' },
   { value: 'unloading', labelKey: 'driver.statusUnloading' },
 ] as const
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 function formatMoveInDate(value?: string | null) {
   if (!value) {
@@ -182,7 +183,7 @@ export function DriverJobsPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (!isDriver) {
@@ -190,7 +191,7 @@ export function DriverJobsPage() {
       <Card className="mx-auto max-w-xl">
         <CardHeader>
           <CardTitle>
-            <h1 className="text-2xl">{t('driver.jobsTitle')}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{t('driver.jobsTitle')}</h1>
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -205,12 +206,12 @@ export function DriverJobsPage() {
 
   if (id) {
     if (detailQuery.isLoading) {
-      return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+      return <LoadingState />
     }
     if (detailQuery.isError || !detailQuery.data?.movingRequest) {
       return (
         <div className="space-y-3">
-          <p className="text-sm text-destructive">{t('driver.detailError')}</p>
+          <h1 className="text-base font-semibold text-destructive">{t('driver.detailError')}</h1>
           <Button type="button" variant="outline" onClick={() => void detailQuery.refetch()}>
             {t('common.retry')}
           </Button>
@@ -228,7 +229,7 @@ export function DriverJobsPage() {
       <div className="space-y-4">
         <BackLink to="/driver/jobs" label={t('driver.backToJobs')} />
         <div>
-          <h1 className="text-2xl font-semibold">{t('driver.jobDetailTitle')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('driver.jobDetailTitle')}</h1>
           <p className="text-sm text-muted-foreground">
             {t('moving.orderNumber')}: {request.orderNumber ?? request.id}
           </p>
@@ -251,7 +252,7 @@ export function DriverJobsPage() {
               </p>
               <p>
                 <span className="font-medium">{t('moving.estimatedEarnings')}: </span>
-                {request.estimatedEarnings ?? '—'}
+                {request.estimatedEarnings != null ? formatMmk(request.estimatedEarnings) : '—'}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Button
@@ -280,7 +281,7 @@ export function DriverJobsPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>
-                        <h2 className="text-lg">{t('driver.statusSection')}</h2>
+                        <h2 className="text-lg font-semibold tracking-tight">{t('driver.statusSection')}</h2>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
@@ -305,7 +306,7 @@ export function DriverJobsPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>
-                        <h2 className="text-lg">{t('driver.etaSection')}</h2>
+                        <h2 className="text-lg font-semibold tracking-tight">{t('driver.etaSection')}</h2>
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
@@ -364,7 +365,7 @@ export function DriverJobsPage() {
             <Card>
               <CardHeader>
                 <CardTitle>
-                  <h2 className="text-lg">{t('driver.jobDetailTitle')}</h2>
+                  <h2 className="text-lg font-semibold tracking-tight">{t('driver.jobDetailTitle')}</h2>
                 </CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {t('moving.statusLabel')}: {movingStatusLabel(request.status, t)}
@@ -385,7 +386,7 @@ export function DriverJobsPage() {
                 </p>
                 <p>
                   <span className="font-medium">{t('moving.estimatedEarnings')}: </span>
-                  {request.estimatedEarnings ?? '—'}
+                  {request.estimatedEarnings != null ? formatMmk(request.estimatedEarnings) : '—'}
                 </p>
                 <p>
                   <span className="font-medium">{t('driver.customerName')}: </span>
@@ -433,7 +434,7 @@ export function DriverJobsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">{t('driver.jobsTitle')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('driver.jobsTitle')}</h1>
         <p className="text-sm text-muted-foreground">{t('driver.jobsSubtitle')}</p>
       </div>
 
@@ -601,10 +602,12 @@ function JobListSection({
                     {moveInDateLabel}: {formatMoveInDate(item.moveInDate)}
                   </p>
                   <p className="text-muted-foreground">
-                    {earningsLabel}: {item.estimatedEarnings ?? '—'}
+                    {earningsLabel}: {item.estimatedEarnings != null ? formatMmk(item.estimatedEarnings) : '—'}
                   </p>
                   {statusLabel ? (
-                    <p className="text-muted-foreground">{statusLabel(item.status)}</p>
+                    <p>
+                      <Badge tone="info">{statusLabel(item.status)}</Badge>
+                    </p>
                   ) : null}
                 </div>
                 <div className="flex flex-wrap gap-2">{renderActions(item)}</div>

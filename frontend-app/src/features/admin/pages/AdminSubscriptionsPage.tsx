@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { formatDate, formatMmk, type PaymentOrder, type Plan } from '@/features/agent/api/agent-plan-api'
 import { apiRequest } from '@/lib/api/client'
@@ -23,11 +24,11 @@ export function AdminSubscriptionsPage() {
   return (
     <section className="space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.subscriptions.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.subscriptions.title')}</h1>
         <p className="mt-2 text-muted-foreground">{t('admin.subscriptions.subtitle')}</p>
       </div>
 
-      {query.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {query.isLoading ? <LoadingState /> : null}
       {query.isError ? (
         <div className="space-y-2">
           <p className="text-sm text-destructive" role="alert">{t('agentDash.loadError')}</p>
@@ -38,8 +39,8 @@ export function AdminSubscriptionsPage() {
       {data ? (
         <>
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold">{t('admin.subscriptions.plans')}</h2>
-            <div className="overflow-x-auto rounded-xl border">
+            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('admin.subscriptions.plans')}</h2>
+            <div className="relative overflow-x-auto rounded-xl border">
               <table className="w-full min-w-[36rem] text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
@@ -66,11 +67,11 @@ export function AdminSubscriptionsPage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold">{t('admin.subscriptions.active')}</h2>
+            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('admin.subscriptions.active')}</h2>
             {data.activeSubscriptions.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('admin.subscriptions.noneActive')}</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border">
+              <div className="relative overflow-x-auto rounded-xl border">
                 <table className="w-full min-w-[32rem] text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">
@@ -97,11 +98,11 @@ export function AdminSubscriptionsPage() {
           </div>
 
           <div className="space-y-3">
-            <h2 className="text-xl font-semibold">{t('admin.subscriptions.orders')}</h2>
+            <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('admin.subscriptions.orders')}</h2>
             {data.orders.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('agentDash.noOrders')}</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border">
+              <div className="relative overflow-x-auto rounded-xl border">
                 <table className="w-full min-w-[42rem] text-sm">
                   <thead>
                     <tr className="border-b text-left text-muted-foreground">

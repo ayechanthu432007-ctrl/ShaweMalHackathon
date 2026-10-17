@@ -37,7 +37,8 @@ export function FloatingContactButtons() {
   const viberHref = viberChatLink(VIBER_PHONE)
 
   return (
-    <div
+    <aside
+      aria-label={t('contact.label')}
       className="fixed right-4 z-40 flex flex-col gap-3 sm:right-6"
       style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom, 0px))' }}
     >
@@ -47,7 +48,7 @@ export function FloatingContactButtons() {
         rel="noopener noreferrer"
         aria-label={t('contact.telegram')}
         title={t('contact.telegram')}
-        className={`${buttonClassName} bg-[#229ED9]`}
+        className={`${buttonClassName} bg-telegram`}
       >
         <TelegramIcon />
       </a>
@@ -56,11 +57,11 @@ export function FloatingContactButtons() {
           href={viberHref}
           aria-label={t('contact.viber')}
           title={t('contact.viber')}
-          className={`${buttonClassName} bg-[#7360F2] shadow-[#7360F2]/30 hover:bg-[#5E4BD1]`}
+          className={`${buttonClassName} bg-viber shadow-viber/30 hover:bg-viber-hover`}
         >
           <ViberIcon />
         </a>
       ) : null}
-    </div>
+    </aside>
   )
 }

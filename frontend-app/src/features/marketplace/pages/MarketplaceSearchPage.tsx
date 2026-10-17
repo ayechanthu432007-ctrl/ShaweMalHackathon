@@ -4,14 +4,16 @@ import { useMemo, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { CardGridSkeleton } from '@/components/common/PageStates'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Pagination } from '@/components/ui/pagination'
 
 import { marketplaceApi } from '../api/marketplace-api'
 import { ListingCard, ListingGrid } from '../components/ListingCard'
-import { selectClassName } from '../components/MarketplaceDialog'
 import { MarketplaceSearchBar } from '../components/MarketplaceSearchBar'
 import { useMarketplaceCategories, useTownships } from '../hooks/useMarketplaceData'
 import { categoryLabel } from '../lib/marketplace-format'
@@ -214,7 +216,7 @@ export function MarketplaceSearchPage() {
         </form>
       ) : null}
 
-      {listingsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {listingsQuery.isLoading ? <CardGridSkeleton count={8} className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4" /> : null}
 
       {listingsQuery.isError ? (
         <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
@@ -241,17 +243,12 @@ export function MarketplaceSearchPage() {
       ) : null}
 
       {data && data.totalPages > 1 ? (
-        <div className="flex items-center justify-center gap-3">
-          <Button type="button" variant="outline" disabled={page <= 1} onClick={() => writeParams(current, page - 1)}>
-            {t('common.previous')}
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {t('marketplace.search.pageStatus', { page, total: data.totalPages })}
-          </span>
-          <Button type="button" variant="outline" disabled={page >= data.totalPages} onClick={() => writeParams(current, page + 1)}>
-            {t('common.next')}
-          </Button>
-        </div>
+        <Pagination
+          page={page}
+          totalPages={data.totalPages}
+          onPageChange={(next) => writeParams(current, next)}
+          status={t('marketplace.search.pageStatus', { page, total: data.totalPages })}
+        />
       ) : null}
     </div>
   )

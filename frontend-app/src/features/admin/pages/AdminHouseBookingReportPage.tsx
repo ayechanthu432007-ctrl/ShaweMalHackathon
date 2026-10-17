@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -25,7 +26,7 @@ export function AdminHouseBookingReportPage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.bookingReport.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.bookingReport.title')}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t('admin.bookingReport.subtitle')}</p>
       </div>
 
@@ -58,7 +59,7 @@ export function AdminHouseBookingReportPage() {
               <Label htmlFor="booking-status">{t('admin.bookingReport.status')}</Label>
               <select
                 id="booking-status"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                className={selectClassName}
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
               >
@@ -113,7 +114,7 @@ export function AdminHouseBookingReportPage() {
             {reportQuery.data.items.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('admin.reports.emptySection')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto">
                 <table className="w-full min-w-[48rem] text-left text-sm">
                   <thead>
                     <tr className="border-b">

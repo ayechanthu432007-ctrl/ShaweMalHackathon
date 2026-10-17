@@ -3,9 +3,10 @@ import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { selectClassName } from '@/features/marketplace/components/MarketplaceDialog'
 import { SellerBadges } from '@/features/marketplace/components/SellerBadges'
 import { formatDate } from '@/features/marketplace/lib/marketplace-format'
 import type { AccountStatus } from '@/features/marketplace/types'
@@ -50,7 +51,7 @@ export function AdminMarketplaceUsersPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{t('admin.marketplace.users.title')}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.marketplace.users.title')}</h1>
       <AdminMarketplaceNav />
 
       <div className="grid gap-3 rounded-xl border bg-card p-4 md:grid-cols-3">
@@ -80,12 +81,12 @@ export function AdminMarketplaceUsersPage() {
         </label>
       </div>
 
-      {usersQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {usersQuery.isLoading ? <LoadingState /> : null}
       {usersQuery.isError ? <p className="text-sm text-destructive">{t('admin.marketplace.loadError')}</p> : null}
 
       {data ? (
         <>
-          <div className="overflow-x-auto rounded-xl border">
+          <div className="relative overflow-x-auto rounded-xl border">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
                 <tr>

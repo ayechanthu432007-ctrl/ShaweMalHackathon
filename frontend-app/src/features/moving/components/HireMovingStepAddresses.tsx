@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { FieldErrors, UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form'
 import { ArrowRight } from 'lucide-react'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import typesOfCar from '@/assets/typesofcar.jpg'
@@ -15,9 +16,6 @@ import { HireMovingEasySteps } from './HireMovingEasySteps'
 import { MOVING_FORWARD_BUTTON_CLASS } from './HireMovingStepNav'
 import { HireMovingField } from './HireMovingField'
 import { MovingRouteMap, type MovingPinRole } from './MovingRouteMap'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50'
 
 function AddressBlock({
   streetName,
@@ -178,7 +176,7 @@ export function HireMovingStepAddresses({
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-lg font-medium">{t('moving.mapTitle')}</h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t('moving.mapTitle')}</h2>
           <select
             className={`${selectClassName} w-auto min-w-48`}
             value={pinTarget}

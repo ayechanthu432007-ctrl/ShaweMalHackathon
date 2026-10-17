@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { FlaskConical } from 'lucide-react'
 import { isMarketplaceDemoEnabled } from '../demo/marketplace-demo'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 
 import { marketplaceApi } from '../api/marketplace-api'
@@ -20,7 +21,7 @@ function Section({ title, action, children }: { title: string; action?: ReactNod
   return (
     <section className="space-y-3">
       <div className="flex items-end justify-between gap-2">
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
         {action}
       </div>
       {children}
@@ -43,11 +44,11 @@ export function MarketplaceHomePage() {
     <div className="space-y-8">
       <div className="space-y-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t('marketplace.title')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('marketplace.title')}</h1>
           <p className="mt-1 text-muted-foreground">{t('marketplace.subtitle')}</p>
         </div>
         {isMarketplaceDemoEnabled() ? (
-          <Button asChild variant="outline" className="border-[#C69245]/60">
+          <Button asChild variant="outline" className="border-gold/60">
             <Link to="/marketplace/demo">
               <FlaskConical aria-hidden />
               {t('marketplaceDemo.launch')}
@@ -57,7 +58,7 @@ export function MarketplaceHomePage() {
         <MarketplaceSearchBar />
       </div>
 
-      {homeQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {homeQuery.isLoading ? <LoadingState /> : null}
 
       {homeQuery.isError ? (
         <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">

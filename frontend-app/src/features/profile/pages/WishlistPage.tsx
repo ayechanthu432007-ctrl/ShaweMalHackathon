@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,7 @@ export function WishlistPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   const tabs = (
@@ -63,7 +64,7 @@ export function WishlistPage() {
     <div className="space-y-2">
       <BackLink to="/profile" label={t('nav.profile')} />
       <div>
-        <h1 className="text-2xl font-semibold">{t('nav.wishlist')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{t('nav.wishlist')}</h1>
         <p className="text-sm text-muted-foreground">{t('profile.wishlistSubtitle')}</p>
       </div>
     </div>
@@ -75,7 +76,7 @@ export function WishlistPage() {
       <div className="space-y-4">
         {header}
         {tabs}
-        {savedQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {savedQuery.isLoading ? <LoadingState /> : null}
         {savedQuery.isError ? (
           <div className="space-y-3">
             <p className="text-sm text-destructive">{t('profile.wishlistError')}</p>
@@ -104,13 +105,13 @@ export function WishlistPage() {
   }
 
   if (wishlistQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (wishlistQuery.isError) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('profile.wishlistError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('profile.wishlistError')}</h1>
         <Button type="button" variant="outline" onClick={() => void wishlistQuery.refetch()}>
           {t('common.retry')}
         </Button>

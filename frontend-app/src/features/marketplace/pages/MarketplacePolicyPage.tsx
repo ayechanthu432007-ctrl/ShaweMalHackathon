@@ -21,7 +21,7 @@ export function MarketplacePolicyPage() {
           <ShieldCheck className="size-4" aria-hidden />
           {t('marketplace.policy.eyebrow')}
         </p>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('marketplace.policy.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('marketplace.policy.title')}</h1>
         <p className="text-muted-foreground">{t('marketplace.policy.intro')}</p>
       </div>
 

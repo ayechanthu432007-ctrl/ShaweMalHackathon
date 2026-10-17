@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -34,11 +35,11 @@ export function MovingStatusPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (detailQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   const isNotFound =
@@ -62,7 +63,7 @@ export function MovingStatusPage() {
   if (detailQuery.isError) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('moving.detailError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('moving.detailError')}</h1>
         <Button type="button" variant="outline" onClick={() => void detailQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -83,7 +84,7 @@ export function MovingStatusPage() {
     <div className="mx-auto max-w-6xl space-y-6 pb-64 sm:pb-48">
       <BackLink to="/moving-status" label={t('moving.statusBackToList')} />
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('nav.movingStatus')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('nav.movingStatus')}</h1>
         <p className="text-sm text-muted-foreground">{t('moving.statusSubtitle')}</p>
       </div>
 

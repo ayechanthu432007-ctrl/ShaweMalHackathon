@@ -3,6 +3,7 @@ import { CheckCircle2 } from 'lucide-react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 
 import { movingApi } from '../api/moving-api'
@@ -30,7 +31,7 @@ export function HireMovingStepConfirmation({ requestId, initial }: { requestId: 
     return requestQuery.isError ? (
       <p className="text-sm text-destructive">{t('moving.confirmationLoadFailed')}</p>
     ) : (
-      <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+      <LoadingState />
     )
   }
 
@@ -55,7 +56,7 @@ export function HireMovingStepConfirmation({ requestId, initial }: { requestId: 
   return (
     <div className="space-y-6 text-sm">
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold tracking-tight">{t('moving.confirmationTitle')}</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('moving.confirmationTitle')}</h2>
         <p className="flex items-start gap-2 text-muted-foreground">
           <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden />
           {t('moving.successMessage')}

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,13 +21,13 @@ export function MovingRequestDetailPage() {
   })
 
   if (requestQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (requestQuery.isError || !requestQuery.data?.movingRequest) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('moving.detailError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('moving.detailError')}</h1>
         <Button type="button" variant="outline" onClick={() => void requestQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -42,7 +43,7 @@ export function MovingRequestDetailPage() {
       <Card>
         <CardHeader>
           <CardTitle>
-            <h1 className="text-2xl">{t('moving.detailTitle')}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">{t('moving.detailTitle')}</h1>
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             {t('moving.orderNumber')}: {request.orderNumber ?? request.id}
@@ -77,7 +78,7 @@ export function MovingRequestDetailPage() {
           ) : null}
 
           <section className="space-y-2">
-            <h2 className="font-medium">{t('moving.photosTitle')}</h2>
+            <h2 className="text-base font-semibold">{t('moving.photosTitle')}</h2>
             {request.photos.length === 0 ? (
               <p className="text-muted-foreground">{t('moving.emptyPhotos')}</p>
             ) : (
@@ -98,7 +99,7 @@ export function MovingRequestDetailPage() {
           </section>
 
           <section className="space-y-2">
-            <h2 className="font-medium">{t('moving.inventoryTitle')}</h2>
+            <h2 className="text-base font-semibold">{t('moving.inventoryTitle')}</h2>
             {request.inventoryItems.length === 0 ? (
               <p className="text-muted-foreground">{t('moving.emptyInventory')}</p>
             ) : (

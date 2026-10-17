@@ -14,7 +14,7 @@ export function HireMovingEasySteps() {
       <ol className="mt-8 grid gap-8 sm:grid-cols-2 lg:mt-10 lg:grid-cols-4 lg:gap-6">
         {STEP_IDS.map((step) => (
           <li key={step} className="space-y-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-highlight text-sm font-semibold text-[#222222] shadow-sm">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cta text-sm font-semibold text-cta-foreground shadow-sm">
               {step}
             </span>
             <h3 className="text-base font-semibold leading-snug text-foreground">

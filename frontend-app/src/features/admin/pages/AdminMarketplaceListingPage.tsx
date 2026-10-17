@@ -3,10 +3,11 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName, textareaClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { selectClassName, textareaClassName } from '@/features/marketplace/components/MarketplaceDialog'
 import { SellerBadges } from '@/features/marketplace/components/SellerBadges'
 import { useMarketplaceCategories } from '@/features/marketplace/hooks/useMarketplaceData'
 import { categoryLabel, formatDate, formatPrice } from '@/features/marketplace/lib/marketplace-format'
@@ -64,8 +65,8 @@ export function AdminMarketplaceListingPage() {
     onSuccess: invalidate,
   })
 
-  if (listingQuery.isLoading) return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
-  if (listingQuery.isError || !listing) return <p className="text-sm text-destructive">{t('admin.marketplace.loadError')}</p>
+  if (listingQuery.isLoading) return <LoadingState />
+  if (listingQuery.isError || !listing) return <h1 className="text-base font-semibold text-destructive">{t('admin.marketplace.loadError')}</h1>
 
   const selectedCategory = categories.find((category) => category.id === categoryId)
   const needsNote = (action: ModerationAction) => action === 'reject' || action === 'remove'
@@ -121,7 +122,7 @@ export function AdminMarketplaceListingPage() {
           </Card>
 
           <div className="space-y-3">
-            <h2 className="text-lg font-semibold">{t('admin.marketplace.listing.reportsTitle', { count: listing.reports.length })}</h2>
+            <h2 className="text-lg font-semibold tracking-tight">{t('admin.marketplace.listing.reportsTitle', { count: listing.reports.length })}</h2>
             {listing.reports.length === 0 ? <p className="text-sm text-muted-foreground">{t('admin.marketplace.reports.empty')}</p> : null}
             {listing.reports.map((report) => (
               <AdminReportCard key={report.id} report={report} />

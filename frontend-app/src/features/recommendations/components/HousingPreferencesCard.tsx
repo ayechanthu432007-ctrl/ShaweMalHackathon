@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,9 +12,6 @@ import { Label } from '@/components/ui/label'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
 
 import { recommendationsApi, type HousingPreferencesInput, type HousingPreferencesResponse } from '../api/recommendations-api'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 /** Lifestyle questions, each answered from a short fixed list (or left blank). */
 const CHOICES = {
@@ -152,7 +151,7 @@ export function HousingPreferencesCard() {
         <p className="text-sm text-muted-foreground">{t('match.preferences.intro')}</p>
       </CardHeader>
       <CardContent>
-        {preferencesQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {preferencesQuery.isLoading ? <LoadingState /> : null}
         {preferencesQuery.isError ? <p className="text-sm text-destructive">{t('match.preferences.loadError')}</p> : null}
 
         {preferencesQuery.data ? (

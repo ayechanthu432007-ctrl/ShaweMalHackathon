@@ -2,8 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { CardGridSkeleton, EmptyState, ErrorState } from '@/components/common/PageStates'
+import { CarouselControls } from '@/components/ui/carousel-controls'
+import { useSwipe } from '@/components/ui/use-swipe'
 import { homeApi } from '@/features/home/api/home-api'
+import { useViewportReady } from '@/lib/use-viewport-ready'
 
 import { HouseCard } from './HouseCard'
 
@@ -12,72 +15,52 @@ const FEATURED_PAGE_SIZE = 3
 export function FeatureHouses() {
   const { t } = useTranslation()
   const [page, setPage] = useState(0)
+  const { ref, isVisible } = useViewportReady({ rootMargin: '200px 0px', initialVisible: false })
 
   const featuredQuery = useQuery({
     queryKey: ['home'],
+    enabled: isVisible,
     queryFn: () => homeApi.getContent(),
   })
-
-  if (featuredQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
-  }
-
-  if (featuredQuery.isError) {
-    return (
-      <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-        <p className="text-sm text-destructive">{t('home.loadError')}</p>
-        <Button type="button" variant="outline" onClick={() => void featuredQuery.refetch()}>
-          {t('common.retry')}
-        </Button>
-      </div>
-    )
-  }
 
   const featuredHouses = featuredQuery.data?.featuredHouses ?? []
   const totalPages = Math.max(1, Math.ceil(featuredHouses.length / FEATURED_PAGE_SIZE))
   const currentPage = Math.min(page, totalPages - 1)
+  const goTo = (target: number) => setPage(Math.max(0, Math.min(totalPages - 1, target)))
+  // Paged, not scrolled: a sideways swipe turns the page like the Popular Houses row does.
+  const swipe = useSwipe({ onPrev: () => goTo(currentPage - 1), onNext: () => goTo(currentPage + 1) })
+
   const visibleHouses = featuredHouses.slice(
     currentPage * FEATURED_PAGE_SIZE,
     currentPage * FEATURED_PAGE_SIZE + FEATURED_PAGE_SIZE,
   )
-  const showPager = featuredHouses.length > FEATURED_PAGE_SIZE
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">{t('home.featuredTitle')}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{t('home.featuredSubtitle')}</p>
-        </div>
-        {showPager ? (
-          <div className="flex shrink-0 items-center gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={currentPage <= 0}
-              onClick={() => setPage((current) => Math.max(0, current - 1))}
-            >
-              {t('common.previous')}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={currentPage >= totalPages - 1}
-              onClick={() => setPage((current) => Math.min(totalPages - 1, current + 1))}
-            >
-              {t('common.next')}
-            </Button>
-          </div>
-        ) : null}
+    <section ref={ref} className="space-y-4">
+      {/* The heading is always shown, so only the cards swap in when the data arrives (no jump). */}
+      <div>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('home.featuredTitle')}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t('home.featuredSubtitle')}</p>
       </div>
-      {featuredHouses.length === 0 ? (
-        <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">{t('home.emptyFeatured')}</p>
+      {!isVisible && !featuredQuery.data ? (
+        <CardGridSkeleton className="grid grid-cols-1 gap-4 md:grid-cols-3" withControls />
+      ) : featuredQuery.isLoading ? (
+        <CardGridSkeleton className="grid grid-cols-1 gap-4 md:grid-cols-3" withControls />
+      ) : featuredQuery.isError ? (
+        <ErrorState message={t('home.loadError')} onRetry={() => void featuredQuery.refetch()} />
+      ) : featuredHouses.length === 0 ? (
+        <EmptyState text={t('home.emptyFeatured')} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {visibleHouses.map((house) => (
-            <HouseCard key={house.id} house={house} />
-          ))}
-        </div>
+        <>
+          <ul aria-label={t('home.featuredTitle')} className="grid grid-cols-1 gap-4 md:grid-cols-3" {...swipe}>
+            {visibleHouses.map((house) => (
+              <li key={house.id}>
+                <HouseCard house={house} className="h-full" />
+              </li>
+            ))}
+          </ul>
+          <CarouselControls index={currentPage} count={totalPages} onChange={goTo} />
+        </>
       )}
     </section>
   )

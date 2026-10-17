@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -10,9 +11,6 @@ import { ApiRequestError } from '@/lib/api/client'
 
 import { adminApi } from '../api/admin-api'
 import type { AdminRole, AdminSafeUser } from '../types'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 const ROLES: AdminRole[] = ['normal', 'agent', 'driver', 'admin']
 
@@ -123,7 +121,7 @@ export function AdminUsersPage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.users.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.users.title')}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t('admin.users.subtitle')}</p>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">{t('admin.users.listGap')}</p>
       </div>

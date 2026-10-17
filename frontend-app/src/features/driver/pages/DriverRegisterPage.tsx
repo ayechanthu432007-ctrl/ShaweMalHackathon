@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -18,9 +20,6 @@ import {
   validateDriverRegistrationForm,
   type DriverRegistrationFormValues,
 } from '../schemas/driver-registration-schema'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 export function DriverRegisterPage() {
   const { t } = useTranslation()
@@ -117,14 +116,14 @@ export function DriverRegisterPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   return (
     <Card className="mx-auto max-w-3xl">
       <CardHeader>
         <CardTitle>
-          <h1 className="text-2xl">{t('nav.driverRegister')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('nav.driverRegister')}</h1>
         </CardTitle>
         <p className="text-sm text-muted-foreground">{t('driver.subtitle')}</p>
       </CardHeader>

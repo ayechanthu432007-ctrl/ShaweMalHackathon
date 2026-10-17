@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -41,14 +42,14 @@ export function SellerProfilePage() {
   })
 
   if (sellerQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   const seller = sellerQuery.data?.seller
   if (sellerQuery.isError || !seller) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('marketplace.seller.notFound')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('marketplace.seller.notFound')}</h1>
         <Button asChild variant="outline">
           <Link to="/marketplace">{t('marketplace.backToMarketplace')}</Link>
         </Button>
@@ -130,7 +131,7 @@ export function SellerProfilePage() {
             </button>
           ))}
         </div>
-        {listingsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {listingsQuery.isLoading ? <LoadingState /> : null}
         {listingsQuery.data && listingsQuery.data.items.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('marketplace.seller.noListings')}</p>
         ) : null}
@@ -142,7 +143,7 @@ export function SellerProfilePage() {
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">{t('marketplace.seller.reviewsTitle')}</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('marketplace.seller.reviewsTitle')}</h2>
         {seller.reviews.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('marketplace.seller.noReviews')}</p>
         ) : (

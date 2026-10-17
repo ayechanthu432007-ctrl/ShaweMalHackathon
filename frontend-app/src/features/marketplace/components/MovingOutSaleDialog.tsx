@@ -3,6 +3,7 @@ import { Truck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName, textareaClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,7 +13,7 @@ import { marketplaceApi } from '../api/marketplace-api'
 import { useTownships } from '../hooks/useMarketplaceData'
 import { toDateInputValue } from '../lib/marketplace-format'
 import type { MovingOutSaleInput, MyMovingOutSale } from '../types'
-import { MarketplaceDialog, selectClassName, textareaClassName } from './MarketplaceDialog'
+import { MarketplaceDialog } from './MarketplaceDialog'
 
 type MovingOutSaleDialogProps = {
   open: boolean

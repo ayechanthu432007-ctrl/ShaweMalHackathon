@@ -3,9 +3,10 @@ import { useState, type FormEvent } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { selectClassName } from '@/features/marketplace/components/MarketplaceDialog'
 import { formatDate, formatPrice } from '@/features/marketplace/lib/marketplace-format'
 import type { ListingStatus, ModerationStatus } from '@/features/marketplace/types'
 import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
@@ -48,7 +49,7 @@ export function AdminMarketplaceListingsPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{t('admin.marketplace.listings.title')}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.marketplace.listings.title')}</h1>
       <AdminMarketplaceNav />
 
       <div className="grid gap-3 rounded-xl border bg-card p-4 md:grid-cols-4">
@@ -75,13 +76,13 @@ export function AdminMarketplaceListingsPage() {
         </label>
       </div>
 
-      {listingsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {listingsQuery.isLoading ? <LoadingState /> : null}
       {listingsQuery.isError ? <p className="text-sm text-destructive">{t('admin.marketplace.loadError')}</p> : null}
 
       {data ? (
         <>
           <p className="text-sm text-muted-foreground">{t('marketplace.search.count', { count: data.total })}</p>
-          <div className="overflow-x-auto rounded-xl border">
+          <div className="relative overflow-x-auto rounded-xl border">
             <table className="w-full min-w-[760px] text-sm">
               <thead className="bg-muted/60 text-left text-xs uppercase text-muted-foreground">
                 <tr>

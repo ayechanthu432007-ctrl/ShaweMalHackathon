@@ -9,7 +9,7 @@ const BADGE_STYLES: Record<SellerBadge, { icon: typeof Phone; className: string 
   PHONE_VERIFIED: { icon: Phone, className: 'border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300' },
   IDENTITY_VERIFIED: { icon: IdCard, className: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' },
   TRUSTED_SELLER: { icon: BadgeCheck, className: 'border-amber-500/40 bg-amber-500/15 text-amber-800 dark:text-amber-300' },
-  PREMIUM_SELLER: { icon: Crown, className: 'border-[#e6c13f] bg-[#FFDE59]/40 text-[#5c4700] dark:text-[#FFDE59]' },
+  PREMIUM_SELLER: { icon: Crown, className: 'border-cta-border bg-cta-soft text-cta-soft-foreground' },
 }
 
 type SellerBadgesProps = {

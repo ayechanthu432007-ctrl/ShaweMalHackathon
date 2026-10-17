@@ -63,6 +63,19 @@ export const tenantMatchesValidator = [
   body('amenityIds.*').isString().withMessage('amenityIds must contain ids.'),
   body('nearbyPlaces').optional({ values: 'null' }).isString().isLength({ max: 2000 }).withMessage('nearbyPlaces is too long.'),
   body('description').optional({ values: 'null' }).isString().isLength({ max: 5000 }).withMessage('description is too long.'),
+  body('houseRules').optional({ values: 'null' }).isString().isLength({ max: 5000 }).withMessage('houseRules is too long.'),
   body('page').optional().isInt({ min: 1 }).withMessage('page must be a positive number.'),
   body('pageSize').optional().isInt({ min: 1, max: 20 }).withMessage('pageSize must be between 1 and 20.')
+];
+
+export const occupationCompatibilityValidator = [
+  body('monthlyFees').optional({ values: 'falsy' }).isFloat({ min: 0, max: MAX_RENT }).withMessage('monthlyFees must be a number.'),
+  body('bedrooms').optional({ values: 'falsy' }).isInt({ min: 0, max: 50 }).withMessage('bedrooms must be a whole number.'),
+  body('bathrooms').optional({ values: 'falsy' }).isInt({ min: 0, max: 50 }).withMessage('bathrooms must be a whole number.'),
+  body('areaSize').optional({ values: 'null' }).isString().isLength({ max: 100 }).withMessage('areaSize is too long.'),
+  body('amenityIds').optional().isArray({ max: 60 }).withMessage('amenityIds must be a list.'),
+  body('amenityIds.*').isString().withMessage('amenityIds must contain ids.'),
+  body('nearbyPlaces').optional({ values: 'null' }).isString().isLength({ max: 2000 }).withMessage('nearbyPlaces is too long.'),
+  body('description').optional({ values: 'null' }).isString().isLength({ max: 5000 }).withMessage('description is too long.'),
+  body('houseRules').optional({ values: 'null' }).isString().isLength({ max: 5000 }).withMessage('houseRules is too long.')
 ];

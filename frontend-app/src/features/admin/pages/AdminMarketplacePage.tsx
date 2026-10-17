@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 
 import { adminMarketplaceApi, type MarketplaceOverview } from '../api/admin-marketplace-api'
@@ -27,12 +28,12 @@ export function AdminMarketplacePage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.marketplace.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.marketplace.title')}</h1>
         <p className="mt-2 text-muted-foreground">{t('admin.marketplace.subtitle')}</p>
       </div>
       <AdminMarketplaceNav />
 
-      {overviewQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {overviewQuery.isLoading ? <LoadingState /> : null}
       {overviewQuery.isError ? (
         <div className="space-y-2">
           <p className="text-sm text-destructive">{t('admin.marketplace.loadError')}</p>

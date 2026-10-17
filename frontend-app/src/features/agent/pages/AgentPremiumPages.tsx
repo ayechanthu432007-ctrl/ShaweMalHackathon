@@ -4,6 +4,8 @@ import { useEffect, useId, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -16,13 +18,10 @@ import { BarSeries, PageHeading, QueryState, StatTile, UpgradePrompt } from '../
 import { AGENT_DASHBOARD_QUERY_KEY, useAgentDashboard } from '../layout/AgentDashboardLayout'
 import { activeDemoBoost, DemoBoostError, useAgentDemoPreview, withDemoBoost } from '../lib/agent-demo-preview'
 
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-
 const BOOST_TONE: Record<Boost['status'], string> = {
-  ACTIVE: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
-  SCHEDULED: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
-  PAUSED: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
+  ACTIVE: 'bg-success-soft text-success-ink',
+  SCHEDULED: 'bg-warning-soft text-warning',
+  PAUSED: 'bg-warning-soft text-warning',
   ENDED: 'bg-muted text-muted-foreground',
   CANCELLED: 'bg-muted text-muted-foreground',
 }
@@ -116,7 +115,7 @@ export function AgentBoostsPage() {
           <CardTitle className="text-base">{t('agentDash.boostAListing')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-sm">
-          {housesQuery.isLoading ? <p className="text-muted-foreground">{t('common.loading')}</p> : null}
+          {housesQuery.isLoading ? <LoadingState /> : null}
           {!housesQuery.isLoading && houses.length === 0 ? <p className="text-muted-foreground">{t('agentDash.noBoostableListings')}</p> : null}
           {houses.length > 0 ? (
             <>
@@ -169,7 +168,7 @@ export function AgentBoostsPage() {
                 ) : null}
               </div>
               {preview.enabled ? (
-                <p className="flex items-start gap-2 rounded-lg border border-[#C69245]/40 bg-[#FCF7EE] p-3 text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200">
+                <p className="flex items-start gap-2 rounded-lg border border-gold/40 bg-gold-soft p-3 text-gold-ink">
                   <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden />
                   {t('agentDash.demoBoostNote')}
                 </p>
@@ -197,12 +196,12 @@ export function AgentBoostsPage() {
               const live = boost.activatedAt <= now && now < boost.expiresAt
               const hoursLeft = Math.max(0, Math.ceil((boost.expiresAt - now) / 3_600_000))
               return (
-                <li key={boost.id} className={cn('flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card p-3 text-sm', live && 'border-[#C69245]/60 bg-[#FCF7EE]/60 dark:bg-amber-500/5')}>
+                <li key={boost.id} className={cn('flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-card p-3 text-sm', live && 'border-gold/60 bg-gold-soft/60')}>
                   <div className="min-w-0">
                     <p className="flex flex-wrap items-center gap-2 font-medium">
                       <span className="truncate">{boost.title}</span>
                       {live ? (
-                        <span className="inline-flex items-center gap-1 rounded-md bg-[#C69245] px-2 py-0.5 text-[11px] font-bold text-white">
+                        <span className="inline-flex items-center gap-1 rounded-md border border-gold/40 bg-gold-soft px-2 py-0.5 text-[11px] font-bold text-gold-ink">
                           <Rocket className="size-3" aria-hidden />
                           {t('agentDash.demoBoostBadge')}
                         </span>
@@ -226,7 +225,7 @@ export function AgentBoostsPage() {
       {demoConfirm ? <DemoBoostDialog boost={demoConfirm} onCancel={() => setDemoConfirm(null)} onFinish={finishDemo} /> : null}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">{t('agentDash.boostHistory')}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('agentDash.boostHistory')}</h2>
         <QueryState isLoading={boostsQuery.isLoading} isError={boostsQuery.isError} onRetry={() => void boostsQuery.refetch()} />
         {boostsQuery.data && boostsQuery.data.length === 0 ? <p className="text-sm text-muted-foreground">{t('agentDash.noBoosts')}</p> : null}
         {boostsQuery.data && boostsQuery.data.length > 0 ? (
@@ -272,10 +271,10 @@ function DemoBoostDialog({
   }, [onCancel])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div aria-hidden className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={onCancel} />
-      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md space-y-4 rounded-2xl border bg-card p-6 shadow-2xl">
-        <p className="inline-flex items-center gap-1.5 rounded-full bg-[#FCF7EE] px-2.5 py-1 text-xs font-bold text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200">
+    <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 [&>[role=dialog]]:my-auto">
+      <div aria-hidden className="fixed inset-0 bg-black/50 backdrop-blur-[2px]" onClick={onCancel} />
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md space-y-4 rounded-2xl border bg-card p-6 shadow-overlay">
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-2.5 py-1 text-xs font-bold text-gold-ink">
           <FlaskConical className="size-3.5" aria-hidden />
           {t('agentDash.demoBadge')}
         </p>
@@ -346,7 +345,7 @@ export function AgentVerificationPage() {
           <ul className="space-y-2">
             {steps.map((step) => (
               <li key={step.label} className="flex items-start gap-3 rounded-lg border p-3">
-                <span className={cn('mt-0.5 rounded-full px-2 py-0.5 text-xs font-medium', step.done ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300' : 'bg-muted text-muted-foreground')}>
+                <span className={cn('mt-0.5 rounded-full px-2 py-0.5 text-xs font-medium', step.done ? 'bg-success-soft text-success-ink' : 'bg-muted text-muted-foreground')}>
                   {step.done ? t('agentDash.done') : t('agentDash.notYet')}
                 </span>
                 <div>
@@ -522,7 +521,7 @@ export function AgentReportsPage() {
         }
       />
 
-      <div className="overflow-x-auto rounded-xl border">
+      <div className="relative overflow-x-auto rounded-xl border">
         <table className="w-full min-w-[26rem] text-sm">
           <thead>
             <tr className="border-b text-left text-muted-foreground">
@@ -552,11 +551,11 @@ export function AgentReportsPage() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">{t('agentDash.byListing')}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('agentDash.byListing')}</h2>
         {report.listings.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t('agentDash.noListings')}</p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border">
+          <div className="relative overflow-x-auto rounded-xl border">
             <table className="w-full min-w-[28rem] text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">

@@ -2,6 +2,8 @@ import { Truck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { FieldErrors, UseFormRegister } from 'react-hook-form'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import type { MasterDataItem } from '@/features/master-data/types'
@@ -11,9 +13,6 @@ import type { MovingQuote } from '../types'
 import { HireMovingField } from './HireMovingField'
 import { HireMovingStepNav, MOVING_FORWARD_BUTTON_CLASS } from './HireMovingStepNav'
 import { inventoryItemIcon } from './InventoryItemRow'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 function formatMmk(value: number | null | undefined) {
   if (typeof value !== 'number' || !Number.isFinite(value)) return '—'
@@ -56,11 +55,11 @@ export function HireMovingStepEstimate({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold">{t('moving.estimateTitle')}</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('moving.estimateTitle')}</h2>
         <p className="text-sm text-muted-foreground">{t('moving.estimateHint')}</p>
       </div>
 
-      {isQuoting && !quote ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {isQuoting && !quote ? <LoadingState /> : null}
 
       {quote && selected && suggested ? (
         <>

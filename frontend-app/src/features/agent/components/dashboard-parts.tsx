@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -77,7 +78,7 @@ export function UpgradePrompt({ title, body }: { title: string; body: string }) 
         <div className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Lock className="size-5" aria-hidden />
         </div>
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
         <p className="text-sm text-muted-foreground">{body}</p>
         <Button asChild>
           <Link to="/agent/subscription">{t('agentDash.viewPlans')}</Link>
@@ -89,7 +90,7 @@ export function UpgradePrompt({ title, body }: { title: string; body: string }) 
 
 export function QueryState({ isLoading, isError, onRetry }: { isLoading: boolean; isError: boolean; onRetry: () => void }) {
   const { t } = useTranslation()
-  if (isLoading) return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+  if (isLoading) return <LoadingState />
   if (isError) {
     return (
       <div className="space-y-2">
@@ -159,21 +160,19 @@ export function BarSeries({ data, unit, ariaLabel, tickEvery = 1 }: { data: BarD
         <div role="img" aria-label={ariaLabel}>
           <div className="flex h-40 items-end gap-0.5 border-b border-border" onMouseLeave={() => setActive(null)}>
             {data.map((item, index) => (
-              <button
+              // Pointer-only highlight; the chart's data is announced through the label and the table view.
+              <div
                 key={item.label + index}
-                type="button"
-                tabIndex={-1}
                 aria-hidden
-                className="group flex h-full min-w-0 flex-1 items-end focus-visible:outline-none"
+                className="group flex h-full min-w-0 flex-1 items-end"
                 onMouseEnter={() => setActive(index)}
-                onFocus={() => setActive(index)}
                 onClick={() => setActive(index)}
               >
                 <span
                   className={cn('w-full rounded-t bg-primary transition-opacity', active !== null && active !== index && 'opacity-40')}
                   style={{ height: item.value === 0 ? 0 : `max(2px, ${(item.value / max) * 100}%)` }}
                 />
-              </button>
+              </div>
             ))}
           </div>
           <div className="mt-1 flex gap-0.5 text-[10px] text-muted-foreground" aria-hidden>

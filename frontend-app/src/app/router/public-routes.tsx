@@ -1,58 +1,64 @@
 import type { RouteObject } from 'react-router'
 
 import { NotFoundPage } from '@/components/common/NotFoundPage'
-import { SignInPage } from '@/features/auth/pages/SignInPage'
-import { SignUpPage } from '@/features/auth/pages/SignUpPage'
-import { AgentHouseFormPage } from '@/features/agent/pages/AgentHouseFormPage'
-import { AgentHousesPage } from '@/features/agent/pages/AgentHousesPage'
-import { AgentDashboardLayout } from '@/features/agent/layout/AgentDashboardLayout'
-import { AgentBookingsPage } from '@/features/agent/pages/AgentBookingsPage'
-import { AgentDashboardPage } from '@/features/agent/pages/AgentDashboardPage'
-import { AgentPerformancePage } from '@/features/agent/pages/AgentPerformancePage'
-import { AgentBoostsPage, AgentInsightsPage, AgentReportsPage, AgentVerificationPage } from '@/features/agent/pages/AgentPremiumPages'
-import { AgentCheckoutPage, AgentSubscriptionPage } from '@/features/agent/pages/AgentSubscriptionPages'
-import { AgentRegisterPage } from '@/features/agent/pages/AgentRegisterPage'
-import { DriverJobsPage } from '@/features/driver/pages/DriverJobsPage'
-import { DriverRegisterPage } from '@/features/driver/pages/DriverRegisterPage'
+import { RouteError } from '@/components/common/RouteError'
 import { HomePage } from '@/features/home/pages/HomePage'
-import { FindingHousePage } from '@/features/houses/pages/FindingHousePage'
-import { HouseDetailsPage } from '@/features/houses/pages/HouseDetailsPage'
-import { BookingConfirmationPage } from '@/features/houses/pages/BookingConfirmationPage'
-import { ListingDetailPage } from '@/features/marketplace/pages/ListingDetailPage'
-import { MarketplaceDemoPage } from '@/features/marketplace/demo/MarketplaceDemoPage'
-import { MarketplaceHomePage } from '@/features/marketplace/pages/MarketplaceHomePage'
-import { MarketplacePolicyPage } from '@/features/marketplace/pages/MarketplacePolicyPage'
-import { MarketplaceSearchPage } from '@/features/marketplace/pages/MarketplaceSearchPage'
-import { MovingOutSalePage } from '@/features/marketplace/pages/MovingOutSalePage'
-import {
-  LegacySellerPlansRedirect,
-  MyBoostsPage,
-  MyInquiriesPage,
-  MyInsightsPage,
-  MyMarketplaceLayout,
-  MyMarketplaceOverviewPage,
-  MyProductsPage,
-  MySellerPlansPage,
-  MySubscriptionPage,
-} from '@/features/marketplace/pages/MyMarketplacePage'
-import { SellerProfilePage } from '@/features/marketplace/pages/SellerProfilePage'
-import { SellerCheckoutPage } from '@/features/marketplace/pages/SellerPlansPages'
-import { SellItemPage } from '@/features/marketplace/pages/SellItemPage'
-import { HireMovingPage } from '@/features/moving/pages/HireMovingPage'
-import { MovingRequestDetailPage } from '@/features/moving/pages/MovingRequestDetailPage'
-import { MovingStatusListPage } from '@/features/moving/pages/MovingStatusListPage'
-import { MovingStatusPage } from '@/features/moving/pages/MovingStatusPage'
-import { MovingReceiptPage } from '@/features/moving/pages/MovingReceiptPage'
-import { HistoryPage } from '@/features/profile/pages/HistoryPage'
-import { ProfilePage } from '@/features/profile/pages/ProfilePage'
-import { WishlistPage } from '@/features/profile/pages/WishlistPage'
 import { PublicLayout } from '@/features/public/layout/PublicLayout'
-import { AboutUsPage } from '@/features/public/pages/AboutUsPage'
-import { FindingRoommatesPage } from '@/features/roommates/pages/FindingRoommatesPage'
+import { lazyPage } from './lazy-page'
+
+const FindingHousePage = lazyPage(() => import('@/features/houses/pages/FindingHousePage'), 'FindingHousePage')
+const MarketplaceHomePage = lazyPage(() => import('@/features/marketplace/pages/MarketplaceHomePage'), 'MarketplaceHomePage')
+const SignInPage = lazyPage(() => import('@/features/auth/pages/SignInPage'), 'SignInPage')
+const SignUpPage = lazyPage(() => import('@/features/auth/pages/SignUpPage'), 'SignUpPage')
+const AgentHouseFormPage = lazyPage(() => import('@/features/agent/pages/AgentHouseFormPage'), 'AgentHouseFormPage')
+const AgentHousesPage = lazyPage(() => import('@/features/agent/pages/AgentHousesPage'), 'AgentHousesPage')
+const AgentDashboardLayout = lazyPage(() => import('@/features/agent/layout/AgentDashboardLayout'), 'AgentDashboardLayout')
+const AgentBookingsPage = lazyPage(() => import('@/features/agent/pages/AgentBookingsPage'), 'AgentBookingsPage')
+const AgentDashboardPage = lazyPage(() => import('@/features/agent/pages/AgentDashboardPage'), 'AgentDashboardPage')
+const AgentPerformancePage = lazyPage(() => import('@/features/agent/pages/AgentPerformancePage'), 'AgentPerformancePage')
+const AgentBoostsPage = lazyPage(() => import('@/features/agent/pages/AgentPremiumPages'), 'AgentBoostsPage')
+const AgentInsightsPage = lazyPage(() => import('@/features/agent/pages/AgentPremiumPages'), 'AgentInsightsPage')
+const AgentReportsPage = lazyPage(() => import('@/features/agent/pages/AgentPremiumPages'), 'AgentReportsPage')
+const AgentVerificationPage = lazyPage(() => import('@/features/agent/pages/AgentPremiumPages'), 'AgentVerificationPage')
+const AgentCheckoutPage = lazyPage(() => import('@/features/agent/pages/AgentSubscriptionPages'), 'AgentCheckoutPage')
+const AgentSubscriptionPage = lazyPage(() => import('@/features/agent/pages/AgentSubscriptionPages'), 'AgentSubscriptionPage')
+const AgentRegisterPage = lazyPage(() => import('@/features/agent/pages/AgentRegisterPage'), 'AgentRegisterPage')
+const DriverJobsPage = lazyPage(() => import('@/features/driver/pages/DriverJobsPage'), 'DriverJobsPage')
+const DriverRegisterPage = lazyPage(() => import('@/features/driver/pages/DriverRegisterPage'), 'DriverRegisterPage')
+const HouseDetailsPage = lazyPage(() => import('@/features/houses/pages/HouseDetailsPage'), 'HouseDetailsPage')
+const BookingConfirmationPage = lazyPage(() => import('@/features/houses/pages/BookingConfirmationPage'), 'BookingConfirmationPage')
+const ListingDetailPage = lazyPage(() => import('@/features/marketplace/pages/ListingDetailPage'), 'ListingDetailPage')
+const MarketplaceDemoPage = lazyPage(() => import('@/features/marketplace/demo/MarketplaceDemoPage'), 'MarketplaceDemoPage')
+const MarketplacePolicyPage = lazyPage(() => import('@/features/marketplace/pages/MarketplacePolicyPage'), 'MarketplacePolicyPage')
+const MarketplaceSearchPage = lazyPage(() => import('@/features/marketplace/pages/MarketplaceSearchPage'), 'MarketplaceSearchPage')
+const MovingOutSalePage = lazyPage(() => import('@/features/marketplace/pages/MovingOutSalePage'), 'MovingOutSalePage')
+const LegacySellerPlansRedirect = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'LegacySellerPlansRedirect')
+const MyBoostsPage = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MyBoostsPage')
+const MyInquiriesPage = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MyInquiriesPage')
+const MyInsightsPage = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MyInsightsPage')
+const MyMarketplaceLayout = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MyMarketplaceLayout')
+const MyMarketplaceOverviewPage = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MyMarketplaceOverviewPage')
+const MyProductsPage = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MyProductsPage')
+const MySellerPlansPage = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MySellerPlansPage')
+const MySubscriptionPage = lazyPage(() => import('@/features/marketplace/pages/MyMarketplacePage'), 'MySubscriptionPage')
+const SellerProfilePage = lazyPage(() => import('@/features/marketplace/pages/SellerProfilePage'), 'SellerProfilePage')
+const SellerCheckoutPage = lazyPage(() => import('@/features/marketplace/pages/SellerPlansPages'), 'SellerCheckoutPage')
+const SellItemPage = lazyPage(() => import('@/features/marketplace/pages/SellItemPage'), 'SellItemPage')
+const HireMovingPage = lazyPage(() => import('@/features/moving/pages/HireMovingPage'), 'HireMovingPage')
+const MovingRequestDetailPage = lazyPage(() => import('@/features/moving/pages/MovingRequestDetailPage'), 'MovingRequestDetailPage')
+const MovingStatusListPage = lazyPage(() => import('@/features/moving/pages/MovingStatusListPage'), 'MovingStatusListPage')
+const MovingStatusPage = lazyPage(() => import('@/features/moving/pages/MovingStatusPage'), 'MovingStatusPage')
+const MovingReceiptPage = lazyPage(() => import('@/features/moving/pages/MovingReceiptPage'), 'MovingReceiptPage')
+const HistoryPage = lazyPage(() => import('@/features/profile/pages/HistoryPage'), 'HistoryPage')
+const ProfilePage = lazyPage(() => import('@/features/profile/pages/ProfilePage'), 'ProfilePage')
+const WishlistPage = lazyPage(() => import('@/features/profile/pages/WishlistPage'), 'WishlistPage')
+const AboutUsPage = lazyPage(() => import('@/features/public/pages/AboutUsPage'), 'AboutUsPage')
+const FindingRoommatesPage = lazyPage(() => import('@/features/roommates/pages/FindingRoommatesPage'), 'FindingRoommatesPage')
 
 export const publicRoutes: RouteObject = {
   path: '/',
   element: <PublicLayout />,
+  errorElement: <RouteError />,
   children: [
     { index: true, element: <HomePage /> },
     { path: 'about-us', element: <AboutUsPage /> },

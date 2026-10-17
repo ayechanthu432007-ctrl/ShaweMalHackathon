@@ -384,3 +384,224 @@ export const median = (values: number[]): number | null => {
   const lower = sorted[middle - 1] ?? upper;
   return upper === null || lower === null ? null : sorted.length % 2 === 0 ? (lower + upper) / 2 : upper;
 };
+
+// --- Listing → tenant compatibility (agents writing a listing) ---
+
+/**
+ * Weights for scoring a listing against one tenant's stated housing needs. Each requirement is
+ * counted in exactly one factor (furnished and internet are amenities, not "preferences"), and
+ * occupation is deliberately not scored: a job title says nothing objective about what a person
+ * needs from a home, so it is shown for context only.
+ */
+export const TENANT_MATCH_WEIGHTS = {
+  budget: 30,
+  location: 20,
+  amenities: 20,
+  space: 15,
+  timing: 10,
+  rules: 5
+} as const;
+
+/** Thresholds shared by the API and the UI. */
+export const TENANT_MATCH_THRESHOLDS = {
+  /** A score at or above this, with high confidence, is a strong match. */
+  strong: 75,
+  /** Below this a score is shown as low compatibility. */
+  medium: 50,
+  /** Less than this share of the total weight judged means too little information to score. */
+  minJudgedShare: 40,
+  /** Below this share of judged weight the result is labelled low confidence. */
+  highConfidenceShare: 60,
+  /** When the rent exceeds the stated maximum by more than the 10% tolerance, the score is capped here. */
+  budgetConflictCap: 40
+} as const;
+
+export type TenantReasonCode =
+  | 'budget.within'
+  | 'budget.belowRange'
+  | 'budget.slightlyOver'
+  | 'budget.over'
+  | 'location.city'
+  | 'location.region'
+  | 'location.outside'
+  | 'space.typeMatch'
+  | 'space.typeMismatch'
+  | 'space.bedroomsEnough'
+  | 'space.bedroomsShort'
+  | 'amenities.all'
+  | 'amenities.some'
+  | 'amenities.none'
+  | 'amenities.petsRuleConflict'
+  | 'timing.leaseFits'
+  | 'timing.leaseLonger'
+  | 'timing.moveInSoon'
+  | 'timing.moveInLater'
+  | 'rules.smokeFree'
+  | 'rules.smokingAllowed';
+
+export type TenantFactor = keyof typeof TENANT_MATCH_WEIGHTS;
+
+export interface TenantReason {
+  factor: TenantFactor;
+  status: Exclude<FactorStatus, 'unknown'>;
+  code: TenantReasonCode;
+  /** Values for the explanation, e.g. the amenities that are missing. */
+  params?: Record<string, string | number>;
+}
+
+export interface TenantMatchResult extends MatchResult {
+  reasons: TenantReason[];
+}
+
+export interface ListingFacts extends HouseFacts {
+  /** The listing's house rules text, used only for explicit "no pets" / "no smoking" rules. */
+  rulesText: string;
+}
+
+export interface TenantFacts extends PersonFacts {
+  /** Upper-cased names of the amenities the tenant listed as required (from their amenityIds). */
+  requiredAmenityNames: string[];
+}
+
+const NO_SMOKING_RULE = /\bno[\s-]*smok|\bsmok\w*\s+(?:is\s+)?(?:not\s+allowed|prohibited|forbidden)|non[\s-]*smoking/i;
+const NO_PETS_RULE = /\bno[\s-]*pets?\b|\bpets?\s+(?:are\s+)?(?:not\s+allowed|prohibited|forbidden)/i;
+
+const reasonStatus = (score: number): Exclude<FactorStatus, 'unknown'> => (score >= 0.85 ? 'match' : score >= 0.4 ? 'partial' : 'conflict');
+
+/**
+ * Scores how well one listing meets one tenant's stated housing needs. Deterministic: the same
+ * listing, tenant and `now` always give the same result. Facts the tenant never stated are left
+ * out of the average (never counted as a match); with too few stated facts the result is
+ * INCOMPLETE and must be reported as insufficient information, not as a score.
+ */
+export const scoreListingForTenant = (listing: ListingFacts, tenant: TenantFacts, now = new Date()): TenantMatchResult => {
+  const prefs = tenant.preferences;
+  const reasons: TenantReason[] = [];
+  const add = (factor: TenantFactor, score: number, code: TenantReasonCode, params?: TenantReason['params']): number => {
+    reasons.push({ factor, status: reasonStatus(score), code, ...(params ? { params } : {}) });
+    return score;
+  };
+
+  // Budget: affordability against the stated maximum. A minimum alone says nothing about affordability.
+  let budget: Scored = null;
+  if (prefs?.budgetMax != null) {
+    const price = listing.monthlyFees;
+    if (price <= prefs.budgetMax) {
+      budget =
+        prefs.budgetMin != null && price < prefs.budgetMin * 0.5 ? add('budget', 0.7, 'budget.belowRange') : add('budget', 1, 'budget.within');
+    } else if (price <= prefs.budgetMax * (1 + BUDGET_TOLERANCE)) {
+      budget = add('budget', 0.5, 'budget.slightlyOver', { over: Math.round(price - prefs.budgetMax) });
+    } else {
+      budget = add('budget', 0, 'budget.over', { over: Math.round(price - prefs.budgetMax) });
+    }
+  }
+
+  // Location: the preferred township, else the same state or region.
+  let location: Scored = null;
+  if (prefs?.preferredCityId) {
+    location =
+      prefs.preferredCityId === listing.cityId
+        ? add('location', 1, 'location.city')
+        : prefs.preferredStateId && prefs.preferredStateId === listing.stateId
+          ? add('location', 0.5, 'location.region')
+          : add('location', 0, 'location.outside');
+  }
+
+  // Space: property type and minimum bedrooms, each only when stated.
+  const space: Scored[] = [];
+  if (prefs?.propertyTypeId) {
+    space.push(prefs.propertyTypeId === listing.propertyTypeId ? add('space', 1, 'space.typeMatch') : add('space', 0, 'space.typeMismatch'));
+  }
+  if (prefs?.bedroomsMin != null) {
+    space.push(
+      listing.bedrooms >= prefs.bedroomsMin
+        ? add('space', 1, 'space.bedroomsEnough', { bedrooms: listing.bedrooms })
+        : add('space', 0, 'space.bedroomsShort', { bedrooms: listing.bedrooms, wanted: prefs.bedroomsMin })
+    );
+  }
+
+  // Amenities: every required amenity counted once (furnished and internet included), as a share found.
+  const required = new Set(tenant.requiredAmenityNames);
+  if (prefs?.wantsFurnished === true) required.add('FURNISHED');
+  if (prefs?.needsInternet === true) required.add('WIFI');
+  const offered = new Set(listing.amenityNames);
+  const petsRuledOut = NO_PETS_RULE.test(listing.rulesText);
+  if (petsRuledOut) offered.delete('PETS');
+  let amenities: Scored = null;
+  if (required.size > 0) {
+    const wanted = [...required].sort();
+    const missing = wanted.filter((name) => !offered.has(name));
+    const found = wanted.length - missing.length;
+    amenities =
+      missing.length === 0
+        ? add('amenities', 1, 'amenities.all', { count: wanted.length })
+        : found === 0
+          ? add('amenities', 0, 'amenities.none', { missing: missing.join(', ') })
+          : add('amenities', found / wanted.length, 'amenities.some', { missing: missing.join(', '), found, total: wanted.length });
+    if (required.has('PETS') && petsRuledOut) {
+      reasons.push({ factor: 'amenities', status: 'conflict', code: 'amenities.petsRuleConflict' });
+    }
+  }
+
+  // Timing: lease length and move-in date.
+  const timing: Scored[] = [];
+  if (prefs?.leaseMonths != null && listing.contractMonths !== null) {
+    timing.push(
+      listing.contractMonths <= prefs.leaseMonths
+        ? add('timing', 1, 'timing.leaseFits', { months: listing.contractMonths })
+        : add('timing', 0.3, 'timing.leaseLonger', { months: listing.contractMonths, wanted: prefs.leaseMonths })
+    );
+  }
+  if (prefs?.moveInDate) {
+    // A listing is available now; a move planned far ahead fits less well.
+    timing.push(
+      prefs.moveInDate.getTime() - now.getTime() <= 60 * DAY_MS ? add('timing', 1, 'timing.moveInSoon') : add('timing', 0.6, 'timing.moveInLater')
+    );
+  }
+
+  // Rules: only "Non-smoking home" is a requirement; "smoking is fine" and "no preference" are not.
+  let rules: Scored = null;
+  if (prefs?.smoking === 'NON_SMOKER') {
+    const smokingAllowed = offered.has('SMOKING') && !NO_SMOKING_RULE.test(listing.rulesText);
+    rules = smokingAllowed ? add('rules', 0, 'rules.smokingAllowed') : add('rules', 1, 'rules.smokeFree');
+  }
+
+  const scores: Record<TenantFactor, Scored> = { budget, location, amenities, space: average(space), timing: average(timing), rules };
+  const entries = Object.entries(TENANT_MATCH_WEIGHTS) as Array<[TenantFactor, number]>;
+  const totalWeight = entries.reduce((sum, [, weight]) => sum + weight, 0);
+  let judgedWeight = 0;
+  let earned = 0;
+  const factors: FactorResult[] = entries.map(([key, weight]) => {
+    const score = scores[key];
+    if (score !== null) {
+      judgedWeight += weight;
+      earned += weight * score;
+    }
+    return { key, status: statusOf(score), weight: Math.round((weight / totalWeight) * 100) };
+  });
+  const statusOfFactor = (key: TenantFactor) => factors.find((factor) => factor.key === key)?.status;
+
+  let raw = judgedWeight === 0 ? 0 : (earned / judgedWeight) * 100;
+  if (statusOfFactor('location') === 'conflict') raw *= LOCATION_CONFLICT_FACTOR;
+  if (statusOfFactor('rules') === 'conflict') raw *= 0.85;
+  if (statusOfFactor('budget') === 'conflict') raw = Math.min(raw, TENANT_MATCH_THRESHOLDS.budgetConflictCap);
+
+  const judgedShare = (judgedWeight / totalWeight) * 100;
+  const tooLittle = !prefs || judgedShare < TENANT_MATCH_THRESHOLDS.minJudgedShare || (budget === null && location === null);
+  const byWeight = (a: FactorResult, b: FactorResult) => b.weight - a.weight;
+
+  return {
+    score: Math.max(0, Math.min(100, Math.round(raw))),
+    confidence: tooLittle ? 'INCOMPLETE' : judgedShare < TENANT_MATCH_THRESHOLDS.highConfidenceShare ? 'LOW' : 'HIGH',
+    factors,
+    matched: factors.filter((factor) => factor.status === 'match').sort(byWeight).map((factor) => factor.key),
+    conflicts: factors.filter((factor) => factor.status === 'conflict').sort(byWeight).map((factor) => factor.key),
+    missing: factors.filter((factor) => factor.status === 'unknown').map((factor) => factor.key),
+    reasons
+  };
+};
+
+export type CompatibilityTier = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export const tierOf = (score: number): CompatibilityTier =>
+  score >= TENANT_MATCH_THRESHOLDS.strong ? 'HIGH' : score >= TENANT_MATCH_THRESHOLDS.medium ? 'MEDIUM' : 'LOW';

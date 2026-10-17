@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { formatMmk } from '@/lib/format'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -56,13 +58,13 @@ export function AgentHousesPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (!isAgent) {
     return (
       <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('agent.houses.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('agent.houses.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('agent.houses.roleRequired')}</p>
         <Button asChild variant="outline">
           <Link to="/agent-register">{t('nav.agentRegister')}</Link>
@@ -75,7 +77,7 @@ export function AgentHousesPage() {
     <section className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
-          <h1 className="text-3xl font-semibold tracking-tight">{t('agent.houses.title')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('agent.houses.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('agent.houses.subtitle')}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -119,7 +121,7 @@ export function AgentHousesPage() {
       ) : null}
 
       {housesQuery.isLoading ? (
-        <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+        <LoadingState />
       ) : null}
 
       {housesQuery.isError ? (
@@ -156,7 +158,7 @@ export function AgentHousesPage() {
                   <CardTitle className="text-lg leading-snug">
                     {house.title}
                     {activeDemoBoost(preview.state, house.id) ? (
-                      <span className="ml-2 inline-flex items-center rounded-md bg-[#C69245] px-2 py-0.5 align-middle text-[11px] font-bold text-white">{t('agentDash.demoBoostBadge')}</span>
+                      <span className="ml-2 inline-flex items-center rounded-md border border-gold/40 bg-gold-soft px-2 py-0.5 align-middle text-[11px] font-bold text-gold-ink">{t('agentDash.demoBoostBadge')}</span>
                     ) : null}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
@@ -168,7 +170,7 @@ export function AgentHousesPage() {
                   <dl className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <dt className="text-muted-foreground">{t('houses.monthlyFeesLabel')}</dt>
-                      <dd>{t('houses.monthlyFees', { amount: house.monthlyFees })}</dd>
+                      <dd>{t('houses.monthlyFees', { amount: formatMmk(house.monthlyFees) })}</dd>
                     </div>
                     <div>
                       <dt className="text-muted-foreground">{t('agent.houses.availability')}</dt>

@@ -48,10 +48,10 @@ export function MarketplaceDialog({
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 [&>[role=dialog]]:my-auto">
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-black/50 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-black/50 backdrop-blur-[2px]"
         onClick={() => {
           if (!busy) onDismiss()
         }}
@@ -61,7 +61,7 @@ export function MarketplaceDialog({
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
-        className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto shadow-2xl"
+        className="relative z-10 max-h-[90vh] w-full max-w-lg overflow-y-auto shadow-overlay"
       >
         <div className={cn('h-1', tone === 'destructive' ? 'bg-destructive' : 'bg-primary')} />
         <CardHeader className="space-y-3 pb-3">
@@ -69,7 +69,7 @@ export function MarketplaceDialog({
             <div
               className={cn(
                 'flex size-11 items-center justify-center rounded-full',
-                tone === 'destructive' ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary',
+                tone === 'destructive' ? 'bg-danger-soft text-destructive' : 'bg-primary/10 text-primary',
               )}
             >
               {icon}
@@ -92,8 +92,3 @@ export function MarketplaceDialog({
   )
 }
 
-export const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 dark:bg-background'
-
-export const textareaClassName =
-  'flex min-h-24 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50'

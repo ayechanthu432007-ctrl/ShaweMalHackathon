@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { BarChart3, Box, CheckCircle2, Crown, Eye, Heart, LayoutDashboard, MessageSquare, PackagePlus, Pencil, RotateCcw, Search, Tags, Trash2, TrendingUp, Truck } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -24,9 +25,9 @@ import type { ListingAllowance, ListingStatus, MyListing, MyMarketplaceDashboard
 import { SellerPlanComparison } from './SellerPlansPages'
 
 const MODERATION_TONE: Record<string, string> = {
-  PENDING: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
-  REJECTED: 'bg-destructive/10 text-destructive',
-  REMOVED: 'bg-destructive/10 text-destructive',
+  PENDING: 'bg-warning-soft text-warning',
+  REJECTED: 'bg-danger-soft text-destructive',
+  REMOVED: 'bg-danger-soft text-destructive',
 }
 
 export const MY_MARKETPLACE_BASE = '/marketplace/my'
@@ -67,18 +68,18 @@ export function ListingAllowanceMeter({ allowance, className }: { allowance: Lis
   const full = (allowance.remaining ?? 0) <= 0
   const percent = Math.min(100, Math.round((allowance.used / Math.max(1, allowance.limit)) * 100))
   return (
-    <div className={cn('rounded-xl border bg-card p-4', full && 'border-amber-500/50 bg-amber-500/5', className)} role="status">
+    <div className={cn('rounded-xl border bg-card p-4 shadow-card', full && 'border-warning/40 bg-warning-soft', className)} role="status">
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-sm">
         <p className="font-semibold">{t('sellerDash.allowance.used', { used: allowance.used, limit: allowance.limit })}</p>
-        <p className={cn('text-muted-foreground', full && 'font-medium text-amber-700 dark:text-amber-300')}>
+        <p className={cn('text-muted-foreground', full && 'font-medium text-warning')}>
           {full ? t('sellerDash.allowance.full') : t('sellerDash.allowance.remaining', { count: allowance.remaining ?? 0 })}
         </p>
       </div>
       <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted" aria-hidden>
-        <div className={cn('h-full rounded-full transition-all', full ? 'bg-amber-500' : 'bg-button')} style={{ width: `${percent}%` }} />
+        <div className={cn('h-full rounded-full transition-all', full ? 'bg-warning' : 'bg-button')} style={{ width: `${percent}%` }} />
       </div>
       {full ? (
-        <Button asChild size="sm" className="mt-3 bg-[#FFDE59] text-[#3d2f00] hover:bg-[#f5d03f]">
+        <Button asChild size="sm" variant="cta" className="mt-3">
           <Link to={`${MY_MARKETPLACE_BASE}/plans`}>
             <Crown aria-hidden />
             {t('sellerPlans.upgrade')}
@@ -205,13 +206,13 @@ export function MyMarketplaceLayout() {
   }
 
   if (isBootstrapping || !isAuthenticated || dashboardQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (dashboardQuery.isError || !dashboardQuery.data) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('marketplace.loadError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('marketplace.loadError')}</h1>
         <Button type="button" variant="outline" onClick={() => void dashboardQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -227,14 +228,14 @@ export function MyMarketplaceLayout() {
       <BackButton fallback="/marketplace" />
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-3xl font-semibold tracking-tight">{t('marketplace.myMarketplace')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('marketplace.myMarketplace')}</h1>
           <p className="text-sm text-muted-foreground">{t('sellerDash.subtitle')}</p>
           <div className="flex flex-wrap items-center gap-2">
             <Link
               to={`${MY_MARKETPLACE_BASE}/subscription`}
               className={cn(
-                'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold',
-                isPremium ? 'border-[#e6c13f] bg-[#FFDE59]/50 text-[#3d2f00] dark:text-[#FFDE59]' : 'bg-muted',
+                'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                isPremium ? 'border-cta-border bg-cta-soft text-cta-soft-foreground' : 'bg-muted',
               )}
               aria-label={t('sellerDash.currentPlanLabel', { plan: dashboard.plan.name })}
             >
@@ -253,8 +254,8 @@ export function MyMarketplaceLayout() {
         </Button>
       </div>
 
-      <nav className="-mx-4 overflow-x-auto px-4" aria-label={t('sellerDash.navLabel')}>
-        <ul className="flex min-w-max gap-1 rounded-xl bg-muted p-1">
+      <nav className="scrollbar-none -mx-4 overflow-x-auto px-4" aria-label={t('sellerDash.navLabel')}>
+        <ul className="flex min-w-max gap-1 rounded-xl border bg-muted p-1">
           {NAV_ITEMS.map((item) => (
             <li key={item.key}>
               <NavLink
@@ -262,15 +263,15 @@ export function MyMarketplaceLayout() {
                 end={!item.to}
                 className={({ isActive }) =>
                   cn(
-                    'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                    isActive ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground',
+                    'inline-flex h-control-md items-center gap-1.5 rounded-lg px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    isActive ? 'bg-background text-foreground shadow-card' : 'text-muted-foreground hover:bg-background/60 hover:text-foreground',
                   )
                 }
               >
                 <item.icon className="size-4" aria-hidden />
                 {t(`sellerDash.sections.${item.key}`)}
                 {item.key === 'inquiries' && dashboard.summary.newInquiries > 0 ? (
-                  <span className="rounded-full bg-sky-600 px-1.5 text-xs text-white">{dashboard.summary.newInquiries}</span>
+                  <span className="rounded-full bg-info px-1.5 text-xs font-semibold text-white dark:text-background">{dashboard.summary.newInquiries}</span>
                 ) : null}
               </NavLink>
             </li>
@@ -278,7 +279,9 @@ export function MyMarketplaceLayout() {
         </ul>
       </nav>
 
-      <Outlet context={{ dashboard } satisfies DashboardContext} />
+      <Suspense fallback={<LoadingState />}>
+        <Outlet context={{ dashboard } satisfies DashboardContext} />
+      </Suspense>
     </div>
   )
 }
@@ -297,25 +300,33 @@ export function MyMarketplaceOverviewPage() {
 
   return (
     <div className="space-y-6">
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <ul className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {stats.map((stat) => (
-          <Link key={stat.label} to={`${MY_MARKETPLACE_BASE}/${stat.to}`} className="rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50">
-            <dt className="flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
-              <stat.icon className="size-4" aria-hidden />
-              {stat.label}
-            </dt>
-            <dd className="text-3xl font-semibold tabular-nums">{stat.value}</dd>
-          </Link>
+          <li key={stat.label}>
+            <Link
+              to={`${MY_MARKETPLACE_BASE}/${stat.to}`}
+              className="block h-full rounded-xl border bg-card p-4 shadow-card transition-[background-color,box-shadow] hover:bg-muted/50 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground sm:text-sm">
+                <stat.icon className="size-4" aria-hidden />
+                {stat.label}
+              </span>
+              <span className="mt-1 block text-3xl font-semibold tabular-nums">{stat.value}</span>
+            </Link>
+          </li>
         ))}
-      </dl>
+      </ul>
 
       <ListingAllowanceMeter allowance={dashboard.allowance} />
 
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {tools.map((item) => (
           <li key={item.key}>
-            <Link to={`${MY_MARKETPLACE_BASE}/${item.to}`} className="flex h-full items-start gap-3 rounded-xl border bg-card p-4 transition-colors hover:bg-muted/50">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <Link
+              to={`${MY_MARKETPLACE_BASE}/${item.to}`}
+              className="flex h-full items-start gap-3 rounded-xl border bg-card p-4 shadow-card transition-[background-color,box-shadow] hover:bg-muted/50 hover:shadow-raised focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-sky-soft text-brand-sky-strong">
                 <item.icon className="size-5" aria-hidden />
               </span>
               <span>
@@ -397,7 +408,7 @@ export function MyProductsPage() {
     <div className="space-y-6">
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-xl font-semibold">{t('sellerDash.sections.products')}</h2>
+          <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{t('sellerDash.sections.products')}</h2>
           <div className="flex flex-wrap items-center gap-2">
             <label className="relative">
               <span className="sr-only">{t('sellerDash.products.search')}</span>
@@ -430,7 +441,7 @@ export function MyProductsPage() {
           </div>
         </div>
 
-        {productsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {productsQuery.isLoading ? <LoadingState /> : null}
         {productsQuery.isError ? (
           <div className="space-y-2">
             <p className="text-sm text-destructive">{t('marketplace.loadError')}</p>

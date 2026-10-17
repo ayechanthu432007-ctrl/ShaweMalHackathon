@@ -4,7 +4,9 @@ import { type ReactNode } from 'react'
 import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
 
+import { CardGridSkeleton, EmptyState, ErrorState } from '@/components/common/PageStates'
 import { UserAvatar } from '@/components/common/UserAvatar'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StarRating } from '@/features/reviews/components/StarRating'
@@ -84,7 +86,7 @@ export function HomePage() {
 
   return (
     <section className="space-y-10">
-      <div className="space-y-4 rounded-2xl border bg-gradient-to-br from-primary/10 via-background to-background p-6 sm:p-8">
+      <div className="space-y-4 rounded-2xl border bg-gradient-to-br from-brand-sky-soft via-background to-background p-6 shadow-card sm:p-8">
         <div className="space-y-3">
           <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t('home.heroTitle')}</h1>
           <p className="max-w-2xl text-lg font-medium text-foreground">{t('home.heroSubtitle')}</p>
@@ -92,16 +94,17 @@ export function HomePage() {
         </div>
       </div>
 
-      {homeQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
-
-      {homeQuery.isError ? (
-        <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-          <p className="text-sm text-destructive">{t('home.loadError')}</p>
-          <Button type="button" variant="outline" onClick={() => void homeQuery.refetch()}>
-            {t('common.retry')}
-          </Button>
-        </div>
+      {homeQuery.isLoading ? (
+        // Same heading and one-row shape as the loaded Popular Houses carousel, so nothing jumps.
+        <HomeSection title={t('home.popularTitle')} subtitle={t('home.popularSubtitle')}>
+          <CardGridSkeleton
+            className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 [&>*:nth-child(n+2)]:hidden sm:[&>*:nth-child(2)]:flex lg:[&>*:nth-child(3)]:flex"
+            withControls
+          />
+        </HomeSection>
       ) : null}
+
+      {homeQuery.isError ? <ErrorState message={t('home.loadError')} onRetry={() => void homeQuery.refetch()} /> : null}
 
       {homeQuery.data ? (
         <>
@@ -146,18 +149,18 @@ export function HomePage() {
                     <CardContent className="flex items-center gap-3 p-4">
                       <UserAvatar path={agent.profilePicturePath} name={agent.name} className="size-11" />
                       <div className="min-w-0 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-medium">{agent.name}</p>
-                        {agent.hasVerifiedBadge ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                            <BadgeCheck className="size-3.5" aria-hidden />
-                            {t('home.verifiedBadge')}
-                          </span>
-                        ) : null}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        {agent.agentProfile?.city?.name ?? t('houses.locationUnknown')}
-                      </p>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-medium">{agent.name}</p>
+                          {agent.hasVerifiedBadge ? (
+                            <Badge tone="info">
+                              <BadgeCheck aria-hidden />
+                              {t('home.verifiedBadge')}
+                            </Badge>
+                          ) : null}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {agent.agentProfile?.city?.name ?? t('houses.locationUnknown')}
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
@@ -214,9 +217,9 @@ export function HomePage() {
             )}
           </HomeSection>
 
-          <div className="rounded-xl border p-4 text-center">
+          <div className="rounded-2xl border bg-card p-6 text-center shadow-card">
             <p className="text-sm text-muted-foreground">{t('home.browseHint')}</p>
-            <Button asChild className="mt-3">
+            <Button asChild variant="cta" size="lg" className="mt-4">
               <Link to="/finding-house">{t('nav.findingHouse')}</Link>
             </Button>
           </div>
@@ -230,7 +233,7 @@ function YourNewPlaceSection() {
   const { t } = useTranslation()
 
   return (
-    <section className="overflow-hidden rounded-2xl bg-[#FAF6F4] text-[#1a2744] dark:bg-muted dark:text-foreground">
+    <section className="overflow-hidden rounded-2xl bg-surface-warm text-foreground dark:bg-muted">
       <div className="grid lg:grid-cols-2">
         <div className="space-y-8 px-6 py-8 sm:px-10 sm:py-12">
           <div className="space-y-3">
@@ -255,7 +258,7 @@ function YourNewPlaceSection() {
             })}
           </ul>
         </div>
-        <div className="relative flex min-h-[280px] items-center justify-center overflow-hidden bg-gradient-to-br from-[#FAF6F4] via-[#F4E8DC] to-[#E8D4BE] p-8 lg:min-h-full lg:rounded-tl-[8rem] dark:from-muted dark:via-card dark:to-secondary">
+        <div className="relative flex min-h-[280px] items-center justify-center overflow-hidden bg-gradient-to-br from-surface-warm via-surface-warm-2 to-surface-warm-3 p-8 lg:min-h-full lg:rounded-tl-[8rem] dark:from-muted dark:via-card dark:to-secondary">
           <div className="pointer-events-none absolute -right-10 top-6 size-56 rounded-full bg-primary/25 blur-3xl" />
           <div className="pointer-events-none absolute bottom-4 left-6 size-44 rounded-full bg-sky-300/35 blur-3xl dark:bg-sky-400/20" />
           <RotatingLogo alt={t('home.newPlaceLogoAlt')} className="z-10" />
@@ -270,7 +273,7 @@ function HowShaweMalWorksSection() {
 
   return (
     <section className="space-y-10 py-4">
-      <h2 className="text-center text-2xl font-semibold tracking-tight text-[#1a2744] dark:text-foreground sm:text-3xl">
+      <h2 className="text-center text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
         <Trans
           i18nKey="home.howItWorksTitle"
           components={{ brand: <span className="text-primary" /> }}
@@ -296,7 +299,7 @@ function HowShaweMalWorksSection() {
               >
                 <Icon className="size-7 text-white" aria-hidden />
               </span>
-              <p className="mt-4 font-semibold text-[#1a2744] dark:text-foreground">
+              <p className="mt-4 font-semibold text-foreground">
                 {step.to ? (
                   <Link to={step.to} className="underline-offset-4 hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     {t(step.titleKey)}
@@ -326,7 +329,7 @@ function HomeSection({
   return (
     <section className="space-y-4">
       <div>
-        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">{title}</h2>
         {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
       {children}
@@ -335,5 +338,5 @@ function HomeSection({
 }
 
 function EmptyHint({ text }: { text: string }) {
-  return <p className="rounded-xl border border-dashed p-6 text-sm text-muted-foreground">{text}</p>
+  return <EmptyState text={text} />
 }

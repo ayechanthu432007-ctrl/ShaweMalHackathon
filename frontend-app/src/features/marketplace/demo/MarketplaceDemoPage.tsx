@@ -141,11 +141,11 @@ function MarketplaceDemo() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-[#FCF7EE] px-3 py-1 text-xs font-bold tracking-wide text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-3 py-1 text-xs font-bold tracking-wide text-gold-ink">
             <FlaskConical className="size-3.5" aria-hidden />
             {t('marketplaceDemo.badge')}
           </p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{t('marketplaceDemo.title')}</h1>
+          <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{t('marketplaceDemo.title')}</h1>
           <p className="mt-1 text-muted-foreground">{t('marketplaceDemo.subtitle')}</p>
         </div>
         <Button asChild variant="outline">
@@ -153,7 +153,7 @@ function MarketplaceDemo() {
         </Button>
       </div>
 
-      <p className="rounded-xl border border-[#C69245]/40 bg-[#FCF7EE] p-4 text-sm text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200" role="note">
+      <p className="rounded-xl border border-gold/40 bg-gold-soft p-4 text-sm text-gold-ink" role="note">
         {t('marketplaceDemo.notice')}
       </p>
 
@@ -211,12 +211,12 @@ function MarketplaceDemo() {
                     <li
                       key={post.id}
                       data-demo-post={post.id}
-                      className={cn('rounded-xl border bg-card p-4 shadow-sm transition-colors', boost && 'border-[#C69245]/60 bg-[#FCF7EE]/60 dark:bg-amber-500/5')}
+                      className={cn('rounded-xl border bg-card p-4 shadow-sm transition-colors', boost && 'border-gold/60 bg-gold-soft/60')}
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0 space-y-1">
                           {boost ? (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-[#C69245] px-2 py-0.5 text-[11px] font-bold tracking-wide text-white">
+                            <span className="inline-flex items-center gap-1 rounded-md border border-gold/40 bg-gold-soft px-2 py-0.5 text-[11px] font-bold tracking-wide text-gold-ink">
                               <Rocket className="size-3" aria-hidden />
                               {t('marketplaceDemo.boostedBadge')}
                             </span>
@@ -239,7 +239,7 @@ function MarketplaceDemo() {
                             {mmk(post.priceMmk)} · {post.category}
                           </p>
                           {boost ? (
-                            <p className="flex flex-wrap items-center gap-x-3 text-xs text-[#7A5418] dark:text-amber-200">
+                            <p className="flex flex-wrap items-center gap-x-3 text-xs text-gold-ink dark:text-amber-200">
                               <span>{t('marketplaceDemo.activatedAt', { time: formatTime(boost.activatedAt) })}</span>
                               <span>{t('marketplaceDemo.expiresAt', { time: formatTime(boost.expiresAt) })}</span>
                               <span className="font-semibold">{remaining(boost.expiresAt)}</span>
@@ -253,7 +253,7 @@ function MarketplaceDemo() {
                               {t('marketplaceDemo.boostActive')}
                             </Button>
                           ) : (
-                            <Button type="button" size="sm" className="bg-[#C69245] text-white hover:bg-[#A8752F]" onClick={() => setBoostTarget(post)}>
+                            <Button type="button" size="sm" variant="cta" onClick={() => setBoostTarget(post)}>
                               <Rocket aria-hidden />
                               {t('marketplaceDemo.boostPost')}
                             </Button>
@@ -283,7 +283,7 @@ function MarketplaceDemo() {
 
         <aside className="space-y-3 self-start rounded-xl border bg-card p-4 lg:sticky lg:top-[calc(var(--site-header-h,0px)+1rem)]" aria-labelledby="demo-controls-title">
           <h2 id="demo-controls-title" className="flex items-center gap-2 font-semibold">
-            <Sparkles className="size-4 text-[#C69245]" aria-hidden />
+            <Sparkles className="size-4 text-gold" aria-hidden />
             {t('marketplaceDemo.controls')}
           </h2>
           <p className="text-xs text-muted-foreground">
@@ -400,10 +400,10 @@ function BoostDialog({ post, paying, onCancel, onPay }: { post: DemoPost; paying
   }, [paying, onCancel])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div aria-hidden className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={() => !paying && onCancel()} />
-      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md space-y-4 rounded-2xl border bg-card p-6 shadow-2xl">
-        <p className="inline-flex items-center gap-1.5 rounded-full bg-[#FCF7EE] px-2.5 py-1 text-xs font-bold text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200">
+    <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 [&>[role=dialog]]:my-auto">
+      <div aria-hidden className="fixed inset-0 bg-black/50 backdrop-blur-[2px]" onClick={() => !paying && onCancel()} />
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md space-y-4 rounded-2xl border bg-card p-6 shadow-overlay">
+        <p className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-2.5 py-1 text-xs font-bold text-gold-ink">
           <FlaskConical className="size-3.5" aria-hidden />
           {t('marketplaceDemo.badge')}
         </p>

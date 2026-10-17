@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -43,7 +44,7 @@ export function HouseFilterForm({
         <Label htmlFor="city">{t('houses.filters.city')}</Label>
         <select
           id="city"
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={selectClassName}
           disabled={isLoadingOptions}
           {...register('city')}
         >
@@ -60,7 +61,7 @@ export function HouseFilterForm({
         <Label htmlFor="type">{t('houses.filters.type')}</Label>
         <select
           id="type"
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={selectClassName}
           disabled={isLoadingOptions}
           {...register('type')}
         >

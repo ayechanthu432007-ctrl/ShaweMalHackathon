@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { cn } from '@/lib/utils'
 
 import { adminMarketplaceApi, type ReportStatus } from '../api/admin-marketplace-api'
@@ -24,7 +25,7 @@ export function AdminMarketplaceReportsPage() {
 
   return (
     <section className="space-y-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{t('admin.marketplace.reports.title')}</h1>
+      <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.marketplace.reports.title')}</h1>
       <AdminMarketplaceNav />
 
       <div className="flex w-fit flex-wrap gap-1 rounded-lg bg-muted p-1" role="tablist">
@@ -45,7 +46,7 @@ export function AdminMarketplaceReportsPage() {
         ))}
       </div>
 
-      {reportsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {reportsQuery.isLoading ? <LoadingState /> : null}
       {reportsQuery.isError ? <p className="text-sm text-destructive">{t('admin.marketplace.loadError')}</p> : null}
       {reportsQuery.data?.items.length === 0 ? <p className="text-sm text-muted-foreground">{t('admin.marketplace.reports.empty')}</p> : null}
 

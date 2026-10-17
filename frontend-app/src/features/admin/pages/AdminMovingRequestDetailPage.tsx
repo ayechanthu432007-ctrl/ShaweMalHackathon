@@ -48,7 +48,7 @@ export function AdminMovingRequestDetailPage() {
   if (detailQuery.isError) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('admin.movingReport.detailError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('admin.movingReport.detailError')}</h1>
         <Button type="button" variant="outline" onClick={() => void detailQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -68,7 +68,7 @@ export function AdminMovingRequestDetailPage() {
     <section className="space-y-6">
       <BackLink to="/admin/reports/moving" label={t('admin.movingReport.backToList')} />
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.movingReport.detailTitle')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.movingReport.detailTitle')}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {t('moving.orderNumber')}: {request.orderNumber ?? request.id}
         </p>

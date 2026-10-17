@@ -1,6 +1,7 @@
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { CoverImage } from '@/components/common/CoverImage'
 import { Card, CardContent } from '@/components/ui/card'
 import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 
@@ -15,11 +16,7 @@ export function MovingOutSaleCard({ sale }: { sale: MovingOutSaleSummary }) {
         <div className="grid h-28 grid-cols-4 gap-0.5 bg-muted">
           {Array.from({ length: 4 }, (_, index) => {
             const src = resolvePublicUploadUrl(sale.previewImages[index])
-            return src ? (
-              <img key={index} src={src} alt="" className="h-full w-full object-cover" loading="lazy" />
-            ) : (
-              <div key={index} className="bg-muted" />
-            )
+            return src ? <CoverImage key={index} src={src} alt="" /> : <div key={index} className="bg-muted" />
           })}
         </div>
         <CardContent className="space-y-1 p-3">

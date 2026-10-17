@@ -15,10 +15,12 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react'
+import { Suspense } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { displayedPlan, useAgentDemoPreview } from '../lib/agent-demo-preview'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
 
@@ -75,7 +77,7 @@ export function AgentDashboardLayout() {
   const preview = useAgentDemoPreview(dashboard)
 
   if (isBootstrapping) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   // The agent area is for signed-in users only; the API enforces the same rule.
@@ -96,7 +98,7 @@ export function AgentDashboardLayout() {
             <p className="flex items-center gap-1.5 text-lg font-semibold">
               {isGold ? <Crown className="size-4 text-amber-500" aria-hidden /> : null}
               {shown?.plan.name}
-              {shown?.isDemo ? <span className="rounded bg-[#FCF7EE] px-1.5 py-0.5 text-[10px] font-semibold text-[#7A5418]">DEMO</span> : null}
+              {shown?.isDemo ? <span className="rounded bg-gold-soft px-1.5 py-0.5 text-[10px] font-semibold text-gold-ink">DEMO</span> : null}
             </p>
             {shown?.isDemo ? <p className="text-xs text-muted-foreground">{t('agentDash.demoPlanSidebar', { plan: dashboard.plan.name })}</p> : null}
             {!shown?.isDemo && dashboard.subscription.status === 'ACTIVE' ? (
@@ -115,7 +117,7 @@ export function AgentDashboardLayout() {
 
         <nav
           aria-label={t('agentDash.navLabel')}
-          className="flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:rounded-xl lg:border lg:bg-card lg:p-2 lg:shadow-sm"
+          className="scrollbar-none flex gap-1 overflow-x-auto pb-1 lg:flex-col lg:overflow-visible lg:rounded-xl lg:border lg:bg-card lg:p-2 lg:shadow-card"
         >
           {items.map((item, index) => {
             const Icon = item.icon
@@ -142,7 +144,9 @@ export function AgentDashboardLayout() {
       </aside>
 
       <div className="min-w-0">
-        <Outlet />
+        <Suspense fallback={<LoadingState />}>
+          <Outlet />
+        </Suspense>
       </div>
     </div>
   )

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,13 +49,13 @@ export function AgentBookingsPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (!isAgent) {
     return (
       <section className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('agent.bookings.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('agent.bookings.title')}</h1>
         <p className="text-sm text-muted-foreground">{t('agent.houses.roleRequired')}</p>
       </section>
     )
@@ -64,7 +65,7 @@ export function AgentBookingsPage() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t('agent.bookings.title')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('agent.bookings.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('agent.bookings.subtitle')}</p>
         </div>
         <Button asChild variant="outline">
@@ -74,7 +75,7 @@ export function AgentBookingsPage() {
 
       {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
 
-      {bookingsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {bookingsQuery.isLoading ? <LoadingState /> : null}
 
       {bookingsQuery.isError ? (
         <div className="space-y-2">

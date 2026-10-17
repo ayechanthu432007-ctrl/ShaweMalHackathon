@@ -1,10 +1,12 @@
-import { useEffect, useState, useRef } from 'react'
+import { Suspense, useEffect, useState, useRef } from 'react'
 import { ClipboardList, Home, Menu, Plus, Store, Truck, Users, X, type LucideIcon } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
+import { prefetchProps } from '@/app/router/prefetch-pages'
 import { FloatingContactButtons } from '@/components/common/FloatingContactButtons'
+import { LoadingState } from '@/components/common/PageStates'
 import { LanguageToggle } from '@/components/common/LanguageToggle'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
@@ -53,12 +55,13 @@ function NavItem({ to, label, end, onClick }: { to: string; label: string; end?:
       to={to}
       end={end}
       onClick={onClick}
+      {...prefetchProps(to)}
       className={({ isActive }) =>
         cn(
           'shrink-0 whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
           // In the navy bar on desktop; inside the white dropdown on phones.
           'text-foreground/75 hover:bg-muted hover:text-foreground lg:text-header-foreground/80 lg:hover:bg-header-hover lg:hover:text-header-foreground',
-          isActive && 'bg-gold/15 text-gold-hover lg:bg-white/45 lg:font-semibold lg:text-header-foreground lg:hover:text-header-foreground dark:lg:bg-header-hover dark:lg:text-gold',
+          isActive && 'bg-gold-soft font-semibold text-gold-ink lg:bg-white/45 lg:font-semibold lg:text-header-foreground lg:hover:text-header-foreground dark:lg:bg-header-hover dark:lg:text-gold',
         )
       }
     >
@@ -72,16 +75,17 @@ function SubNavItem({ to, label }: { to: string; label: string }) {
   return (
     <NavLink
       to={to}
+      {...prefetchProps(to)}
       className={({ isActive }) =>
         cn(
-          'group relative flex shrink-0 items-center gap-2 whitespace-nowrap px-3 py-3 text-sm font-medium text-header-foreground/85 transition-colors duration-200 hover:bg-header-hover hover:text-header-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
-          // The brand-coloured bar under the current page.
-          'after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:rounded-full after:bg-header-foreground after:opacity-0 dark:after:bg-gold after:transition-opacity after:duration-200 hover:after:opacity-30',
-          isActive && 'font-semibold text-header-foreground after:opacity-100 hover:after:opacity-100',
+          'group relative flex min-h-11 shrink-0 items-center gap-2 whitespace-nowrap rounded-md px-3 text-sm font-medium text-header-sub-foreground transition-colors duration-200 hover:bg-header-sub-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring motion-reduce:transition-none',
+          // The deep-blue bar under the current section.
+          'after:absolute after:inset-x-3 after:bottom-0 after:h-[3px] after:rounded-t-full after:bg-header-sub-active after:opacity-0 after:transition-opacity after:duration-200 hover:after:opacity-25',
+          isActive && 'font-semibold text-header-sub-active after:opacity-100 hover:after:opacity-100 dark:text-header-sub-foreground',
         )
       }
     >
-      {Icon ? <Icon className="size-4 shrink-0 opacity-80" aria-hidden /> : null}
+      {Icon ? <Icon className="size-4 shrink-0 text-header-sub-muted group-aria-[current=page]:text-header-sub-active" aria-hidden /> : null}
       {label}
     </NavLink>
   )
@@ -99,13 +103,14 @@ function RoleAction({ to, icon: Icon, label, shortLabel }: { to: string; icon: L
       aria-label={label}
       className={({ isActive }) =>
         cn(
-          'my-1.5 inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
-          'border-gold/50 bg-white/70 text-header-foreground hover:border-gold hover:bg-gold/10 dark:bg-white/5',
-          isActive && 'border-gold bg-gold/15',
+          'my-1.5 inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3 text-sm font-semibold shadow-card transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+          // Brand yellow: the role's main action, like every other forward action on the site.
+          'border-cta-border bg-cta text-cta-foreground hover:bg-cta-hover',
+          isActive && 'ring-2 ring-header-sub-active/40',
         )
       }
     >
-      <Icon className="size-4 shrink-0 text-gold-hover dark:text-gold" aria-hidden />
+      <Icon className="size-4 shrink-0" aria-hidden />
       <span className="hidden sm:inline">{label}</span>
       <span className="sm:hidden">{shortLabel}</span>
     </NavLink>
@@ -147,7 +152,7 @@ export function PublicLayout() {
   return (
     <div className="min-h-screen bg-background">
       {/* Both rows stay at the top while the page scrolls; its height is shared as --site-header-h. */}
-      <header ref={headerRef} className="sticky top-0 z-40 bg-header text-header-foreground shadow-[0_8px_24px_-14px_rgba(20,43,74,0.35)]">
+      <header ref={headerRef} className="sticky top-0 z-40 bg-header text-header-foreground shadow-raised">
         {isMenuOpen ? (
           // Tapping anywhere outside the open menu closes it.
           <div className="fixed inset-0 z-40 lg:hidden" aria-hidden onClick={() => setIsMenuOpen(false)} />
@@ -163,7 +168,8 @@ export function PublicLayout() {
               alt=""
               className="size-11 object-contain sm:size-12"
             />
-            <span className="text-xl font-extrabold tracking-tight">{t('common.appName')}</span>
+            {/* Signed-in phones need the room for the account buttons; the name stays for screen readers. */}
+            <span className={cn('text-xl font-extrabold tracking-tight', isAuthenticated && 'max-[399px]:sr-only')}>{t('common.appName')}</span>
           </Link>
           <nav
             id="primary-nav"
@@ -210,15 +216,15 @@ export function PublicLayout() {
             </Button>
           </div>
         </div>
-        <nav className="border-t border-header-line bg-header-sub" aria-label="Sub">
+        <nav className="border-b border-header-sub-border bg-header-sub text-header-sub-foreground" aria-label="Sub">
           {/* On narrow screens the row scrolls sideways inside itself; the page never does. */}
           <div className="mx-auto flex max-w-6xl items-center gap-2 px-2 sm:px-4">
-            <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="scrollbar-none flex min-w-0 flex-1 gap-1 overflow-x-auto max-sm:pr-8 max-sm:[mask-image:linear-gradient(to_right,black_88%,transparent)]">
               {publicSubLinks.map((link) => (
                 <SubNavItem key={link.to} to={link.to} label={t(link.labelKey)} />
               ))}
             </div>
-            {isAgent || isDriver ? <span className="hidden h-6 w-px shrink-0 bg-header-line sm:block" aria-hidden /> : null}
+            {isAgent || isDriver ? <span className="hidden h-6 w-px shrink-0 bg-header-sub-border sm:block" aria-hidden /> : null}
             {isDriver ? <RoleAction to="/driver/jobs" icon={Truck} label={t('nav.driverJobs')} shortLabel={t('nav.driverJobs')} /> : null}
             {isAgent ? (
               <RoleAction to="/agent/houses" icon={Plus} label={t('nav.sub.listingDashboard')} shortLabel={t('nav.sub.listingDashboardShort')} />
@@ -226,8 +232,11 @@ export function PublicLayout() {
           </div>
         </nav>
       </header>
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <Outlet />
+      <main className="mx-auto max-w-6xl px-4 pt-8 pb-28 sm:pb-12">
+        {/* Header and footer stay put while a page's code loads. */}
+        <Suspense fallback={<LoadingState />}>
+          <Outlet />
+        </Suspense>
       </main>
       <FloatingContactButtons />
     </div>

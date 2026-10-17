@@ -4,11 +4,12 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { textareaClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { textareaClassName } from '@/features/marketplace/components/MarketplaceDialog'
 import { SellerBadges } from '@/features/marketplace/components/SellerBadges'
 import { formatDate, formatPrice } from '@/features/marketplace/lib/marketplace-format'
 import type { AccountStatus } from '@/features/marketplace/types'
@@ -112,9 +113,9 @@ export function AdminMarketplaceUserPage() {
     },
   })
 
-  if (userQuery.isLoading) return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+  if (userQuery.isLoading) return <LoadingState />
   const user = userQuery.data?.user
-  if (userQuery.isError || !user) return <p className="text-sm text-destructive">{t('admin.marketplace.loadError')}</p>
+  if (userQuery.isError || !user) return <h1 className="text-base font-semibold text-destructive">{t('admin.marketplace.loadError')}</h1>
 
   const isSelf = currentAdmin?.id === user.id
   const actionError = verificationMutation.error ?? statusMutation.error
@@ -238,7 +239,7 @@ export function AdminMarketplaceUserPage() {
       </div>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">{t('admin.marketplace.user.listingHistory', { count: user.listingHistory.length })}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('admin.marketplace.user.listingHistory', { count: user.listingHistory.length })}</h2>
         {user.listingHistory.length === 0 ? <p className="text-sm text-muted-foreground">{t('marketplace.seller.noListings')}</p> : null}
         <ul className="divide-y rounded-xl border">
           {user.listingHistory.map((listing) => (
@@ -258,7 +259,7 @@ export function AdminMarketplaceUserPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">{t('admin.marketplace.user.reportsReceived', { count: user.reportsReceived.length })}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('admin.marketplace.user.reportsReceived', { count: user.reportsReceived.length })}</h2>
         {user.reportsReceived.length === 0 ? <p className="text-sm text-muted-foreground">{t('admin.marketplace.reports.empty')}</p> : null}
         <div className="grid gap-3 lg:grid-cols-2">
           {user.reportsReceived.map((report) => (

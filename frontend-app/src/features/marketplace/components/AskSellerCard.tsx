@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { textareaClassName } from '@/components/ui/field-styles'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +12,6 @@ import { ApiRequestError } from '@/lib/api/client'
 
 import { marketplaceApi } from '../api/marketplace-api'
 import { formatDate } from '../lib/marketplace-format'
-import { textareaClassName } from './MarketplaceDialog'
 
 /** Lets a signed-in buyer send the seller a written question and shows the seller's reply. */
 export function AskSellerCard({ listingId }: { listingId: string }) {

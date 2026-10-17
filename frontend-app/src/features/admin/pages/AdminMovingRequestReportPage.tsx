@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -37,7 +38,7 @@ export function AdminMovingRequestReportPage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('admin.movingReport.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.movingReport.title')}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t('admin.movingReport.subtitle')}</p>
       </div>
 
@@ -70,7 +71,7 @@ export function AdminMovingRequestReportPage() {
               <Label htmlFor="moving-status">{t('admin.movingReport.status')}</Label>
               <select
                 id="moving-status"
-                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm"
+                className={selectClassName}
                 value={status}
                 onChange={(event) => setStatus(event.target.value)}
               >
@@ -127,7 +128,7 @@ export function AdminMovingRequestReportPage() {
             {reportQuery.data.items.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('admin.reports.emptySection')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto">
                 <table className="w-full min-w-[64rem] text-left text-sm">
                   <thead>
                     <tr className="border-b">

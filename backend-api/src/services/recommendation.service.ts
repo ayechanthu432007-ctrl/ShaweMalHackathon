@@ -1,16 +1,24 @@
 import { HouseAvailabilityStatus, Prisma } from '@prisma/client';
 
 import { prisma } from '../prisma/client';
+import { OCCUPATION_FACTOR_WEIGHTS, OCCUPATION_MIN_JUDGED_SHARE, scoreOccupations } from './occupation-compatibility';
 import { ApiError } from '../utils/api-error';
 import {
   HouseFacts,
+  ListingFacts,
   MatchResult,
   PersonFacts,
   PersonPreferences,
+  TENANT_MATCH_THRESHOLDS,
+  TENANT_MATCH_WEIGHTS,
+  TenantFacts,
+  TenantFactor,
   median,
   parseMonthlyAmount,
   scoreHouseForPerson,
-  scoreRoommateForPerson
+  scoreListingForTenant,
+  scoreRoommateForPerson,
+  tierOf
 } from './matching';
 
 /** Most records scored for one request. Newest first, so the cap only trims old entries. */
@@ -372,54 +380,48 @@ export interface ListingDraftInput {
   amenityIds: string[];
   nearbyPlaces?: string | null;
   description?: string | null;
+  houseRules?: string | null;
 }
 
+const average = (values: number[]): number | null =>
+  values.length === 0 ? null : Math.round(values.reduce((sum, value) => sum + value, 0) / values.length);
+
 /**
- * People a listing would suit, for the agent writing it. Only people who chose to be
- * suggested to agents are considered, and nothing that identifies or contacts them
- * (e-mail, phone, address) leaves this function.
+ * How well a listing (as currently typed in the form, not yet saved) suits the people who chose
+ * to be suggested to housing agents. Every consenting profile is scored, including people whose
+ * budget the rent exceeds (they score low rather than disappearing); profiles with too little
+ * information are counted as insufficient instead of being given a misleading score.
+ *
+ * Privacy: only people with `visibleToAgents` are considered, and only what that setting promises
+ * leaves this function (name, photo, occupation and their housing requirements). E-mail, phone
+ * and address never do. The route itself is limited to signed-in agents.
  */
-export const matchTenantsForListing = async (agentId: string, draft: ListingDraftInput, page = 1, pageSize = 5) => {
-  const [amenities, contractType, rents] = await Promise.all([
-    draft.amenityIds.length > 0
-      ? prisma.amenity.findMany({ where: { id: { in: draft.amenityIds } }, select: { id: true, name: true } })
-      : Promise.resolve([]),
+export const matchTenantsForListing = async (agentId: string, draft: ListingDraftInput, page = 1, pageSize = 5, now = new Date()) => {
+  const [allAmenities, contractType] = await Promise.all([
+    // A short master list; used to read both the listing's and the tenants' amenity ids.
+    prisma.amenity.findMany({ select: { id: true, name: true } }),
     draft.contractTypeId
       ? prisma.contractType.findUnique({ where: { id: draft.contractTypeId }, select: { durationMonths: true } })
-      : Promise.resolve(null),
-    prisma.house.findMany({
-      where: { availability: HouseAvailabilityStatus.AVAILABLE },
-      select: { monthlyFees: true },
-      orderBy: { createdAt: 'desc' },
-      take: CANDIDATE_LIMIT
-    })
+      : Promise.resolve(null)
   ]);
+  const amenityName = new Map(allAmenities.map((item) => [item.id, item.name.toUpperCase()]));
+  const listingAmenityIds = draft.amenityIds.filter((id) => amenityName.has(id));
 
-  const house: HouseFacts = {
+  const listing: ListingFacts = {
     monthlyFees: draft.monthlyFees,
     cityId: draft.cityId,
     stateId: draft.stateId,
     propertyTypeId: draft.propertyTypeId,
     bedrooms: draft.bedrooms,
-    amenityIds: amenities.map((item) => item.id),
-    amenityNames: amenities.map((item) => item.name.toUpperCase()),
+    amenityIds: listingAmenityIds,
+    amenityNames: listingAmenityIds.map((id) => amenityName.get(id) as string),
     contractMonths: contractType?.durationMonths ?? null,
-    nearbyText: `${draft.nearbyPlaces ?? ''} ${draft.description ?? ''}`.toLowerCase()
+    nearbyText: `${draft.nearbyPlaces ?? ''} ${draft.description ?? ''}`.toLowerCase(),
+    rulesText: draft.houseRules ?? ''
   };
-  const medianRent = median(rents.map((item) => Number(item.monthlyFees)));
 
   const people = await prisma.user.findMany({
-    where: {
-      id: { not: agentId },
-      isActive: true,
-      housingPreference: {
-        is: {
-          visibleToAgents: true,
-          // Someone whose maximum is far below this rent cannot be a match.
-          OR: [{ budgetMax: null }, { budgetMax: { gte: Math.floor(draft.monthlyFees / 1.1) } }]
-        }
-      }
-    },
+    where: { id: { not: agentId }, isActive: true, housingPreference: { is: { visibleToAgents: true } } },
     select: {
       id: true,
       name: true,
@@ -431,13 +433,47 @@ export const matchTenantsForListing = async (agentId: string, draft: ListingDraf
     take: CANDIDATE_LIMIT
   });
 
-  const scored = people
-    .map((person) => ({ person, match: scoreHouseForPerson(house, toPersonFacts(person), { medianRent }) }))
+  const evaluated = people.map((person) => {
+    const facts: TenantFacts = {
+      ...toPersonFacts(person),
+      requiredAmenityNames: (person.housingPreference?.amenityIds ?? []).flatMap((id) => amenityName.get(id) ?? [])
+    };
+    return { person, match: scoreListingForTenant(listing, facts, now) };
+  });
+
+  const scored = evaluated
     .filter(({ match }) => match.confidence !== 'INCOMPLETE')
-    .sort((a, b) => b.match.score - a.match.score);
+    .sort((a, b) => b.match.score - a.match.score || a.person.id.localeCompare(b.person.id));
+  const insufficient = evaluated.length - scored.length;
+  const scores = scored.map(({ match }) => match.score);
+
+  // Per factor, how many scored profiles it matched, partly matched, conflicted with, or could not judge.
+  const factorSummary = (Object.keys(TENANT_MATCH_WEIGHTS) as TenantFactor[]).map((key) => {
+    const counts = { match: 0, partial: 0, conflict: 0, unknown: 0 };
+    for (const { match } of scored) {
+      const status = match.factors.find((factor) => factor.key === key)?.status ?? 'unknown';
+      counts[status] += 1;
+    }
+    return { key, weight: TENANT_MATCH_WEIGHTS[key], ...counts };
+  });
 
   const start = (page - 1) * pageSize;
   return {
+    /** The draft is scored as typed; nothing is saved by this request. */
+    basis: 'DRAFT' as const,
+    evaluated: evaluated.length,
+    insufficient,
+    scoredCount: scored.length,
+    overallScore: average(scores),
+    bestScore: scores.length > 0 ? Math.max(...scores) : null,
+    strongMatches: scored.filter(({ match }) => match.score >= TENANT_MATCH_THRESHOLDS.strong && match.confidence === 'HIGH').length,
+    tiers: {
+      HIGH: scores.filter((score) => tierOf(score) === 'HIGH').length,
+      MEDIUM: scores.filter((score) => tierOf(score) === 'MEDIUM').length,
+      LOW: scores.filter((score) => tierOf(score) === 'LOW').length
+    },
+    factorSummary,
+    method: { weights: TENANT_MATCH_WEIGHTS, thresholds: TENANT_MATCH_THRESHOLDS },
     total: scored.length,
     page,
     pageSize,
@@ -458,7 +494,60 @@ export const matchTenantsForListing = async (agentId: string, draft: ListingDraf
         moveInDate: person.housingPreference?.moveInDate ?? null,
         leaseMonths: person.housingPreference?.leaseMonths ?? null
       },
-      match: presentMatch(match)
+      match: {
+        ...presentMatch(match),
+        tier: tierOf(match.score),
+        factors: match.factors,
+        reasons: match.reasons
+      }
     }))
+  };
+};
+
+export interface OccupationDraftInput {
+  monthlyFees: number | null;
+  bedrooms: number | null;
+  bathrooms: number | null;
+  areaSize: string | null;
+  amenityIds: string[];
+  nearbyPlaces: string | null;
+  description: string | null;
+  houseRules: string | null;
+}
+
+/**
+ * Compatibility of the listing as typed (unsaved form values) with every active occupation
+ * category. Needs no tenant records; the only database reads are the occupation list, the
+ * amenity names and the typical rent of available listings used for affordability.
+ */
+export const occupationCompatibilityForListing = async (draft: OccupationDraftInput) => {
+  const [occupations, amenities, rents] = await Promise.all([
+    prisma.occupation.findMany({ where: { isActive: true }, select: { id: true, name: true }, orderBy: { name: 'asc' } }),
+    draft.amenityIds.length > 0 ? prisma.amenity.findMany({ where: { id: { in: draft.amenityIds } }, select: { name: true } }) : Promise.resolve([]),
+    prisma.house.findMany({
+      where: { availability: HouseAvailabilityStatus.AVAILABLE },
+      select: { monthlyFees: true },
+      orderBy: { createdAt: 'desc' },
+      take: CANDIDATE_LIMIT
+    })
+  ]);
+  const typicalRent = median(rents.map((item) => Number(item.monthlyFees)));
+
+  const items = scoreOccupations(occupations, {
+    monthlyFees: draft.monthlyFees,
+    typicalRent,
+    bedrooms: draft.bedrooms,
+    bathrooms: draft.bathrooms,
+    areaSize: draft.areaSize,
+    amenityNames: amenities.map((item) => item.name.toUpperCase()),
+    accessText: `${draft.nearbyPlaces ?? ''} ${draft.description ?? ''}`.toLowerCase(),
+    houseRules: draft.houseRules ?? ''
+  });
+
+  return {
+    basis: 'DRAFT' as const,
+    typicalRent,
+    method: { weights: OCCUPATION_FACTOR_WEIGHTS, minJudgedShare: OCCUPATION_MIN_JUDGED_SHARE },
+    items
   };
 };

@@ -4,6 +4,8 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName, textareaClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -15,7 +17,6 @@ import { cn } from '@/lib/utils'
 
 import { marketplaceApi } from '../api/marketplace-api'
 import { ListingAllowanceMeter } from './MyMarketplacePage'
-import { selectClassName, textareaClassName } from '../components/MarketplaceDialog'
 import { MarketplacePhotoUploader } from '../components/MarketplacePhotoUploader'
 import { useMarketplaceCategories, useSellerStatus, useTownships } from '../hooks/useMarketplaceData'
 import { categoryLabel } from '../lib/marketplace-format'
@@ -252,7 +253,7 @@ export function SellItemPage() {
   }
 
   if (isBootstrapping || !isAuthenticated || statusQuery.isLoading || (isEditing && existingQuery.isLoading)) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (statusQuery.data?.accountStatus && statusQuery.data.accountStatus !== 'ACTIVE') {
@@ -260,7 +261,7 @@ export function SellItemPage() {
   }
 
   if (isEditing && existingQuery.isError) {
-    return <p className="text-sm text-destructive">{t('marketplace.detail.notFound')}</p>
+    return <h1 className="text-base font-semibold text-destructive">{t('marketplace.detail.notFound')}</h1>
   }
 
   const sectionTitles: Record<Section, string> = {
@@ -279,7 +280,7 @@ export function SellItemPage() {
         confirmMessage={dirty && !publishMutation.isSuccess ? t('common.discardChanges') : null}
       />
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{isEditing ? t('marketplace.sell.editTitle') : t('marketplace.sell.title')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{isEditing ? t('marketplace.sell.editTitle') : t('marketplace.sell.title')}</h1>
         <p className="mt-1 text-muted-foreground">{t('marketplace.sell.subtitle')}</p>
       </div>
       {!isEditing && allowance ? <ListingAllowanceMeter allowance={allowance} /> : null}

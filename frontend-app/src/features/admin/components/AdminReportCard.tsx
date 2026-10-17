@@ -3,8 +3,8 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { textareaClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
-import { textareaClassName } from '@/features/marketplace/components/MarketplaceDialog'
 import { formatDate } from '@/features/marketplace/lib/marketplace-format'
 import { ApiRequestError } from '@/lib/api/client'
 
@@ -12,7 +12,7 @@ import { adminMarketplaceApi, type AdminReport } from '../api/admin-marketplace-
 import { StatusPill } from './AdminMarketplaceNav'
 
 const REPORT_STATUS_TONE = {
-  OPEN: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
+  OPEN: 'bg-warning-soft text-warning',
   RESOLVED: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
   DISMISSED: 'bg-muted text-muted-foreground',
 } as const

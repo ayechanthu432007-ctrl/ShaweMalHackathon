@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { CoverImage } from '@/components/common/CoverImage'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -104,13 +105,9 @@ export function RoommateCard({ post, viewer, isOwner, occupationName, onEdit, on
         {photos.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
             {photos.map((src, index) => (
-              <img
-                key={src}
-                src={src}
-                alt={t('roommates.photoAlt', { name: post.user?.name ?? '', index: index + 1 })}
-                loading="lazy"
-                className="aspect-[4/3] w-full rounded-md border border-input object-cover"
-              />
+              <div key={src} className="aspect-[4/3] overflow-hidden rounded-md border border-input">
+                <CoverImage src={src} alt={t('roommates.photoAlt', { name: post.user?.name ?? '', index: index + 1 })} />
+              </div>
             ))}
           </div>
         ) : null}

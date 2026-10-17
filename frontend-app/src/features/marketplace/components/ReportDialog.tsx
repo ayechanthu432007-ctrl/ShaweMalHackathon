@@ -3,13 +3,14 @@ import { Flag } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { textareaClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { ApiRequestError } from '@/lib/api/client'
 
 import { marketplaceApi } from '../api/marketplace-api'
 import { REPORT_REASONS, type ReportReason } from '../types'
-import { MarketplaceDialog, textareaClassName } from './MarketplaceDialog'
+import { MarketplaceDialog } from './MarketplaceDialog'
 
 type ReportDialogProps = {
   open: boolean

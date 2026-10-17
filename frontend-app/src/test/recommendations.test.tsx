@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { SignUpPage } from '@/features/auth/pages/SignUpPage'
 import { RecommendedHouses } from '@/features/recommendations/components/RecommendedHouses'
-import { TenantCompatibility } from '@/features/recommendations/components/TenantCompatibility'
+import { IndividualTenantMatches as TenantCompatibility } from '@/features/recommendations/components/TenantCompatibility'
 import { tokenStorage } from '@/lib/auth/token-storage'
 import { renderWithProviders } from '@/test/utils'
 
@@ -40,6 +40,26 @@ const houses = {
 }
 
 const tenants = {
+  basis: 'DRAFT',
+  evaluated: 1,
+  insufficient: 0,
+  scoredCount: 1,
+  overallScore: 84,
+  bestScore: 84,
+  strongMatches: 1,
+  tiers: { HIGH: 1, MEDIUM: 0, LOW: 0 },
+  factorSummary: [
+    { key: 'budget', weight: 30, match: 1, partial: 0, conflict: 0, unknown: 0 },
+    { key: 'location', weight: 20, match: 1, partial: 0, conflict: 0, unknown: 0 },
+    { key: 'amenities', weight: 20, match: 0, partial: 0, conflict: 1, unknown: 0 },
+    { key: 'space', weight: 15, match: 1, partial: 0, conflict: 0, unknown: 0 },
+    { key: 'timing', weight: 10, match: 0, partial: 0, conflict: 0, unknown: 1 },
+    { key: 'rules', weight: 5, match: 0, partial: 0, conflict: 0, unknown: 1 },
+  ],
+  method: {
+    weights: { budget: 30, location: 20, amenities: 20, space: 15, timing: 10, rules: 5 },
+    thresholds: { strong: 75, medium: 50, minJudgedShare: 40, highConfidenceShare: 60, budgetConflictCap: 40 },
+  },
   total: 1,
   page: 1,
   pageSize: 5,
@@ -47,7 +67,18 @@ const tenants = {
     {
       user: { id: 'u3', name: 'Su Su', profilePicturePath: null, occupation: 'Remote Worker' },
       lookingFor: { preferredCity: 'Yangon', budgetMin: null, budgetMax: 350000, bedroomsMin: 2, propertyType: null, moveInDate: null, leaseMonths: 6 },
-      match: match(84, { conflicts: ['amenities'], missing: ['occupation'] }),
+      match: match(84, {
+        tier: 'HIGH',
+        matched: ['budget', 'location', 'space'],
+        conflicts: ['amenities'],
+        missing: ['timing', 'rules'],
+        factors: [],
+        reasons: [
+          { factor: 'budget', status: 'match', code: 'budget.within' },
+          { factor: 'location', status: 'match', code: 'location.city' },
+          { factor: 'amenities', status: 'conflict', code: 'amenities.none', params: { missing: 'WIFI' } },
+        ],
+      }),
     },
   ],
 }
@@ -111,12 +142,12 @@ describe('recommendations', () => {
     stubFetch(true)
     renderWithProviders(<TenantCompatibility draft={{ monthlyFees: 300000, cityId: 'c1', bedrooms: 2, amenityIds: [] }} />)
 
-    expect(screen.getByRole('heading', { name: 'Potential Tenant Compatibility' })).toBeInTheDocument()
     expect(await screen.findByText('Su Su', {}, { timeout: 3000 })).toBeInTheDocument()
-    expect(screen.getByText('84% match')).toBeInTheDocument()
+    expect(screen.getAllByText('84%').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText('Remote Worker')).toBeInTheDocument()
-    expect(screen.getByText('internet')).toBeInTheDocument()
-    expect(screen.getByText('Not compared (no information): occupation.')).toBeInTheDocument()
+    expect(screen.getByText('Within budget')).toBeInTheDocument()
+    expect(screen.getByText('Missing required amenities: WIFI')).toBeInTheDocument()
+    expect(screen.getByText('Not stated, so not scored: Lease and move-in, Smoking rule.')).toBeInTheDocument()
     expect(requests.find((request) => request.url.includes('tenant-matches'))?.body).toMatchObject({ monthlyFees: 300000, cityId: 'c1' })
 
     await userEvent.setup().click(screen.getByRole('button', { name: 'View Profile' }))

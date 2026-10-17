@@ -5,6 +5,8 @@ import { useForm } from 'react-hook-form'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -27,9 +29,6 @@ import {
   type RoommatePostFormValues,
 } from '../schemas/roommate-post-schema'
 import type { RoommateCreateInput, RoommateGender, RoommateListFilters, RoommatePost } from '../types'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 export function FindingRoommatesPage() {
   const { t } = useTranslation()
@@ -239,7 +238,7 @@ export function FindingRoommatesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">{t('nav.findingRoommates')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t('nav.findingRoommates')}</h1>
           <p className="text-sm text-muted-foreground">{t('roommates.subtitle')}</p>
         </div>
         {isAuthenticated ? (
@@ -508,7 +507,7 @@ export function FindingRoommatesPage() {
           </p>
         ) : null}
 
-        {roommatesQuery.isLoading || isBootstrapping ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {roommatesQuery.isLoading || isBootstrapping ? <LoadingState /> : null}
         {roommatesQuery.isError ? (
           <div className="space-y-2">
             <p className="text-sm text-destructive">{t('roommates.loadError')}</p>

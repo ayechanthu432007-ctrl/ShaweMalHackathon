@@ -2,6 +2,7 @@ import { ArrowRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import type { FieldErrors, UseFormRegister } from 'react-hook-form'
 
+import { selectClassName, textareaClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { MultiImageUploadField } from '@/components/uploads/MultiImageUploadField'
@@ -13,12 +14,6 @@ import type { MovingRequestFormValues } from '../schemas/moving-request-schema'
 import { HireMovingField } from './HireMovingField'
 import { InventoryItemRow } from './InventoryItemRow'
 import { HireMovingStepNav, MOVING_FORWARD_BUTTON_CLASS } from './HireMovingStepNav'
-
-const textareaClassName =
-  'flex min-h-20 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 export function HireMovingStepDetails({
   pickupAddress,
@@ -92,12 +87,12 @@ export function HireMovingStepDetails({
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-lg font-medium">{t('moving.inventoryTitle')}</h2>
+          <h2 className="text-lg font-semibold tracking-tight">{t('moving.inventoryTitle')}</h2>
           <p className="text-sm text-muted-foreground">{t('moving.inventoryHint')}</p>
         </div>
         {catalogByCategory.map(({ category, items }) => (
           <div key={category} className="space-y-2 rounded-md border p-4">
-            <h3 className="font-medium">{t(`moving.categories.${category}`)}</h3>
+            <h3 className="font-semibold">{t(`moving.categories.${category}`)}</h3>
             <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {items.map((item) => (
                 <InventoryItemRow key={item.id} item={item} count={inventoryCounts[item.id] ?? 0} onChange={onInventoryChange} />
@@ -116,7 +111,7 @@ export function HireMovingStepDetails({
       </HireMovingField>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">{t('moving.photosTitle')}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('moving.photosTitle')}</h2>
         <p className="text-sm text-muted-foreground">{t('moving.photosHint')}</p>
         <MultiImageUploadField
           paths={photoPaths}

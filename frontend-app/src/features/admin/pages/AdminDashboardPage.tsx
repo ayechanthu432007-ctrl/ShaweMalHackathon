@@ -20,7 +20,7 @@ export function AdminDashboardPage() {
     <section className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{t('admin.dashboardTitle')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('admin.dashboardTitle')}</h1>
           <p className="mt-2 text-muted-foreground">{t('admin.dashboardSubtitle')}</p>
         </div>
         <Button asChild variant="outline">

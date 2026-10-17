@@ -5,6 +5,8 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { ACTION_BUTTON } from '../components/action-button'
 
+import { CoverImage } from '@/components/common/CoverImage'
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -154,13 +156,13 @@ export function HouseDetailsPage() {
   }
 
   if (detailsQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (detailsQuery.isError || !house) {
     return (
       <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
-        <p className="text-sm text-destructive">{t('houses.detailsError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('houses.detailsError')}</h1>
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={() => void detailsQuery.refetch()}>
             {t('common.retry')}
@@ -231,7 +233,7 @@ export function HouseDetailsPage() {
           {/* ---------- main column ---------- */}
           <div className="min-w-0">
             <header>
-              <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">{house.title}</h1>
+              <h1 className="text-2xl font-bold leading-tight tracking-tight sm:text-3xl lg:text-4xl">{house.title}</h1>
               <p className="mt-2 text-sm text-muted-foreground">{locationLine || t('houses.locationUnknown')}</p>
 
               <div className="mt-5 grid gap-5 sm:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] sm:gap-0">
@@ -258,7 +260,7 @@ export function HouseDetailsPage() {
                           {...(telegram ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
                           onClick={() => trackHouseEvent(house.id, telegram ? 'TELEGRAM' : 'VIBER')}
                           className={cn(
-                            'flex h-14 items-center justify-center gap-2 rounded-xl bg-[#7360F2] px-2 text-sm font-bold uppercase xl:text-base tracking-wide text-white shadow-md shadow-[#7360F2]/25 transition-colors hover:bg-[#5E4BD1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7360F2] focus-visible:ring-offset-2',
+                            'flex h-14 items-center justify-center gap-2 rounded-xl bg-viber px-2 text-sm font-bold uppercase xl:text-base tracking-wide text-white shadow-md shadow-viber/25 transition-colors hover:bg-viber-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-viber focus-visible:ring-offset-2',
                             !callNumber && 'col-span-2',
                           )}
                         >
@@ -296,7 +298,7 @@ export function HouseDetailsPage() {
                     <HouseAvailabilityBadge availability={house.availability} />
                     <span className="ml-auto flex items-center gap-1">
                       <Button type="button" size="sm" className={ACTION_BUTTON} disabled={isToggling} aria-pressed={isWishlisted} onClick={() => void onToggleWishlist()}>
-                        <Heart className={cn(isWishlisted && 'fill-[#222222]')} aria-hidden />
+                        <Heart className={cn(isWishlisted && 'fill-current')} aria-hidden />
                         {isWishlisted ? t('houses.saved') : t('houses.save')}
                       </Button>
                       <Button type="button" size="sm" className={ACTION_BUTTON} onClick={() => void onShare()}>
@@ -342,7 +344,7 @@ export function HouseDetailsPage() {
                 <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{house.description?.trim() || t('houses.noDescription')}</p>
                 {house.houseRules ? (
                   <>
-                    <h3 className="mt-6 text-base font-medium">{t('houses.houseRules')}</h3>
+                    <h3 className="mt-6 text-base font-semibold">{t('houses.houseRules')}</h3>
                     <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">{house.houseRules}</p>
                   </>
                 ) : null}
@@ -481,10 +483,10 @@ export function HouseDetailsPage() {
                       <li key={item.id}>
                         <Link to={`/houses/${item.id}`} className="group flex gap-4 rounded-md p-3 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                           <span className="flex h-24 w-32 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-muted text-xs text-muted-foreground">
-                            {thumbnail ? <img src={thumbnail} alt="" loading="lazy" className="h-full w-full object-cover" /> : t('houses.noPhoto')}
+                            <CoverImage src={thumbnail} alt="" fallbackLabel={t('houses.noPhoto')} />
                           </span>
                           <span className="min-w-0 space-y-1">
-                            <span className="line-clamp-2 block font-bold leading-snug text-sky-700 group-hover:underline dark:text-sky-400">{item.title}</span>
+                            <span className="line-clamp-2 block font-bold leading-snug text-brand-sky-strong group-hover:underline">{item.title}</span>
                             {place ? <span className="block text-sm text-muted-foreground">{place}</span> : null}
                             <span className="block text-sm font-bold">
                               {formatFees(item.monthlyFees)}/{t('houses.monthUnit')}

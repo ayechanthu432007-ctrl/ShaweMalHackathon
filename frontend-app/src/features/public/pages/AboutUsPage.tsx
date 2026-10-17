@@ -14,7 +14,7 @@ export function AboutUsPage() {
   return (
     <section className="space-y-8">
       <div className="space-y-3">
-        <h1 className="text-3xl font-semibold tracking-tight">{t('public.aboutTitle')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('public.aboutTitle')}</h1>
         <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">
           {t('public.aboutIntro')}
         </p>
@@ -34,7 +34,7 @@ export function AboutUsPage() {
       </div>
 
       <div className="rounded-lg border bg-muted/30 px-5 py-4">
-        <h2 className="text-lg font-medium">{t('public.aboutTrustTitle')}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('public.aboutTrustTitle')}</h2>
         <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
           {t('public.aboutTrustBody')}
         </p>

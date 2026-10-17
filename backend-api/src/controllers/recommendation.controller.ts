@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import {
   getHousingPreferences,
   matchTenantsForListing,
+  occupationCompatibilityForListing,
   recommendHouses,
   recommendRoommates,
   saveHousingPreferences
@@ -84,10 +85,32 @@ export const tenantMatchesController = async (req: Request, res: Response): Prom
       bedrooms: Number(body.bedrooms ?? 0),
       amenityIds: Array.isArray(body.amenityIds) ? body.amenityIds.map(String) : [],
       nearbyPlaces: typeof body.nearbyPlaces === 'string' ? body.nearbyPlaces : null,
-      description: typeof body.description === 'string' ? body.description : null
+      description: typeof body.description === 'string' ? body.description : null,
+      houseRules: typeof body.houseRules === 'string' ? body.houseRules : null
     },
     body.page ? Number(body.page) : 1,
     body.pageSize ? Number(body.pageSize) : 5
   );
   sendSuccess(res, 200, 'Potential tenants calculated successfully', data);
+};
+
+const optionalNumber = (value: unknown): number | null => {
+  const parsed = Number(value);
+  return value === undefined || value === null || value === '' || !Number.isFinite(parsed) ? null : parsed;
+};
+const optionalText = (value: unknown): string | null => (typeof value === 'string' && value.trim() ? value : null);
+
+export const occupationCompatibilityController = async (req: Request, res: Response): Promise<void> => {
+  const body = req.body ?? {};
+  const data = await occupationCompatibilityForListing({
+    monthlyFees: optionalNumber(body.monthlyFees),
+    bedrooms: optionalNumber(body.bedrooms),
+    bathrooms: optionalNumber(body.bathrooms),
+    areaSize: optionalText(body.areaSize),
+    amenityIds: Array.isArray(body.amenityIds) ? body.amenityIds.map(String) : [],
+    nearbyPlaces: optionalText(body.nearbyPlaces),
+    description: optionalText(body.description),
+    houseRules: optionalText(body.houseRules)
+  });
+  sendSuccess(res, 200, 'Occupation compatibility calculated', data);
 };

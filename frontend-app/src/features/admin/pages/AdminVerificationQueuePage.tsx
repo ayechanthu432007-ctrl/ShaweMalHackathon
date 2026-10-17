@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -11,9 +12,6 @@ import { ApiRequestError } from '@/lib/api/client'
 
 import { adminApi } from '../api/admin-api'
 import type { PaginatedVerificationList, VerificationQueueFilters, VerificationStatusValue } from '../types'
-
-const selectClassName =
-  'flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 type QueueKind = 'agent' | 'driver'
 
@@ -94,7 +92,7 @@ export function AdminVerificationQueuePage({ kind }: { kind: QueueKind }) {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t(titleKey)}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t(titleKey)}</h1>
         <p className="mt-2 max-w-3xl text-muted-foreground">{t(subtitleKey)}</p>
       </div>
 
@@ -190,7 +188,7 @@ export function AdminVerificationQueuePage({ kind }: { kind: QueueKind }) {
             {listQuery.data.items.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t('admin.verifications.empty')}</p>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="relative overflow-x-auto">
                 <table className="w-full min-w-[48rem] text-left text-sm">
                   <thead>
                     <tr className="border-b">

@@ -1,11 +1,8 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
-import { Button } from '@/components/ui/button'
+import { CarouselControls } from '@/components/ui/carousel-controls'
 import { HouseCard } from '@/features/houses/components/HouseCard'
 import type { HouseListItem } from '@/features/houses/types'
-import { cn } from '@/lib/utils'
 
 type HouseCarouselProps = {
   houses: HouseListItem[]
@@ -17,7 +14,6 @@ type HouseCarouselProps = {
  * and the dots show (and jump to) the current position. Swiping still works on touch screens.
  */
 export function HouseCarousel({ houses, label }: HouseCarouselProps) {
-  const { t } = useTranslation()
   const trackRef = useRef<HTMLUListElement>(null)
   const [index, setIndex] = useState(0)
   const [positions, setPositions] = useState(1)
@@ -87,7 +83,7 @@ export function HouseCarousel({ houses, label }: HouseCarouselProps) {
           }
           setIndex(position)
         }}
-        className="-mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="scrollbar-none -mx-1 flex snap-x snap-mandatory gap-4 overflow-x-auto px-1 py-1"
       >
         {houses.map((house) => (
           <li key={house.id} className="w-[85%] shrink-0 snap-start sm:w-[calc((100%-1rem)/2)] lg:w-[calc((100%-2rem)/3)]">
@@ -96,33 +92,7 @@ export function HouseCarousel({ houses, label }: HouseCarouselProps) {
         ))}
       </ul>
 
-      {positions > 1 ? (
-        <div className="flex items-center justify-between gap-3">
-          <Button type="button" variant="outline" size="sm" disabled={index <= 0} onClick={() => goTo(index - 1)}>
-            <ChevronLeft aria-hidden />
-            {t('home.carouselPrev')}
-          </Button>
-          <ol className="flex items-center gap-1.5" aria-label={t('home.carouselPosition')}>
-            {Array.from({ length: positions }, (_, position) => (
-              <li key={position}>
-                <button
-                  type="button"
-                  aria-label={t('home.carouselGoTo', { position: position + 1 })}
-                  aria-current={position === index ? 'true' : undefined}
-                  onClick={() => goTo(position)}
-                  className="flex size-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                >
-                  <span className={cn('block h-2 rounded-full transition-all', position === index ? 'w-5 bg-primary' : 'w-2 bg-muted-foreground/30')} />
-                </button>
-              </li>
-            ))}
-          </ol>
-          <Button type="button" variant="outline" size="sm" disabled={index >= last} onClick={() => goTo(index + 1)}>
-            {t('home.carouselNext')}
-            <ChevronRight aria-hidden />
-          </Button>
-        </div>
-      ) : null}
+      <CarouselControls index={index} count={positions} onChange={goTo} />
     </div>
   )
 }

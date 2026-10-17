@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 import { isHouseAvailable } from '../lib/availability'
@@ -15,14 +16,8 @@ export function HouseAvailabilityBadge({
   const available = isHouseAvailable(availability)
 
   return (
-    <span
-      className={cn(
-        'inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold',
-        available ? 'bg-success-soft text-success ring-1 ring-success/20' : 'bg-muted text-muted-foreground',
-        className,
-      )}
-    >
+    <Badge tone={available ? 'success' : 'neutral'} className={cn('px-2.5', available && 'border-success/20', className)}>
       {available ? t('houses.available') : t('houses.notAvailable')}
-    </span>
+    </Badge>
   )
 }

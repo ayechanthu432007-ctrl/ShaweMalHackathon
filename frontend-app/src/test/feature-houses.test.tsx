@@ -88,4 +88,49 @@ describe('featured houses', () => {
     expect(screen.getByText('Featured House 1')).toBeInTheDocument()
     expect(screen.queryByText('Featured House 4')).not.toBeInTheDocument()
   })
+
+  it('does not fetch featured houses until the section becomes visible', async () => {
+    const fetchSpy = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url.includes('/home')) {
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: 'ok',
+            data: {
+              featuredHouses: [featuredHouse(1), featuredHouse(2)],
+              popularRecommended: [],
+              verifiedAgents: [],
+              partnerMovingServices: [],
+              serviceReviews: [],
+              newsUpdates: [],
+            },
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        )
+      }
+      return new Response(JSON.stringify({ success: false, message: 'not found' }), { status: 404 })
+    })
+
+    vi.stubGlobal('fetch', fetchSpy)
+
+    const originalIntersectionObserver = window.IntersectionObserver
+    class MockIntersectionObserver {
+      observe = vi.fn()
+      disconnect = vi.fn()
+      unobserve = vi.fn()
+      constructor(_: IntersectionObserverCallback, __?: IntersectionObserverInit) {
+        // leave the section hidden until the app explicitly decides to reveal it
+      }
+    }
+    // @ts-expect-error - test hook for deferred loading
+    window.IntersectionObserver = MockIntersectionObserver
+
+    renderWithProviders(<FeatureHouses />)
+
+    await Promise.resolve()
+    expect(fetchSpy).not.toHaveBeenCalled()
+
+    window.IntersectionObserver = originalIntersectionObserver
+  })
 })

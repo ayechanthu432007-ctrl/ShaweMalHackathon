@@ -20,17 +20,17 @@ import { AGENT_DASHBOARD_QUERY_KEY, useAgentDashboard } from '../layout/AgentDas
 
 /** Artwork and accent for each plan card; plans not listed fall back to the Free look. */
 const PLAN_LOOK: Record<string, { art: string; ring: string; tint: string }> = {
-  FREE: { art: freeBasicArt, ring: 'ring-[#5B9BD5]', tint: 'from-[#F4F8FC]' },
-  SILVER: { art: silverPartnerArt, ring: 'ring-[#9AA6B6]', tint: 'from-[#F6F8FB]' },
-  GOLD: { art: goldPremiumArt, ring: 'ring-[#C69245]', tint: 'from-[#FCF7EE]' },
+  FREE: { art: freeBasicArt, ring: 'ring-button', tint: 'from-button-soft' },
+  SILVER: { art: silverPartnerArt, ring: 'ring-slate-400', tint: 'from-secondary' },
+  GOLD: { art: goldPremiumArt, ring: 'ring-gold', tint: 'from-gold-soft' },
 }
 
 type DemoAction = { kind: 'choose'; plan: Plan; reset: boolean } | { kind: 'free'; plan: Plan }
 
 const STATUS_TONE: Record<PaymentOrder['status'], string> = {
-  PENDING: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
-  PAID: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
-  FAILED: 'bg-destructive/10 text-destructive',
+  PENDING: 'bg-warning-soft text-warning',
+  PAID: 'bg-success-soft text-success-ink',
+  FAILED: 'bg-danger-soft text-destructive',
   EXPIRED: 'bg-muted text-muted-foreground',
 }
 
@@ -112,14 +112,14 @@ export function AgentSubscriptionPage() {
         <p>
           <span className="text-muted-foreground">{t('agentDash.currentPlan')}: </span>
           <span className="font-semibold">{current.name}</span>
-          {previewPlan ? <span className="ml-2 rounded bg-[#FCF7EE] px-1.5 py-0.5 text-[10px] font-semibold text-[#7A5418]">DEMO</span> : null}
+          {previewPlan ? <span className="ml-2 rounded bg-gold-soft px-1.5 py-0.5 text-[10px] font-semibold text-gold-ink">DEMO</span> : null}
           {isActive ? ` · ${t('agentDash.validUntil', { date: formatDate(dashboard.subscription.endsAt) })}` : ''}
         </p>
         {dashboard.subscription.status === 'EXPIRED' ? <p className="mt-1 text-destructive">{t('agentDash.expiredNotice')}</p> : null}
       </div>
 
       {demoOn ? (
-        <p className="flex items-start gap-2 rounded-xl border border-[#C69245]/40 bg-[#FCF7EE] p-4 text-sm font-medium text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200" role="status">
+        <p className="flex items-start gap-2 rounded-xl border border-gold/40 bg-gold-soft p-4 text-sm font-medium text-gold-ink" role="status">
           <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden />
           <span>
             {t('agentDash.demoBanner')}
@@ -236,11 +236,11 @@ export function AgentSubscriptionPage() {
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">{t('agentDash.paymentHistory')}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('agentDash.paymentHistory')}</h2>
         <QueryState isLoading={ordersQuery.isLoading} isError={ordersQuery.isError} onRetry={() => void ordersQuery.refetch()} />
         {ordersQuery.data && ordersQuery.data.length === 0 ? <p className="text-sm text-muted-foreground">{t('agentDash.noOrders')}</p> : null}
         {ordersQuery.data && ordersQuery.data.length > 0 ? (
-          <div className="overflow-x-auto rounded-xl border">
+          <div className="relative overflow-x-auto rounded-xl border">
             <table className="w-full min-w-[34rem] text-sm">
               <thead>
                 <tr className="border-b text-left text-muted-foreground">
@@ -307,12 +307,12 @@ function DemoPlanDialog({
   }, [isPending, onCancel])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div aria-hidden className="absolute inset-0 bg-black/50 backdrop-blur-[2px]" onClick={() => !isPending && onCancel()} />
-      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border bg-card shadow-2xl">
+    <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 [&>[role=dialog]]:my-auto">
+      <div aria-hidden className="fixed inset-0 bg-black/50 backdrop-blur-[2px]" onClick={() => !isPending && onCancel()} />
+      <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border bg-card shadow-overlay">
         <img src={look.art} alt="" className="aspect-[2/1] w-full object-cover" />
         <div className="space-y-4 p-6">
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-[#FCF7EE] px-2.5 py-1 text-xs font-semibold text-[#7A5418] dark:bg-amber-500/10 dark:text-amber-200">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold-ink">
             <FlaskConical className="size-3.5" aria-hidden />
             {t('agentDash.demoBadge')}
           </p>

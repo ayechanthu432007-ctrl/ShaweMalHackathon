@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 
@@ -30,17 +31,17 @@ export function MovingStatusListPage() {
   const items = listQuery.data?.items ?? []
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (listQuery.isLoading) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   if (listQuery.isError) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-destructive">{t('moving.statusListError')}</p>
+        <h1 className="text-base font-semibold text-destructive">{t('moving.statusListError')}</h1>
         <Button type="button" variant="outline" onClick={() => void listQuery.refetch()}>
           {t('common.retry')}
         </Button>
@@ -63,7 +64,7 @@ export function MovingStatusListPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('nav.movingStatus')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('nav.movingStatus')}</h1>
         <p className="text-sm text-muted-foreground">{t('moving.statusSubtitle')}</p>
       </div>
 

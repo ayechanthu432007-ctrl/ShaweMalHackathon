@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName, textareaClassName } from '@/components/ui/field-styles'
+import { ErrorState, LoadingState } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiRequestError } from '@/lib/api/client'
@@ -13,25 +15,17 @@ import { marketplaceApi } from '../api/marketplace-api'
 import { formatDate, formatPrice } from '../lib/marketplace-format'
 import { SELLER_SUBSCRIPTION_QUERY_KEY } from '../pages/SellerPlansPages'
 import type { BoostStatus, InquiryStatus, MyListing, SellerInquiry, SellerInsights } from '../types'
-import { textareaClassName } from './MarketplaceDialog'
 
 function SectionState({ isLoading, isError, onRetry }: { isLoading: boolean; isError: boolean; onRetry: () => void }) {
   const { t } = useTranslation()
-  if (isLoading) return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+  if (isLoading) return <LoadingState />
   if (!isError) return null
-  return (
-    <div className="space-y-2">
-      <p className="text-sm text-destructive">{t('marketplace.loadError')}</p>
-      <Button type="button" variant="outline" onClick={onRetry}>
-        {t('common.retry')}
-      </Button>
-    </div>
-  )
+  return <ErrorState message={t('marketplace.loadError')} onRetry={onRetry} />
 }
 
 export const BOOST_TONE: Record<BoostStatus, string> = {
-  ACTIVE: 'bg-[#FFDE59]/60 text-[#3d2f00] dark:bg-[#FFDE59]/25 dark:text-[#FFDE59]',
-  SCHEDULED: 'bg-sky-500/15 text-sky-800 dark:text-sky-300',
+  ACTIVE: 'bg-cta-soft text-cta-soft-foreground',
+  SCHEDULED: 'bg-info-soft text-info',
   PAUSED: 'bg-muted text-muted-foreground',
   ENDED: 'bg-muted text-muted-foreground',
   CANCELLED: 'bg-muted text-muted-foreground',
@@ -40,8 +34,8 @@ export const BOOST_TONE: Record<BoostStatus, string> = {
 // --- Buyer Inquiries ---
 
 const INQUIRY_TONE: Record<InquiryStatus, string> = {
-  NEW: 'bg-sky-500/15 text-sky-800 dark:text-sky-300',
-  REPLIED: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
+  NEW: 'bg-info-soft text-info',
+  REPLIED: 'bg-success-soft text-success-ink',
   CLOSED: 'bg-muted text-muted-foreground',
 }
 
@@ -61,7 +55,7 @@ function InquiryItem({ inquiry }: { inquiry: SellerInquiry }) {
   })
 
   return (
-    <li className={cn('space-y-2 p-4', !inquiry.read && 'bg-sky-500/5')}>
+    <li className={cn('space-y-2 p-4', !inquiry.read && 'bg-info-soft/60')}>
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div className="min-w-0">
           <Link to={`/marketplace/items/${inquiry.listing.id}`} className="font-medium hover:underline">
@@ -69,7 +63,7 @@ function InquiryItem({ inquiry }: { inquiry: SellerInquiry }) {
           </Link>
           <p className="text-xs text-muted-foreground">
             {inquiry.buyer.name} · {formatDate(inquiry.updatedAt)}
-            {!inquiry.read ? <span className="ml-1 font-semibold text-sky-700 dark:text-sky-300">· {t('sellerDash.inquiries.unread')}</span> : null}
+            {!inquiry.read ? <span className="ml-1 font-semibold text-info">· {t('sellerDash.inquiries.unread')}</span> : null}
           </p>
         </div>
         <span className={cn('rounded-full px-2 py-0.5 text-xs font-semibold', INQUIRY_TONE[inquiry.status])}>{t(`sellerDash.inquiries.status.${inquiry.status}`)}</span>
@@ -202,7 +196,7 @@ function TrendChart({ series }: { series: NonNullable<SellerInsights['series']> 
             {point.views === null ? (
               <div className="h-full w-full rounded-sm bg-[repeating-linear-gradient(45deg,transparent,transparent_3px,var(--muted)_3px,var(--muted)_6px)]" />
             ) : (
-              <div className="w-full rounded-t-sm bg-[#38B6FF]" style={{ height: `${Math.max(2, (point.views / max) * 100)}%` }} />
+              <div className="w-full rounded-t-sm bg-brand-sky" style={{ height: `${Math.max(2, (point.views / max) * 100)}%` }} />
             )}
           </div>
         ))}
@@ -213,7 +207,7 @@ function TrendChart({ series }: { series: NonNullable<SellerInsights['series']> 
       </div>
       <p className="flex flex-wrap gap-4 text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1">
-          <span className="size-3 rounded-sm bg-[#38B6FF]" aria-hidden /> {t('sellerDash.insights.views')}
+          <span className="size-3 rounded-sm bg-brand-sky" aria-hidden /> {t('sellerDash.insights.views')}
         </span>
         <span className="inline-flex items-center gap-1">
           <span className="size-3 rounded-sm bg-[repeating-linear-gradient(45deg,transparent,transparent_2px,var(--muted-foreground)_2px,var(--muted-foreground)_3px)]" aria-hidden />
@@ -310,7 +304,7 @@ export function InsightsSection({ onUpgrade }: { onUpgrade: () => void }) {
               {insights.products.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t('marketplace.my.empty')}</p>
               ) : (
-                <div className="overflow-x-auto rounded-xl border">
+                <div className="relative overflow-x-auto rounded-xl border">
                   <table className="w-full min-w-[26rem] text-sm">
                     <thead className="bg-muted/60 text-left">
                       <tr>
@@ -384,7 +378,7 @@ export function BoostSection({ listings }: { listings: MyListing[] }) {
               <div
                 className={cn(
                   'flex items-start gap-2 rounded-xl border p-3 text-sm',
-                  data.freeBoost.available ? 'border-emerald-500/40 bg-emerald-500/5' : 'bg-muted/40',
+                  data.freeBoost.available ? 'border-success/30 bg-success-soft' : 'bg-muted/40',
                 )}
               >
                 <Gift className="mt-0.5 size-4 shrink-0" aria-hidden />
@@ -444,7 +438,7 @@ export function BoostSection({ listings }: { listings: MyListing[] }) {
                           </label>
                           <select
                             id={`boost-days-${listing.id}`}
-                            className="h-8 rounded-md border bg-background px-2 text-sm"
+                            className={cn(selectClassName, 'h-control-sm w-auto px-2')}
                             value={chosen}
                             onChange={(event) => setDays((previous) => ({ ...previous, [listing.id]: Number(event.target.value) }))}
                           >
@@ -457,7 +451,7 @@ export function BoostSection({ listings }: { listings: MyListing[] }) {
                           <Button
                             type="button"
                             size="sm"
-                            className="bg-[#FFDE59] text-[#3d2f00] hover:bg-[#f5d03f]"
+                            variant="cta"
                             disabled={orderMutation.isPending}
                             onClick={() => orderMutation.mutate({ listingId: listing.id, days: chosen })}
                           >
@@ -553,7 +547,7 @@ export function SubscriptionSection() {
                   </dd>
                 </div>
               </dl>
-              {state.status === 'EXPIRED' ? <p className="rounded-lg bg-amber-500/10 p-3 text-sm">{t('sellerDash.subscription.expiredNote')}</p> : null}
+              {state.status === 'EXPIRED' ? <p className="rounded-lg bg-warning-soft p-3 text-sm text-warning">{t('sellerDash.subscription.expiredNote')}</p> : null}
               {state.demoPayments && state.subscription ? (
                 <Button type="button" variant="outline" size="sm" disabled={resetMutation.isPending} onClick={() => resetMutation.mutate()}>
                   <FlaskConical aria-hidden />

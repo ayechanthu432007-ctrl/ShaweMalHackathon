@@ -66,7 +66,7 @@ describe('popular houses carousel', () => {
     // Five cards, three visible: the row can stop in three places.
     expect(dots()).toHaveLength(3)
     expect(currentDot()).toBe(0)
-    expect(screen.getByRole('button', { name: 'Prev' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Previous' })).toBeDisabled()
 
     await user.click(screen.getByRole('button', { name: 'Next' }))
     expect(scrolls.at(-1)).toBe(CARD + GAP)
@@ -77,7 +77,7 @@ describe('popular houses carousel', () => {
     expect(currentDot()).toBe(2)
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled()
 
-    await user.click(screen.getByRole('button', { name: 'Prev' }))
+    await user.click(screen.getByRole('button', { name: 'Previous' }))
     expect(scrolls.at(-1)).toBe(CARD + GAP)
     expect(currentDot()).toBe(1)
   })

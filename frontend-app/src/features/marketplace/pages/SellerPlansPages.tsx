@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -65,7 +66,7 @@ function CellValue({ cell }: { cell: Cell }) {
   return cell.text ? (
     <span className="font-medium">{cell.text}</span>
   ) : (
-    <span className="inline-flex items-center text-emerald-600 dark:text-emerald-400">
+    <span className="inline-flex items-center text-success">
       <Check className="size-4" aria-hidden />
       <span className="sr-only">{t('sellerPlans.included')}</span>
     </span>
@@ -103,7 +104,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
   })
 
   // Wait for the seller's own plan too, so a Premium seller never briefly sees "Upgrade".
-  if (plansQuery.isLoading || subscriptionQuery.isLoading) return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+  if (plansQuery.isLoading || subscriptionQuery.isLoading) return <LoadingState />
   if (plansQuery.isError || !plansQuery.data) {
     return (
       <div className="space-y-2">
@@ -136,7 +137,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
   return (
     <div className="space-y-6">
       {demoPayments ? (
-        <p className="flex items-start gap-2 rounded-xl border-2 border-dashed border-amber-500 bg-amber-500/10 p-3 text-sm" role="note">
+        <p className="flex items-start gap-2 rounded-xl border-2 border-dashed border-gold/60 bg-gold-soft p-3 text-sm font-medium text-gold-ink" role="note">
           <FlaskConical className="mt-0.5 size-4 shrink-0" aria-hidden />
           {t('sellerPlans.demoNote')}
         </p>
@@ -151,20 +152,20 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
           const isCurrent = currentCode === plan.code
           const isPaid = plan.monthlyPriceMmk > 0
           return (
-            <Card key={plan.code} className={cn('flex flex-col', isPaid && 'border-2 border-[#38B6FF]', isCurrent && 'ring-2 ring-emerald-500')}>
+            <Card key={plan.code} className={cn('flex flex-col', isPaid && 'border-2 border-brand-sky', isCurrent && 'ring-2 ring-success')}>
               <CardHeader className="space-y-2 pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <CardTitle className="text-xl">{plan.name}</CardTitle>
                   {isCurrent ? (
-                    <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 dark:text-emerald-300">{t('sellerPlans.currentPlan')}</span>
+                    <span className="rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-semibold text-success-ink">{t('sellerPlans.currentPlan')}</span>
                   ) : isPaid ? (
-                    <span className="rounded-full bg-[#38B6FF]/15 px-2.5 py-0.5 text-xs font-semibold text-[#0b6aa0] dark:text-[#7fd0ff]">{t('sellerPlans.popular')}</span>
+                    <span className="rounded-full bg-brand-sky-soft px-2.5 py-0.5 text-xs font-semibold text-brand-sky-strong">{t('sellerPlans.popular')}</span>
                   ) : (
                     <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold">{t('sellerPlans.free')}</span>
                   )}
                 </div>
                 <p>
-                  <span className={cn('text-3xl font-bold tabular-nums', isPaid && 'text-[#1a8fd6]')}>{formatPrice(plan.monthlyPriceMmk)}</span>
+                  <span className={cn('text-3xl font-bold tabular-nums', isPaid && 'text-brand-sky-strong')}>{formatPrice(plan.monthlyPriceMmk)}</span>
                   <span className="text-sm text-muted-foreground"> {t('sellerPlans.perMonth')}</span>
                 </p>
               </CardHeader>
@@ -172,7 +173,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
                 <ul className="flex-1 space-y-2 border-t pt-4 text-sm">
                   {planBenefits(plan, t).map((benefit) => (
                     <li key={benefit} className="flex items-start gap-2">
-                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden />
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-success" aria-hidden />
                       {benefit}
                     </li>
                   ))}
@@ -182,8 +183,8 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
                 ) : null}
                 <Button
                   type="button"
-                  variant={isPaid ? 'default' : 'outline'}
-                  className={cn('w-full', isPaid && 'bg-[#FFDE59] text-[#3d2f00] hover:bg-[#f5d03f]')}
+                  variant={isPaid ? 'cta' : 'outline'}
+                  className="w-full"
                   // Without a payment provider or the Marketplace demo checkout, paid plans cannot be bought.
                   disabled={(isCurrent && !isPaid) || Boolean(isCurrent && current?.renewal) || (isPaid && !demoPayments)}
                   onClick={() => onChoose(plan)}
@@ -211,7 +212,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
           <h2 id="plan-compare-title" className="text-xl font-semibold">
             {t('sellerPlans.compareTitle')}
           </h2>
-          <div className="overflow-x-auto rounded-xl border">
+          <div className="relative overflow-x-auto rounded-xl border">
             <table className="w-full min-w-[30rem] text-sm">
               <thead className="bg-muted/60">
                 <tr>
@@ -221,7 +222,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
                   {plans.map((plan) => (
                     <th key={plan.code} scope="col" className="p-3 text-center font-semibold">
                       {plan.name}
-                      {currentCode === plan.code ? <span className="block text-xs font-normal text-emerald-700 dark:text-emerald-300">{t('sellerPlans.currentPlan')}</span> : null}
+                      {currentCode === plan.code ? <span className="block text-xs font-normal text-success-ink">{t('sellerPlans.currentPlan')}</span> : null}
                     </th>
                   ))}
                 </tr>
@@ -272,9 +273,9 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
 }
 
 const STATUS_TONE: Record<SellerOrder['status'], string> = {
-  PENDING: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
-  PAID: 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300',
-  FAILED: 'bg-destructive/10 text-destructive',
+  PENDING: 'bg-warning-soft text-warning',
+  PAID: 'bg-success-soft text-success-ink',
+  FAILED: 'bg-danger-soft text-destructive',
   EXPIRED: 'bg-muted text-muted-foreground',
 }
 
@@ -310,7 +311,7 @@ export function SellerCheckoutPage() {
     return (
       <div className="space-y-3">
         <BackButton fallback="/marketplace/my" />
-        {orderQuery.isError ? <p className="text-sm text-destructive">{t('sellerPlans.orderNotFound')}</p> : <p className="text-sm text-muted-foreground">{t('common.loading')}</p>}
+        {orderQuery.isError ? <p className="text-sm text-destructive">{t('sellerPlans.orderNotFound')}</p> : <LoadingState />}
       </div>
     )
   }
@@ -323,7 +324,7 @@ export function SellerCheckoutPage() {
       <BackButton fallback={doneLink} />
 
       {order.isDemo ? (
-        <div className="flex items-start gap-3 rounded-xl border-2 border-dashed border-amber-500 bg-amber-500/10 p-4 text-sm" role="note">
+        <div className="flex items-start gap-3 rounded-xl border-2 border-dashed border-gold/60 bg-gold-soft p-4 text-sm text-gold-ink" role="note">
           <FlaskConical className="mt-0.5 size-5 shrink-0" aria-hidden />
           <div>
             <p className="font-semibold">{t('sellerPlans.demoTransaction')}</p>
@@ -380,7 +381,7 @@ export function SellerCheckoutPage() {
 
           {order.status === 'PAID' ? (
             <div className="space-y-2" role="status">
-              <p className="font-medium text-emerald-700 dark:text-emerald-400">{isBoost ? t('sellerPlans.boostActivated') : t('sellerPlans.planActivated')}</p>
+              <p className="font-medium text-success-ink">{isBoost ? t('sellerPlans.boostActivated') : t('sellerPlans.planActivated')}</p>
               {!isBoost && subscriptionQuery.data?.subscription ? (
                 <p className="text-sm">
                   {t('sellerPlans.activeDetails', {

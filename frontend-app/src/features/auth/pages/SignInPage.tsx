@@ -14,7 +14,7 @@ import { ApiRequestError } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
 import type { AuthUser } from '@/features/auth/types'
 
-const inputClassName = 'h-11 rounded-xl border-[#D5E2F0] bg-[#F7FAFD] pl-10 transition-colors focus-visible:border-[#477FAF] focus-visible:bg-white focus-visible:ring-[#477FAF]/25 dark:border-input dark:bg-transparent'
+const inputClassName = 'h-control-lg rounded-xl bg-secondary/60 pl-10 focus-visible:bg-background dark:bg-transparent'
 
 type SignInPageProps = {
   redirectTo?: string
@@ -122,10 +122,10 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
   return (
     <div className="mx-auto grid max-w-5xl items-center gap-8 py-2 lg:min-h-[calc(100vh-var(--site-header-h,8rem)-5rem)] lg:grid-cols-[minmax(0,1fr)_minmax(0,27rem)] lg:gap-14">
       {/* ---------- brand side ---------- */}
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#24476A] to-[#3F6F9F] p-6 text-white shadow-lg shadow-[#24476A]/20 sm:p-8 lg:p-10 dark:from-primary dark:to-primary/80 dark:text-primary-foreground">
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-brand-sky-strong p-6 text-white shadow-raised sm:p-8 lg:p-10 dark:from-primary dark:to-primary/80 dark:text-primary-foreground">
         {/* Soft decorative rings, kept faint so the text stays the focus. */}
         <div aria-hidden className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full border-[18px] border-white/[0.06]" />
-        <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#C69245] via-[#C69245]/60 to-transparent" />
+        <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-cta via-cta/60 to-transparent" />
 
         <div className="relative">
           <div className="flex items-center gap-3">
@@ -140,7 +140,7 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
           <div aria-hidden className="mt-6 hidden items-center gap-3 sm:flex">
             <span className="flex size-12 items-center justify-center rounded-2xl bg-white/15"><Home className="size-6" /></span>
             <span className="h-px flex-1 border-t-2 border-dashed border-white/40" />
-            <span className="flex size-14 items-center justify-center rounded-2xl bg-white text-[#24476A] shadow-md ring-2 ring-[#C69245]/60"><Truck className="size-7" /></span>
+            <span className="flex size-14 items-center justify-center rounded-2xl bg-white text-primary shadow-md ring-2 ring-cta"><Truck className="size-7" /></span>
             <span className="h-px flex-1 border-t-2 border-dashed border-white/40" />
             <span className="flex size-12 items-center justify-center rounded-2xl bg-white/15"><Package className="size-6" /></span>
           </div>
@@ -148,7 +148,7 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
           <ul className="mt-6 space-y-2.5">
             {highlights.map((item) => (
               <li key={item.title} className="flex items-start gap-3">
-                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-[#E2B877] ring-1 ring-white/10">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-cta ring-1 ring-white/10">
                   <item.icon className="size-[1.1rem]" aria-hidden />
                 </span>
                 <span>
@@ -228,7 +228,7 @@ export function SignInPage({ redirectTo = '/', titleKey = 'public.signInTitle' }
               {formError}
             </p>
           ) : null}
-          <Button type="submit" className="h-11 w-full rounded-xl bg-[#477FAF] text-base font-semibold text-white shadow-md shadow-[#477FAF]/25 transition-colors hover:bg-[#3A6B95] dark:bg-button dark:text-button-foreground dark:hover:bg-button-hover" disabled={isSubmitting}>
+          <Button type="submit" size="lg" className="w-full rounded-xl font-semibold" disabled={isSubmitting}>
             {isSubmitting ? t('common.loading') : t('auth.login')}
           </Button>
         </form>

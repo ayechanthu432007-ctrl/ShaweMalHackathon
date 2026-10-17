@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import { useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { useAuth } from '@/app/providers/AuthProvider'
+
+import { CardGridSkeleton } from '@/components/common/PageStates'
 import { Button } from '@/components/ui/button'
+import { Pagination } from '@/components/ui/pagination'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
 import { RecommendedHouses } from '@/features/recommendations/components/RecommendedHouses'
 
@@ -11,6 +15,7 @@ import { housesApi } from '../api/houses-api'
 import { FeatureHouses } from '../components/FeatureHouses'
 import { HouseCard } from '../components/HouseCard'
 import { HouseFilterForm, type HouseFilterValues } from '../components/HouseFilterForm'
+import { HOUSING_DEMO_FILTERS, isHousingDemoAccount } from '../lib/housing-demo'
 
 function parseNumber(value: string | null): number | undefined {
   if (!value?.trim()) return undefined
@@ -56,6 +61,22 @@ export function FindingHousePage() {
       }),
   })
 
+  // Demo accounts only: when the page opens with no filters in its address, select the demo city
+  // and property type once (only if they exist in the lists). Budgets stay empty.
+  const { user } = useAuth()
+  const demoApplied = useRef(false)
+  const cityNames = citiesQuery.data?.items
+  const typeNames = propertyTypesQuery.data?.items
+  useEffect(() => {
+    if (demoApplied.current || !isHousingDemoAccount(user) || !cityNames || !typeNames) return
+    demoApplied.current = true
+    if (searchParams.toString()) return
+    const next = new URLSearchParams()
+    if (cityNames.some((city) => city.name === HOUSING_DEMO_FILTERS.city)) next.set('city', HOUSING_DEMO_FILTERS.city)
+    if (typeNames.some((type) => type.name === HOUSING_DEMO_FILTERS.type)) next.set('type', HOUSING_DEMO_FILTERS.type)
+    if (next.toString()) setSearchParams(next, { replace: true })
+  }, [cityNames, searchParams, setSearchParams, typeNames, user])
+
   const applyFilters = (values: HouseFilterValues) => {
     const next = new URLSearchParams()
     if (values.city) next.set('city', values.city)
@@ -75,7 +96,7 @@ export function FindingHousePage() {
   return (
     <section className="space-y-6">
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight">{t('houses.findingTitle')}</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('houses.findingTitle')}</h1>
         <p className="mt-2 text-muted-foreground">{t('houses.findingSubtitle')}</p>
       </div>
 
@@ -96,7 +117,7 @@ export function FindingHousePage() {
 
       <RecommendedHouses />
 
-      {housesQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+      {housesQuery.isLoading ? <CardGridSkeleton count={6} /> : null}
 
       {housesQuery.isError ? (
         <div className="space-y-3 rounded-xl border border-destructive/30 bg-destructive/5 p-4">
@@ -121,27 +142,12 @@ export function FindingHousePage() {
       </div>
 
       {housesQuery.data && housesQuery.data.totalPages > 1 ? (
-        <div className="flex items-center justify-center gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            disabled={filters.page <= 1}
-            onClick={() => setPage(filters.page - 1)}
-          >
-            {t('common.previous')}
-          </Button>
-          <span className="text-sm text-muted-foreground">
-            {t('houses.pageStatus', { page: filters.page, total: housesQuery.data.totalPages })}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={filters.page >= housesQuery.data.totalPages}
-            onClick={() => setPage(filters.page + 1)}
-          >
-            {t('common.next')}
-          </Button>
-        </div>
+        <Pagination
+          page={filters.page}
+          totalPages={housesQuery.data.totalPages}
+          onPageChange={setPage}
+          status={t('houses.pageStatus', { page: filters.page, total: housesQuery.data.totalPages })}
+        />
       ) : null}
     </section>
   )

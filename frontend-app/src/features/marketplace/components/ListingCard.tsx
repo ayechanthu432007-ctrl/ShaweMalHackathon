@@ -1,10 +1,12 @@
-import { Heart, MapPin, Star } from 'lucide-react'
+import { MapPin, Star } from 'lucide-react'
 import type { MouseEvent, ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
-import { Button } from '@/components/ui/button'
+import { CoverImage } from '@/components/common/CoverImage'
+import { FavoriteButton } from '@/components/common/FavoriteButton'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { resolvePublicUploadUrl } from '@/lib/uploads/resolve-public-url'
 import { cn } from '@/lib/utils'
@@ -25,15 +27,9 @@ type ListingCardProps = {
 export function ListingStatusBadge({ status, className }: { status: ListingCardData['status']; className?: string }) {
   const { t } = useTranslation()
   return (
-    <span
-      className={cn(
-        'rounded-full px-2 py-0.5 text-xs font-semibold shadow-sm',
-        status === 'SOLD' ? 'bg-foreground text-background' : 'bg-emerald-600 text-white',
-        className,
-      )}
-    >
+    <Badge tone={status === 'SOLD' ? 'solid' : 'success'} className={cn('shadow-sm', className)}>
       {t(`marketplace.status.${status}`)}
-    </span>
+    </Badge>
   )
 }
 
@@ -63,48 +59,34 @@ export function ListingCard({ listing, className, footer, hideSave = false }: Li
   }
 
   return (
-    <Card className={cn('flex flex-col overflow-hidden transition-shadow hover:shadow-md', className)}>
+    <Card
+      className={cn(
+        'group relative flex flex-col overflow-hidden transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-raised motion-reduce:transform-none',
+        className,
+      )}
+    >
       <Link
         to={`/marketplace/items/${listing.id}`}
-        className="block flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="block flex-1 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
       >
-        <div className="relative aspect-square bg-muted">
-          {thumbnailSrc ? (
-            <img
-              src={thumbnailSrc}
-              alt={listing.title}
-              className={cn('h-full w-full object-cover', listing.status === 'SOLD' && 'opacity-60 grayscale')}
-              loading="lazy"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-              {t('marketplace.noPhoto')}
-            </div>
-          )}
-          {listing.status === 'SOLD' ? <ListingStatusBadge status="SOLD" className="absolute left-2 top-2" /> : null}
-          {listing.boosted && listing.status !== 'SOLD' ? (
-            <span className="absolute left-2 top-2 rounded-full bg-[#FFDE59] px-2 py-0.5 text-xs font-semibold text-[#3d2f00] shadow-sm">
-              {t('marketplace.boosted')}
-            </span>
-          ) : null}
-          {!hideSave && listing.status !== 'SOLD' ? (
-            <Button
-              type="button"
-              size="icon"
-              variant="secondary"
-              className="absolute right-2 top-2 h-9 w-9 rounded-full bg-background/90"
-              aria-label={isSaved ? t('marketplace.unsave') : t('marketplace.save')}
-              aria-pressed={isSaved}
-              disabled={isToggling}
-              onClick={onToggleSave}
-            >
-              <Heart className={cn('size-4', isSaved && 'fill-primary text-primary')} />
-            </Button>
-          ) : null}
+        <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+          <CoverImage
+            src={thumbnailSrc}
+            alt={listing.title}
+            fallbackLabel={t('marketplace.noPhoto')}
+            className={cn(
+              'transition-transform duration-300 group-hover:scale-105 motion-reduce:transform-none',
+              listing.status === 'SOLD' && 'opacity-60 grayscale',
+            )}
+          />
+          <div className="absolute left-2.5 top-2.5 flex flex-wrap gap-1.5 pr-12">
+            {listing.status === 'SOLD' ? <ListingStatusBadge status="SOLD" /> : null}
+            {listing.boosted && listing.status !== 'SOLD' ? <Badge tone="cta">{t('marketplace.boosted')}</Badge> : null}
+          </div>
         </div>
-        <CardContent className="space-y-1.5 p-3">
-          <p className="text-base font-semibold text-primary">{formatPrice(listing.price)}</p>
-          <h3 className="line-clamp-2 text-sm font-medium leading-snug">{listing.title}</h3>
+        <CardContent className="space-y-1.5 p-3 sm:p-4">
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug sm:text-base">{listing.title}</h3>
+          <p className="text-base font-extrabold tracking-tight sm:text-lg">{formatPrice(listing.price)}</p>
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="size-3.5 shrink-0" aria-hidden />
             <span className="truncate">{listing.city.name}</span>
@@ -123,11 +105,20 @@ export function ListingCard({ listing, className, footer, hideSave = false }: Li
           <SellerBadges badges={listing.seller.badges} compact />
         </CardContent>
       </Link>
-      {footer ? <div className="border-t p-3">{footer}</div> : null}
+      {!hideSave && listing.status !== 'SOLD' ? (
+        <FavoriteButton
+          className="absolute right-2.5 top-2.5"
+          active={isSaved}
+          label={isSaved ? t('marketplace.unsave') : t('marketplace.save')}
+          disabled={isToggling}
+          onToggle={onToggleSave}
+        />
+      ) : null}
+      {footer ? <div className="relative border-t p-3">{footer}</div> : null}
     </Card>
   )
 }
 
 export function ListingGrid({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn('grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4', className)}>{children}</div>
+  return <div className={cn('grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4', className)}>{children}</div>
 }

@@ -121,6 +121,9 @@ export type ListingDraft = {
   amenityIds?: string[]
   nearbyPlaces?: string
   description?: string
+  houseRules?: string
+  bathrooms?: number
+  areaSize?: string
 }
 
 export type PotentialTenant = {
@@ -134,12 +137,87 @@ export type PotentialTenant = {
     moveInDate: string | null
     leaseMonths: number | null
   }
-  match: MatchSummary
+  match: TenantMatch
 }
 
-export type TenantMatches = { total: number; page: number; pageSize: number; items: PotentialTenant[] }
+export type TenantFactor = 'budget' | 'location' | 'amenities' | 'space' | 'timing' | 'rules'
+export type FactorStatus = 'match' | 'partial' | 'conflict' | 'unknown'
+export type CompatibilityTier = 'HIGH' | 'MEDIUM' | 'LOW'
+
+/** One explanation line; `code` is translated under `match.tenants.reason`. */
+export type TenantReason = {
+  factor: TenantFactor
+  status: Exclude<FactorStatus, 'unknown'>
+  code: string
+  params?: Record<string, string | number>
+}
+
+export type TenantMatch = MatchSummary & {
+  tier: CompatibilityTier
+  factors: Array<{ key: TenantFactor; status: FactorStatus; weight: number }>
+  reasons: TenantReason[]
+}
+
+export type TenantMatches = {
+  /** Always the unsaved form values: nothing is stored by the analysis. */
+  basis: 'DRAFT'
+  /** People who chose to be suggested to agents and were checked. */
+  evaluated: number
+  /** Of those, how many stated too little to score. */
+  insufficient: number
+  scoredCount: number
+  /** Average score of the scored profiles; null when none could be scored. */
+  overallScore: number | null
+  bestScore: number | null
+  strongMatches: number
+  tiers: Record<CompatibilityTier, number>
+  factorSummary: Array<{ key: TenantFactor; weight: number; match: number; partial: number; conflict: number; unknown: number }>
+  method: {
+    weights: Record<TenantFactor, number>
+    thresholds: { strong: number; medium: number; minJudgedShare: number; highConfidenceShare: number; budgetConflictCap: number }
+  }
+  total: number
+  page: number
+  pageSize: number
+  items: PotentialTenant[]
+}
+
+export type OccupationFactor = 'affordability' | 'facilities' | 'location' | 'space' | 'rules'
+
+export type OccupationCompatibility = {
+  id: string
+  name: string
+  /** Null when the form gives no information to judge yet. */
+  score: number | null
+  judgedShare: number
+  limited: boolean
+  weights: Record<OccupationFactor, number>
+  reasons: Array<{ factor: OccupationFactor; effect: 'up' | 'down' | 'neutral'; code: string; params?: Record<string, string | number> }>
+  missing: OccupationFactor[]
+}
+
+export type OccupationCompatibilityResult = {
+  basis: 'DRAFT'
+  typicalRent: number | null
+  method: { weights: Record<OccupationFactor, number>; minJudgedShare: number }
+  items: OccupationCompatibility[]
+}
+
+export type OccupationDraft = {
+  monthlyFees?: number
+  bedrooms?: number
+  bathrooms?: number
+  areaSize?: string
+  amenityIds?: string[]
+  nearbyPlaces?: string
+  description?: string
+  houseRules?: string
+}
 
 export const recommendationsApi = {
+  occupationCompatibility(draft: OccupationDraft) {
+    return apiRequest<OccupationCompatibilityResult>('/agent/houses/occupation-compatibility', { method: 'POST', body: draft })
+  },
   getPreferences() {
     return apiRequest<HousingPreferencesResponse>('/profile/housing-preferences')
   },

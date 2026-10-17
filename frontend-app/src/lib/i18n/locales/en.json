@@ -1,5 +1,8 @@
 {
   "common": {
+    "errorTitle": "Something went wrong",
+    "errorBody": "This page could not be shown. Reloading usually fixes it; your data is safe.",
+    "reload": "Reload page",
     "notFoundTitle": "Page not found",
     "notFoundBody": "The page you are looking for does not exist or has moved.",
     "notFoundHome": "Back to Home",
@@ -22,9 +25,11 @@
     "next": "Next",
     "yes": "Yes",
     "no": "No",
-    "close": "Close"
+    "close": "Close",
+    "pagination": "Pagination"
   },
   "contact": {
+    "label": "Contact Shawe Mal",
     "telegram": "Chat with the Shawe Mal Telegram bot",
     "viber": "Chat with us on Viber"
   },
@@ -1049,7 +1054,8 @@
       "kitchen": "Kitchen items",
       "office": "Office & study items",
       "other": "Other items"
-    }
+    },
+    "demoPrefilled": "Demo account: the move details are pre-filled. You can change any of them; nothing is booked until you press Confirm booking."
   },
   "driver": {
     "subtitle": "Submit your driver profile for admin verification.",
@@ -1914,12 +1920,11 @@
     },
     "tenants": {
       "title": "Potential Tenant Compatibility",
-      "subtitle": "People looking for a home like this one, based on the details above. You can post whatever the result.",
+      "subtitle": "How well this listing suits people who asked to be suggested to housing agents, based on what they told us they need. It never blocks saving.",
       "needDetails": "Enter the monthly rent and city to see who this listing would suit.",
       "analysing": "Analysing the listing…",
       "loadError": "The analysis could not be loaded. You can still post the listing.",
-      "empty": "No strong matches yet. You can still post the listing.",
-      "count": "Showing {{shown}} of {{total}} people who chose to be suggested to agents.",
+      "count": "Showing {{shown}} of {{total}} scored profiles.",
       "upTo": "Up to {{amount}} MMK",
       "wantsCity": "Preferred city",
       "wantsBudget": "Budget",
@@ -1927,10 +1932,96 @@
       "wantsBedrooms": "Bedrooms (min)",
       "wantsMoveIn": "Move-in date",
       "wantsLease": "Lease",
-      "privacy": "Contact details stay private. Interested people reach you through the listing."
+      "privacy": "Contact details stay private. Interested people reach you through the listing.",
+      "basisDraft": "Based on the details in the form now (not saved yet).",
+      "updating": "Updating…",
+      "noProfiles": "No one has asked to be suggested to housing agents yet, so there is nobody to compare this listing with. Tenants can turn this on in their housing preferences.",
+      "allInsufficient_one": "{{count}} person asked to be suggested to agents, but they have not stated enough (at least a budget or preferred location) to calculate a fair score.",
+      "allInsufficient_other": "{{count}} people asked to be suggested to agents, but none has stated enough (at least a budget or preferred location) to calculate a fair score.",
+      "overall": "Overall compatibility",
+      "overallExplained_one": "Average of {{count}} tenant profile with enough information.",
+      "overallExplained_other": "Average of {{count}} tenant profiles with enough information.",
+      "insufficientShort": "Insufficient profile information",
+      "best": "Best match: {{score}}%",
+      "evaluated": "Profiles evaluated",
+      "strong": "Strong matches",
+      "scored": "Scored",
+      "insufficient": "Insufficient info",
+      "byFactor": "Across scored profiles",
+      "factorCounts": "{{match}} fit · {{partial}} partly · {{conflict}} conflict",
+      "factorNotStated": "not stated by anyone",
+      "topMatches": "Best-matching tenant profiles",
+      "positives": "Matches",
+      "mismatches": "Mismatches",
+      "lowConfidence": "Low confidence: this person stated only some of their requirements.",
+      "notStatedFactors": "Not stated, so not scored: {{factors}}.",
+      "personScoreLabel": "Compatibility with {{name}}",
+      "howCalculated": "How this is calculated",
+      "tier": {
+        "HIGH": "High",
+        "MEDIUM": "Medium",
+        "LOW": "Low"
+      },
+      "status": {
+        "match": "Match",
+        "partial": "Partial",
+        "conflict": "Mismatch"
+      },
+      "factor": {
+        "budget": "Budget",
+        "location": "Location",
+        "amenities": "Required amenities",
+        "space": "Property type and bedrooms",
+        "timing": "Lease and move-in",
+        "rules": "Smoking rule"
+      },
+      "method": {
+        "intro": "Each person's score is a weighted average of the requirements they stated. Weights:",
+        "missing": "A requirement the person did not state is left out, never counted as a match. If less than {{min}}% of the weight could be judged, or neither budget nor location is known, the profile is counted as insufficient information instead of being scored.",
+        "penalties": "Rent more than 10% above the stated maximum budget caps the score at {{cap}}%. A listing outside the preferred region loses 20%, and a smoking-allowed home loses 15% for someone who needs a non-smoking home.",
+        "bands": "High: {{strong}}% or more. Medium: {{medium}}–{{strong}}%. Below {{medium}}%: low. A strong match is high with most requirements stated.",
+        "occupation": "Occupation is shown for context but never scored: a job title does not tell us what someone needs from a home."
+      },
+      "reason": {
+        "budget": {
+          "within": "Within budget",
+          "belowRange": "Well below their stated price range",
+          "slightlyOver": "Rent is {{over}} MMK above their budget (within 10%)",
+          "over": "Rent exceeds their stated budget by {{over}} MMK"
+        },
+        "location": {
+          "city": "Preferred township",
+          "region": "Same region, not their preferred township",
+          "outside": "Outside their preferred area"
+        },
+        "space": {
+          "typeMatch": "Preferred property type",
+          "typeMismatch": "Not their preferred property type",
+          "bedroomsEnough": "Enough bedrooms ({{bedrooms}})",
+          "bedroomsShort": "Has {{bedrooms}} bedrooms; they need at least {{wanted}}"
+        },
+        "amenities": {
+          "all_one": "Has the required amenity",
+          "all_other": "Has all {{count}} required amenities",
+          "some": "Has {{found}} of {{total}} required amenities (missing: {{missing}})",
+          "none": "Missing required amenities: {{missing}}",
+          "petsRuleConflict": "House rules say no pets; they need a pet-friendly home"
+        },
+        "timing": {
+          "leaseFits": "Contract length ({{months}} months) fits their plans",
+          "leaseLonger": "Contract is {{months}} months; they plan {{wanted}}",
+          "moveInSoon": "Available when they want to move",
+          "moveInLater": "They plan to move in more than two months from now"
+        },
+        "rules": {
+          "smokeFree": "Non-smoking home, as they need",
+          "smokingAllowed": "Smoking is allowed; they need a non-smoking home"
+        }
+      },
+      "individualTitle": "Individual people who asked to be suggested to agents"
     },
     "preferences": {
-      "title": "Housing preferences",
+      "title": "Preferences",
       "intro": "Tell us what you are looking for. House and roommate recommendations are calculated from these answers; leave anything blank that does not matter to you.",
       "homeSection": "The home",
       "lifestyleSection": "Living with others",
@@ -1999,6 +2090,58 @@
         "RARELY": "Rarely",
         "SOMETIMES": "Sometimes",
         "OFTEN": "Often"
+      }
+    },
+    "occupations": {
+      "subtitle": "How well this listing suits each occupation category, calculated from the details entered above. It never blocks saving.",
+      "listLabel": "Compatibility by occupation",
+      "scoreLabel": "Compatibility for {{name}}",
+      "notEnough": "Not enough details yet",
+      "limited": "Some key details are missing (rent, amenities, nearby places, bedrooms or house rules), so scores use only what has been entered. Add more details for a fuller picture.",
+      "missing": "Not yet entered, so not scored: {{details}}.",
+      "effect": {
+        "up": "Raises the score",
+        "down": "Lowers the score",
+        "neutral": "Neutral"
+      },
+      "factor": {
+        "affordability": "Rent",
+        "facilities": "Amenities",
+        "location": "Nearby places",
+        "space": "Bedrooms",
+        "rules": "House rules"
+      },
+      "reason": {
+        "affordability": {
+          "low": "Rent is {{percent}}% of the typical rent here: affordable",
+          "typical": "Rent is about the typical rent here ({{percent}}%)",
+          "high": "Rent is {{percent}}% of the typical rent here: expensive"
+        },
+        "facilities": {
+          "all": "Has all relevant amenities ({{found}})",
+          "some": "Has {{found}}; missing {{missing}}",
+          "none": "None of the relevant amenities ({{missing}})"
+        },
+        "location": {
+          "access": "Nearby: {{places}}",
+          "noAccess": "No relevant nearby places mentioned"
+        },
+        "space": {
+          "fits": "{{bedrooms}} bedroom(s): fits typical needs",
+          "small": "{{bedrooms}} bedroom(s): {{wanted}} suit better (e.g. room to work)"
+        },
+        "rules": {
+          "quiet": "Quiet-hours house rules",
+          "smokingAllowed": "Smoking is allowed",
+          "neutral": "House rules do not affect this category"
+        }
+      },
+      "method": {
+        "intro": "Each category's score is a weighted average of five listing factors (base weights):",
+        "emphasis": "Each category adjusts how much a factor matters and which amenities and nearby places are relevant to typical housing needs (e.g. Wi-Fi and a desk for remote work, nearby hospitals for healthcare). These are relevance rules, not assumptions about any individual.",
+        "affordability": "Rent is compared with the typical (median) rent of available listings: {{rent}} MMK.",
+        "missing": "Details not entered are left out, never counted as a match. Below {{min}}% of the weight entered, a notice is shown.",
+        "fairness": "No category is assumed to have a particular income or lifestyle; scores change only with the listing's details."
       }
     }
   },

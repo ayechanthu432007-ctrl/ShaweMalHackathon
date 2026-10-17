@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { selectClassName } from '@/components/ui/field-styles'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -85,7 +86,7 @@ export function SignUpPage({ redirectTo = '/sign-in', titleKey = 'public.signUpT
     <Card className="mx-auto max-w-md">
       <CardHeader>
         <CardTitle>
-          <h1 className="text-2xl">{t(titleKey)}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">{t(titleKey)}</h1>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -109,7 +110,7 @@ export function SignUpPage({ redirectTo = '/sign-in', titleKey = 'public.signUpT
             <Label htmlFor="occupationId">{t('auth.occupation')}</Label>
             <select
               id="occupationId"
-              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className={selectClassName}
               disabled={occupationsQuery.isLoading}
               {...register('occupationId')}
             >

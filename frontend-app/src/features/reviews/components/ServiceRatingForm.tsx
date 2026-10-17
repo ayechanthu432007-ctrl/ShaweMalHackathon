@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { textareaClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { ApiRequestError } from '@/lib/api/client'
@@ -102,7 +103,7 @@ export function ServiceRatingForm({
           maxLength={1000}
           rows={3}
           onChange={(event) => setComment(event.target.value)}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className={textareaClassName}
           placeholder={t('reviews.commentPlaceholder')}
         />
       </div>

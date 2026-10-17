@@ -130,7 +130,7 @@ export function AgentDashboardPage() {
             <PlanFact label={t('agentDash.currentPlan')}>
               <span className="flex flex-wrap items-center gap-2">
                 {shown.plan.name}
-                {shown.isDemo ? <span className="rounded bg-[#FCF7EE] px-1.5 py-0.5 text-[10px] font-semibold text-[#7A5418]">DEMO</span> : null}
+                {shown.isDemo ? <span className="rounded bg-gold-soft px-1.5 py-0.5 text-[10px] font-semibold text-gold-ink">DEMO</span> : null}
                 {verification.badgeShown ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-background/80 px-2 py-0.5 text-xs font-medium text-primary">
                     <BadgeCheck className="size-3.5" aria-hidden />
@@ -192,7 +192,7 @@ export function AgentDashboardPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-lg font-semibold">{t('agentDash.last30Days')}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">{t('agentDash.last30Days')}</h2>
         <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <StatTile icon={House} tone="blue" to="/agent/houses" label={t('agentDash.myListings')} value={dashboard.listingCount} hint={t('agentDash.activeListings')} />
           <StatTile icon={Eye} tone="violet" to="/agent/performance?metric=views" label={t('agentDash.nav.views')} value={stats.views} />

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
@@ -18,6 +19,7 @@ import { HireMovingStepDetails } from '../components/HireMovingStepDetails'
 import { HireMovingStepEstimate } from '../components/HireMovingStepEstimate'
 import { HireMovingStepProgress } from '../components/HireMovingStepProgress'
 import { emptyInventoryCounts, type InventoryCatalogItem } from '../constants/inventory-catalog'
+import { isMovingDemoAccount, MOVING_DEMO_PRESET } from '../lib/moving-demo'
 import {
   buildInventoryItems,
   collectPhotoPaths,
@@ -40,7 +42,7 @@ export function HireMovingPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { isAuthenticated, isBootstrapping } = useAuth()
+  const { isAuthenticated, isBootstrapping, user } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const [createdRequest, setCreatedRequest] = useState<MovingRequest | null>(null)
   const [quote, setQuote] = useState<MovingQuote | null>(null)
@@ -142,6 +144,37 @@ export function HireMovingPage() {
     setValue('inventoryCounts', next)
     setValue('totalInventoryItems', String(sumInventoryCounts(next)))
   }, [catalog, getValues, setValue])
+
+  // Demo accounts only: fill the presentation details once, after the lists they refer to have
+  // loaded. Fields the person already filled are never overwritten, and nothing is submitted.
+  const demoApplied = useRef(false)
+  const [demoPrefilled, setDemoPrefilled] = useState(false)
+  useEffect(() => {
+    if (demoApplied.current || confirmedRequestId || !isMovingDemoAccount(user)) return
+    const floors = floorsQuery.data?.items ?? []
+    if (catalog.length === 0 || floors.length === 0 || townshipNames.length === 0) return
+    demoApplied.current = true
+    const preset = MOVING_DEMO_PRESET
+    const options = { shouldDirty: true }
+    const fillIfEmpty = (name: 'pickupTownship' | 'dropoffTownship' | 'pickupFloorLevelId' | 'dropoffFloorLevelId' | 'moveInDate', value: string | undefined) => {
+      if (value && !getValues(name)) setValue(name, value, options)
+    }
+    const floorId = (label: string) => floors.find((floor) => (floor.name ?? '').toLowerCase() === label.toLowerCase())?.id
+    fillIfEmpty('pickupTownship', townshipNames.includes(preset.pickupTownship) ? preset.pickupTownship : undefined)
+    fillIfEmpty('dropoffTownship', townshipNames.includes(preset.dropoffTownship) ? preset.dropoffTownship : undefined)
+    fillIfEmpty('pickupFloorLevelId', floorId(preset.pickupFloor))
+    fillIfEmpty('dropoffFloorLevelId', floorId(preset.dropoffFloor))
+    fillIfEmpty('moveInDate', preset.moveInDate)
+    const counts = { ...emptyInventoryCounts(catalog), ...getValues('inventoryCounts') }
+    if (sumInventoryCounts(counts) === 0) {
+      for (const item of catalog) {
+        if (preset.inventory[item.code]) counts[item.id] = preset.inventory[item.code]
+      }
+      setValue('inventoryCounts', counts, options)
+      setValue('totalInventoryItems', String(sumInventoryCounts(counts)), options)
+    }
+    setDemoPrefilled(true)
+  }, [catalog, confirmedRequestId, floorsQuery.data?.items, getValues, setValue, townshipNames, user])
 
   const inventoryCounts = watch('inventoryCounts')
   const photo1 = watch('photo1')
@@ -315,7 +348,7 @@ export function HireMovingPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <p className="text-sm text-muted-foreground">{t('common.loading')}</p>
+    return <LoadingState />
   }
 
   const confirmationId = createdRequest?.id ?? confirmedRequestId
@@ -325,7 +358,7 @@ export function HireMovingPage() {
     <Card className="mx-auto max-w-6xl">
       <CardHeader>
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">{t('moving.sloganTitle')}</h1>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('moving.sloganTitle')}</h1>
           <p className="text-muted-foreground">{t('moving.sloganSubtitle')}</p>
         </div>
         <HireMovingStepProgress current={step} />
@@ -357,6 +390,11 @@ export function HireMovingPage() {
             <input type="hidden" {...register('totalInventoryItems')} />
             <input type="hidden" {...register('vehicleTypeId')} />
 
+            {demoPrefilled && step < 4 ? (
+              <p className="rounded-lg border border-info/30 bg-info-soft px-3 py-2 text-sm text-info" role="status">
+                {t('moving.demoPrefilled')}
+              </p>
+            ) : null}
             {step === 1 ? (
               <HireMovingStepAddresses
                 register={register}
