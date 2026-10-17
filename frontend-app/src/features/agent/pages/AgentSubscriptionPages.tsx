@@ -9,9 +9,6 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiRequestError } from '@/lib/api/client'
 import { cn } from '@/lib/utils'
-import freeBasicArt from '@/assets/plans/free-basic.svg'
-import goldPremiumArt from '@/assets/plans/gold-premium.svg'
-import silverPartnerArt from '@/assets/plans/silver-partner.svg'
 
 import { agentPlanApi, formatDate, formatMmk, type PaymentOrder, type Plan } from '../api/agent-plan-api'
 import { PageHeading, QueryState } from '../components/dashboard-parts'
@@ -19,10 +16,24 @@ import { displayedPlan, useAgentDemoPreview } from '../lib/agent-demo-preview'
 import { AGENT_DASHBOARD_QUERY_KEY, useAgentDashboard } from '../layout/AgentDashboardLayout'
 
 /** Artwork and accent for each plan card; plans not listed fall back to the Free look. */
-const PLAN_LOOK: Record<string, { art: string; ring: string; tint: string }> = {
-  FREE: { art: freeBasicArt, ring: 'ring-button', tint: 'from-button-soft' },
-  SILVER: { art: silverPartnerArt, ring: 'ring-slate-400', tint: 'from-secondary' },
-  GOLD: { art: goldPremiumArt, ring: 'ring-gold', tint: 'from-gold-soft' },
+const PLAN_LOOK: Record<string, { ring: string; background: string; accent: string }> = {
+  // `background`: the card's own gradient (copper / silver / gold), light in light mode and deep in
+  // dark mode. `accent` colours the price and ticks to match, readable on that gradient.
+  FREE: {
+    ring: 'ring-[#b4532a]',
+    background: 'bg-gradient-to-br from-[#f8e1d2] to-[#e8a986] dark:from-[#4a2416] dark:to-[#7a3b20]',
+    accent: 'text-[#8a3a17] dark:text-[#f3b48f]',
+  },
+  SILVER: {
+    ring: 'ring-slate-500',
+    background: 'bg-gradient-to-br from-[#f4f5f7] to-[#c3c8d0] dark:from-[#262a31] dark:to-[#474d58]',
+    accent: 'text-slate-700 dark:text-slate-200',
+  },
+  GOLD: {
+    ring: 'ring-[#b8860b]',
+    background: 'bg-gradient-to-br from-[#fff4c7] to-[#f2cc55] dark:from-[#3f3108] dark:to-[#6e5510]',
+    accent: 'text-[#7a5600] dark:text-[#f5d36b]',
+  },
 }
 
 type DemoAction = { kind: 'choose'; plan: Plan; reset: boolean } | { kind: 'free'; plan: Plan }
@@ -164,19 +175,17 @@ export function AgentSubscriptionPage() {
               key={plan.code}
               className={cn(
                 'flex flex-col overflow-hidden rounded-2xl transition-shadow hover:shadow-md',
+                look.background,
                 isCurrent && cn('ring-2', look.ring),
               )}
             >
-              <div className={cn('bg-gradient-to-b to-transparent p-3 pb-0', look.tint)}>
-                <img src={look.art} alt="" className="aspect-[2/1] w-full rounded-xl object-cover" />
-              </div>
               <CardHeader className="space-y-1 pb-2">
-                <CardTitle className="flex items-center justify-between gap-2 text-lg">
+                <CardTitle className="flex items-center justify-between gap-2 pt-1 text-xl">
                   {plan.name}
                   {isCurrent ? <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">{t('agentDash.current')}</span> : null}
                 </CardTitle>
-                <p className="text-2xl font-semibold tabular-nums">{isFree ? formatMmk(0) : formatMmk(price)}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className={cn('text-2xl font-bold tabular-nums', look.accent)}>{isFree ? formatMmk(0) : formatMmk(price)}</p>
+                <p className="text-xs text-foreground/75">
                   {isFree ? t('agentDash.freeForever') : billingMonths === 3 ? t('agentDash.per3Months') : t('agentDash.perMonth')}
                 </p>
               </CardHeader>
@@ -184,7 +193,7 @@ export function AgentSubscriptionPage() {
                 <ul className="space-y-1.5">
                   {planFeatures(plan, t).map((feature) => (
                     <li key={feature} className="flex gap-2">
-                      <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                      <Check className={cn('mt-0.5 size-4 shrink-0', look.accent)} aria-hidden />
                       {feature}
                     </li>
                   ))}
@@ -209,7 +218,7 @@ export function AgentSubscriptionPage() {
                       {isFree ? t('agentDash.returnToFree') : t('agentDash.choosePlan', { plan: plan.name })}
                     </Button>
                   ) : isFree ? null : isLower ? (
-                    <p className="text-xs text-muted-foreground">{t('agentDash.downgradeNote')}</p>
+                    <p className="text-xs text-foreground/75">{t('agentDash.downgradeNote')}</p>
                   ) : (
                     <Button type="button" className="w-full" disabled>
                       {t('agentDash.choosePlan', { plan: plan.name })}
@@ -296,7 +305,6 @@ function DemoPlanDialog({
   const titleId = useId()
   const isFree = action.kind === 'free'
   const price = isFree ? 0 : billingMonths === 3 ? action.plan.quarterlyPriceMmk : action.plan.monthlyPriceMmk
-  const look = PLAN_LOOK[action.plan.code] ?? PLAN_LOOK.FREE
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -310,7 +318,6 @@ function DemoPlanDialog({
     <div className="fixed inset-0 z-50 flex justify-center overflow-y-auto p-4 [&>[role=dialog]]:my-auto">
       <div aria-hidden className="fixed inset-0 bg-black/50 backdrop-blur-[2px]" onClick={() => !isPending && onCancel()} />
       <div role="dialog" aria-modal="true" aria-labelledby={titleId} className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl border bg-card shadow-overlay">
-        <img src={look.art} alt="" className="aspect-[2/1] w-full object-cover" />
         <div className="space-y-4 p-6">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-gold-soft px-2.5 py-1 text-xs font-semibold text-gold-ink">
             <FlaskConical className="size-3.5" aria-hidden />

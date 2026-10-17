@@ -83,15 +83,15 @@ describe('agent plans in demo mode', () => {
     vi.unstubAllGlobals()
   })
 
-  it('shows each plan with its artwork and the 3-month price with 10% off', async () => {
+  it('shows each plan, without photos, and the 3-month price with 10% off', async () => {
     stubServer({ current: 'FREE', demo: true })
     const user = userEvent.setup()
     renderWithProviders(<AgentSubscriptionPage />)
 
     expect(await screen.findByText(/DEMO MODE — No real payment required/)).toBeInTheDocument()
-    // The artwork is bundled with the app (inlined), one per plan, so it cannot be a broken link.
-    const art = [...document.querySelectorAll('img')].map((img) => decodeURIComponent(img.getAttribute('src') ?? ''))
-    expect(art.filter((src) => /aria-label='(Free Basic|Silver Partner|Gold Premium)'/.test(src))).toHaveLength(3)
+    // The plan cards use coloured backgrounds instead of photos.
+    expect(document.querySelectorAll('img')).toHaveLength(0)
+    for (const name of ['Free Basic', 'Silver Partner', 'Gold Premium']) expect(screen.getAllByText(name).length).toBeGreaterThan(0)
     expect(screen.getByText('90,000 MMK')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: '3 months (10% off)' }))
