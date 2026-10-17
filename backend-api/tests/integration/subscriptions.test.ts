@@ -201,7 +201,7 @@ beforeEach(() => {
     { ...base, id: 'plan_silver', code: 'SILVER', name: 'Silver Partner', rank: 1, monthlyPriceMmk: 90000, quarterlyPriceMmk: 243000, monthlyListingLimit: 15, freeBoostDays: 3, badgeEligible: true, performanceLevel: 'OVERVIEW' },
     { ...base, id: 'plan_gold', code: 'GOLD', name: 'Gold Premium', rank: 2, monthlyPriceMmk: 160000, quarterlyPriceMmk: 432000, monthlyListingLimit: null, freeBoostDays: 10, badgeEligible: true, performanceLevel: 'DETAILED', audienceInsights: true, monthlyReport: true }
   );
-  db.settings.push({ key: 'BOOST_PRICE_PER_DAY_MMK', value: '5000' });
+  db.settings.push({ key: 'BOOST_PRICE_PER_DAY_MMK', value: '5500' });
   db.houses.push(
     { id: 'house-1', agentId: AGENT, title: 'Condo', availability: 'AVAILABLE', createdAt: new Date('2026-01-01') },
     { id: 'house-2', agentId: AGENT, title: 'Apartment', availability: 'AVAILABLE', createdAt: new Date('2026-01-01') },
@@ -420,9 +420,15 @@ describe('boosts', () => {
     expect((await getFreeBoostBalance(AGENT, NOW)).remaining).toBe(0);
   });
 
+  it('charges 5,500 MMK per day for a boost: 1, 3, 7 and 30 days', async () => {
+    const totals: Record<number, number> = {};
+    for (const days of [1, 3, 7, 30]) totals[days] = (await createBoostOrder(AGENT, 'house-1', days, NOW)).amountMmk;
+    expect(totals).toEqual({ 1: 5500, 3: 16500, 7: 38500, 30: 165000 });
+  });
+
   it('sells Per-Day Boost at the server price and applies it once', async () => {
     const order = await createBoostOrder(AGENT, 'house-1', 4, NOW);
-    expect(order).toMatchObject({ kind: 'BOOST', amountMmk: 20000, boostDays: 4 });
+    expect(order).toMatchObject({ kind: 'BOOST', amountMmk: 22000, boostDays: 4 });
 
     await simulateDemoPayment(AGENT, order.reference, 'SUCCESS', NOW);
     await simulateDemoPayment(AGENT, order.reference, 'SUCCESS', NOW);

@@ -8,7 +8,7 @@
  */
 
 export const DEMO_POST_LIMIT = 5
-export const DEMO_BOOST_PRICE_MMK = 5000
+export const DEMO_BOOST_PRICE_MMK = 5500
 export const DEMO_BOOST_HOURS = 24
 const HOUR_MS = 60 * 60 * 1000
 const YANGON_OFFSET_MS = 6.5 * HOUR_MS

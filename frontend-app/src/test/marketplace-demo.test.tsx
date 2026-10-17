@@ -37,7 +37,7 @@ describe('marketplace demo rules', () => {
     expect(quotaFor(state, Date.parse('2026-11-01T00:00:00.000Z')).remaining).toBe(5)
   })
 
-  it('boosts one post for 24 hours at 5,000 MMK, ranks it first, refuses a second charge and lets it expire', () => {
+  it('boosts one post for 24 hours at 5,500 MMK, ranks it first, refuses a second charge and lets it expire', () => {
     let state = initialDemoState()
     state = createPost(state, item('Old desk'), NOW)
     state = createPost(state, item('New fan'), NOW + 1000)
@@ -45,7 +45,7 @@ describe('marketplace demo rules', () => {
 
     const boost = activeBoost(state, 'demo-post-1', NOW + 2000)
     expect(boost?.expiresAt).toBe(NOW + 2000 + 24 * HOUR)
-    expect(state.payments.at(-1)).toMatchObject({ amountMmk: 5000, outcome: 'SUCCESS' })
+    expect(state.payments.at(-1)).toMatchObject({ amountMmk: 5500, outcome: 'SUCCESS' })
     expect(rankedPosts(state, NOW + 3000).map((post) => post.title)).toEqual(['Old desk', 'New fan'])
     expect(() => boostPost(state, 'demo-post-1', 'SUCCESS', NOW + 3000)).toThrow(DemoError)
     expect(state.payments).toHaveLength(1)
@@ -110,7 +110,7 @@ describe('marketplace demo page', () => {
     await user.click(within(lastPost).getByRole('button', { name: 'Boost Post' }))
     const dialog = screen.getByRole('dialog')
     expect(dialog).toHaveTextContent(title)
-    expect(dialog).toHaveTextContent('5,000 MMK')
+    expect(dialog).toHaveTextContent('5,500 MMK')
     expect(dialog).toHaveTextContent('24 hours')
     await user.click(within(dialog).getByRole('button', { name: 'Cancel' }))
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
