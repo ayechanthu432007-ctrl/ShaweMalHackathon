@@ -19,6 +19,17 @@ export const errorMiddleware = (
     return;
   }
 
+  // Request-body problems (too large, malformed JSON) are the client's mistake, not a server error.
+  const bodyError = err as { type?: string; status?: number };
+  if (bodyError?.type === 'entity.too.large') {
+    sendError(res, 413, 'Request body is too large.', { code: 'REQUEST_TOO_LARGE' });
+    return;
+  }
+  if (bodyError?.type === 'entity.parse.failed' || bodyError?.type === 'encoding.unsupported' || bodyError?.type === 'charset.unsupported') {
+    sendError(res, 400, 'Request body could not be read.', { code: 'REQUEST_BODY_INVALID' });
+    return;
+  }
+
   const error = err as Error;
   const exposeMessage = process.env.NODE_ENV !== 'production';
 

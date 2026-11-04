@@ -1,6 +1,6 @@
 import { ApiError } from '../utils/api-error';
 import { prisma } from '../prisma/client';
-import { comparePassword, hashPassword } from '../utils/password';
+import { comparePassword, hashPassword, spendPasswordCheckTime } from '../utils/password';
 import { generateAccessToken } from './token.service';
 import {
   createRefreshSession,
@@ -94,6 +94,7 @@ export const register = async (input: RegisterInput) => {
 export const login = async (input: LoginInput) => {
   const user = await getUserByEmail(input.email);
   if (!user) {
+    await spendPasswordCheckTime(input.password);
     throw new ApiError(401, 'AUTH_INVALID_CREDENTIALS', 'Invalid email or password.');
   }
 
