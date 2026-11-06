@@ -123,7 +123,7 @@
     "minPassword": "Password must be at least 8 characters",
     "invalidEmail": "Email format is invalid",
     "loginFailed": "Login failed. Check your credentials.",
-    "serverUnreachable": "Could not reach the server. Check that the API is running and that this page is opened at the allowed address, then try again.",
+    "serverUnreachable": "We couldn't connect. Check your internet connection and try again.",
     "emailExists": "This email is already registered. Sign in with it instead, or use a different email.",
     "phoneExists": "This phone number is already used by another account. Use a different number.",
     "registerRejected": "Registration was not accepted: {{reason}}",
@@ -226,7 +226,7 @@
     "users": {
       "title": "Users & roles",
       "subtitle": "Create accounts and assign roles for admin-managed users.",
-      "listGap": "There is no admin user list endpoint yet. Create users here, then manage roles by user ID.",
+      "listGap": "User management is not available here yet. Please try again later.",
       "createTitle": "Create user",
       "createDescription": "POST /admin/users — creates a user with an initial role.",
       "createSubmit": "Create user",
@@ -334,7 +334,7 @@
         "floor-levels": "Floor levels",
         "occupations": "Occupations",
         "amenities": "Amenities",
-        "status-codes": "Status codes",
+        "status-codes": "Statuses",
         "roles": "Roles",
         "moving-inventory-items": "Moving inventory items"
       }
@@ -405,7 +405,7 @@
       "etaTitle": "ETA entries",
       "emptyEvents": "No status events recorded.",
       "emptyEta": "No ETA entries recorded.",
-      "requestId": "Request ID",
+      "requestId": "Reference",
       "createdAt": "Created",
       "updatedAt": "Updated",
       "coordinates": "Coordinates",
@@ -1792,7 +1792,7 @@
     "noListings": "You have no listings yet.",
     "listing": "Listing",
     "subscriptionSubtitle": "Choose a plan. Prices are in Myanmar Kyat.",
-    "paymentsUnavailable": "Online payment is not available in this environment yet.",
+    "paymentsUnavailable": "Online payment isn't available yet. Please try again later or contact support.",
     "billingPeriod": "Billing period",
     "monthly": "Monthly",
     "threeMonths": "3 months (10% off)",
@@ -2368,7 +2368,7 @@
     "activateDemo": "Activate Premium (Demo)",
     "confirmDemoTitle": "Activate {{plan}} (demo)",
     "continueToDemo": "Continue to demo purchase",
-    "paymentsUnavailable": "Online payment isn't available yet: no payment provider is connected and the Marketplace demo purchase is turned off. To demonstrate Premium Seller, set MARKETPLACE_DEMO_PURCHASE_ENABLED=true on the API.",
+    "paymentsUnavailable": "Online payment isn't available yet. Please try again later or contact support.",
     "activeDetails": "{{plan}} is active from {{from}} to {{to}}. It stays active after refresh and sign-in."
   },
   "sellerDash": {

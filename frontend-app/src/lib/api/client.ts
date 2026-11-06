@@ -15,13 +15,25 @@ export type ApiFailure = {
   errors?: unknown
 }
 
+const technicalErrorPattern =
+  /\b(?:api|endpoint|database|sql|query|prisma|stack|trace|exception|internal server|http|status(?: code)?|jwt|cors|runtime|undefined|null pointer|fetch|network|request failed|connection refused|token|payload|json|configuration|environment variable|cannot read propert(?:y|ies)|typeerror|referenceerror|syntaxerror|constraint|relation does not exist|violates|unexpected token|cannot (?:get|post|put|delete))\b|\bP\d{4}\b|\b[A-Z]+_ERROR\b/i
+
+function makeMessageUserFriendly(message: string, status: number): string {
+  if (!technicalErrorPattern.test(message)) return message
+  if (status === 401) return 'Your session has expired. Please sign in again.'
+  if (status === 403) return "You don't have permission to do that."
+  if (status === 404) return "We couldn't find what you were looking for."
+  if (status >= 500) return 'Something went wrong on our end. Please try again shortly.'
+  return "We couldn't complete that request. Please check your information and try again."
+}
+
 export class ApiRequestError extends Error {
   status: number
   code?: string
   details?: unknown
 
   constructor(message: string, status: number, code?: string, details?: unknown) {
-    super(message)
+    super(makeMessageUserFriendly(message, status))
     this.name = 'ApiRequestError'
     this.status = status
     this.code = code
