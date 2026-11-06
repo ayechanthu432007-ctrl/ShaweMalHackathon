@@ -16,6 +16,62 @@ export function LoadingState({ label, className }: { label?: string; className?:
   )
 }
 
+/** A page-shaped placeholder for route chunks and full-page queries. */
+export function PageSkeleton({ className }: { className?: string }) {
+  const { t } = useTranslation()
+  const bar = 'animate-pulse rounded bg-muted motion-reduce:animate-none'
+  return (
+    <div role="status" aria-label={t('common.loading')} className={cn('w-full space-y-6', className)}>
+      <span className="sr-only">{t('common.loading')}</span>
+      <div aria-hidden className="space-y-3">
+        <div className={cn(bar, 'h-8 w-2/3 max-w-sm')} />
+        <div className={cn(bar, 'h-4 w-full max-w-xl')} />
+      </div>
+      <div aria-hidden className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div key={index} className="space-y-3 rounded-xl border bg-card p-4">
+            <div className={cn(bar, 'h-32 w-full')} />
+            <div className={cn(bar, 'h-5 w-4/5')} />
+            <div className={cn(bar, 'h-4 w-3/5')} />
+            <div className={cn(bar, 'h-9 w-1/3')} />
+          </div>
+        ))}
+      </div>
+      <div aria-hidden className="space-y-3 rounded-xl border bg-card p-4">
+        <div className={cn(bar, 'h-5 w-1/3')} />
+        <div className={cn(bar, 'h-4 w-full')} />
+        <div className={cn(bar, 'h-4 w-4/5')} />
+      </div>
+    </div>
+  )
+}
+
+/** A detail-page placeholder that reserves room for a gallery and information panel. */
+export function DetailPageSkeleton({ className }: { className?: string }) {
+  const { t } = useTranslation()
+  const bar = 'animate-pulse rounded bg-muted motion-reduce:animate-none'
+  return (
+    <div role="status" aria-label={t('common.loading')} className={cn('space-y-5', className)}>
+      <span className="sr-only">{t('common.loading')}</span>
+      <div aria-hidden className={cn(bar, 'h-4 w-28')} />
+      <div aria-hidden className={cn(bar, 'h-8 w-3/4 max-w-lg')} />
+      <div aria-hidden className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(18rem,1fr)]">
+        <div className={cn(bar, 'aspect-[4/3] w-full rounded-2xl')} />
+        <div className="space-y-4 rounded-xl border bg-card p-5">
+          <div className={cn(bar, 'h-7 w-2/3')} />
+          <div className={cn(bar, 'h-5 w-1/2')} />
+          <div className="space-y-2 pt-3">
+            <div className={cn(bar, 'h-4 w-full')} />
+            <div className={cn(bar, 'h-4 w-5/6')} />
+            <div className={cn(bar, 'h-4 w-4/5')} />
+          </div>
+          <div className={cn(bar, 'h-11 w-full')} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 /** A failed load: the message and, when the data can be fetched again, a Retry button. */
 export function ErrorState({ message, onRetry, className }: { message: string; onRetry?: () => void; className?: string }) {
   const { t } = useTranslation()

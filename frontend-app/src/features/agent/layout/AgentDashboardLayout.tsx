@@ -20,7 +20,7 @@ import { Link, Navigate, NavLink, Outlet, useLocation } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import { displayedPlan, useAgentDemoPreview } from '../lib/agent-demo-preview'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { LoadingState, PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { cn } from '@/lib/utils'
 
@@ -144,7 +144,7 @@ export function AgentDashboardLayout() {
       </aside>
 
       <div className="min-w-0">
-        <Suspense fallback={<LoadingState />}>
+        <Suspense fallback={<PageSkeleton />}>
           <Outlet />
         </Suspense>
       </div>

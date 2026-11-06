@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { LoadingState, PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -104,7 +104,7 @@ export function SellerPlanComparison({ compact = false }: { compact?: boolean })
   })
 
   // Wait for the seller's own plan too, so a Premium seller never briefly sees "Upgrade".
-  if (plansQuery.isLoading || subscriptionQuery.isLoading) return <LoadingState />
+  if (plansQuery.isLoading || subscriptionQuery.isLoading) return <PageSkeleton />
   if (plansQuery.isError || !plansQuery.data) {
     return (
       <div className="space-y-2">

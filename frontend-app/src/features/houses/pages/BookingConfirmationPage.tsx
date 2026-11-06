@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,11 +30,11 @@ export function BookingConfirmationPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (bookingQuery.isLoading) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (bookingQuery.isError || !bookingQuery.data?.booking) {

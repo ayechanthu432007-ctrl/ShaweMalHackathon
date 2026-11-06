@@ -1,4 +1,4 @@
-import { LoadingState } from '@/components/common/PageStates'
+import { PageSkeleton } from '@/components/common/PageStates'
 import { HousingPreferencesCard } from '@/features/recommendations/components/HousingPreferencesCard'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useEffect, useState } from 'react'
@@ -94,11 +94,11 @@ export function ProfilePage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (profileQuery.isLoading) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (profileQuery.isError || !profileQuery.data?.user) {

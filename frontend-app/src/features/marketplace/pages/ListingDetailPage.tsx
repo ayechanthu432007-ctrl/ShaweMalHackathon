@@ -5,7 +5,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
 import { textareaClassName } from '@/components/ui/field-styles'
-import { LoadingState } from '@/components/common/PageStates'
+import { DetailPageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -142,7 +142,7 @@ export function ListingDetailPage() {
   }, [loadedId, isOwnerView])
 
   if (listingQuery.isLoading) {
-    return <LoadingState />
+    return <DetailPageSkeleton />
   }
 
   const listing = listingQuery.data?.item

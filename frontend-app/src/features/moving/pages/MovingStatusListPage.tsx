@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { Button } from '@/components/ui/button'
 
@@ -31,11 +31,11 @@ export function MovingStatusListPage() {
   const items = listQuery.data?.items ?? []
 
   if (isBootstrapping || !isAuthenticated) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (listQuery.isLoading) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (listQuery.isError) {

@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { LoadingState, PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -37,7 +37,7 @@ export function WishlistPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   const tabs = (
@@ -105,7 +105,7 @@ export function WishlistPage() {
   }
 
   if (wishlistQuery.isLoading) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (wishlistQuery.isError) {

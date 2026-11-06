@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { DetailPageSkeleton } from '@/components/common/PageStates'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -21,7 +21,7 @@ export function MovingRequestDetailPage() {
   })
 
   if (requestQuery.isLoading) {
-    return <LoadingState />
+    return <DetailPageSkeleton />
   }
 
   if (requestQuery.isError || !requestQuery.data?.movingRequest) {

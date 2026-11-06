@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { LoadingState, PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -42,7 +42,7 @@ export function SellerProfilePage() {
   })
 
   if (sellerQuery.isLoading) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   const seller = sellerQuery.data?.seller

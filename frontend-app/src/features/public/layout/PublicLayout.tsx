@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { prefetchProps } from '@/app/router/prefetch-pages'
 import { FloatingContactButtons } from '@/components/common/FloatingContactButtons'
-import { LoadingState } from '@/components/common/PageStates'
+import { PageSkeleton } from '@/components/common/PageStates'
 import { LanguageToggle } from '@/components/common/LanguageToggle'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
@@ -234,7 +234,7 @@ export function PublicLayout() {
       </header>
       <main className="mx-auto max-w-6xl px-4 pt-8 pb-28 sm:pb-12">
         {/* Header and footer stay put while a page's code loads. */}
-        <Suspense fallback={<LoadingState />}>
+        <Suspense fallback={<PageSkeleton />}>
           <Outlet />
         </Suspense>
       </main>

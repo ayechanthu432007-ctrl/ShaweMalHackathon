@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from 'react'
 import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate, useOutletContext, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { LoadingState, PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -279,7 +279,7 @@ export function MyMarketplaceLayout() {
         </ul>
       </nav>
 
-      <Suspense fallback={<LoadingState />}>
+      <Suspense fallback={<PageSkeleton />}>
         <Outlet context={{ dashboard } satisfies DashboardContext} />
       </Suspense>
     </div>

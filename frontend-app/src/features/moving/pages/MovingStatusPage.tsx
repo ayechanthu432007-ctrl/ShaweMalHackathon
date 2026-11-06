@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -35,11 +35,11 @@ export function MovingStatusPage() {
   })
 
   if (isBootstrapping || !isAuthenticated) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   if (detailQuery.isLoading) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   const isNotFound =

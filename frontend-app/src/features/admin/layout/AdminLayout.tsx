@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 
 import { useAuth } from '@/app/providers/AuthProvider'
 import { LanguageToggle } from '@/components/common/LanguageToggle'
-import { LoadingState } from '@/components/common/PageStates'
+import { PageSkeleton } from '@/components/common/PageStates'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import shawemalLogo from '@/assets/shawemal-logo-mark.png'
@@ -96,7 +96,7 @@ export function AdminLayout() {
         </aside>
 
         <main className="min-w-0">
-          <Suspense fallback={<LoadingState />}>
+          <Suspense fallback={<PageSkeleton />}>
             <Outlet />
           </Suspense>
         </main>

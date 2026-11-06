@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { ACTION_BUTTON } from '../components/action-button'
 
 import { CoverImage } from '@/components/common/CoverImage'
-import { LoadingState } from '@/components/common/PageStates'
+import { DetailPageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -156,7 +156,7 @@ export function HouseDetailsPage() {
   }
 
   if (detailsQuery.isLoading) {
-    return <LoadingState />
+    return <DetailPageSkeleton />
   }
 
   if (detailsQuery.isError || !house) {

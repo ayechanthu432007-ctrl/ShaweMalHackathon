@@ -3,7 +3,7 @@ import { ArrowRight, CalendarDays, Truck } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { LoadingState } from '@/components/common/PageStates'
+import { LoadingState, PageSkeleton } from '@/components/common/PageStates'
 import { BackButton } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -31,7 +31,7 @@ export function MovingOutSalePage() {
   })
 
   if (saleQuery.isLoading) {
-    return <LoadingState />
+    return <PageSkeleton />
   }
 
   const sale = saleQuery.data?.sale
