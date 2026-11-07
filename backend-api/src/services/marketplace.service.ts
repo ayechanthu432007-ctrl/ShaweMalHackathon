@@ -2,6 +2,7 @@ import { ListingCondition, Prisma } from '@prisma/client';
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { createNotificationIfEnabled } from './notification.service';
 import { activeListingBoostWhere, getPremiumSellerIds, pickBoostedListingIds } from './marketplace-plan.service';
 import {
   availableContactMethods,
@@ -472,12 +473,10 @@ export const createSellerReview = async (input: { listingId: string; reviewerUse
     }
   });
 
-  await prisma.notification.create({
-    data: {
+  await createNotificationIfEnabled('LISTING', {
       userId: listing.sellerId,
       title: 'New seller review',
       message: `A buyer left you a ${input.rating}-star review.`
-    }
   });
 
   return review;

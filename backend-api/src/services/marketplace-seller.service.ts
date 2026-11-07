@@ -2,6 +2,7 @@ import { ListingCondition, ListingPickupMethod, Prisma } from '@prisma/client';
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { createNotificationIfEnabled } from './notification.service';
 import { isValidUploadedPath, MARKETPLACE_MAX_PHOTOS } from '../utils/upload-path';
 import { writeAuditLog } from './audit.service';
 import {
@@ -440,12 +441,10 @@ export const updateMyListingStatus = async (userId: string, listingId: string, i
     await cancelListingBoosts(listingId);
 
     if (input.buyerId) {
-      await prisma.notification.create({
-        data: {
+      await createNotificationIfEnabled('LISTING', {
           userId: input.buyerId,
           title: 'Rate your purchase',
           message: 'A seller marked an item you contacted them about as sold to you. You can now leave a review.'
-        }
       });
     }
 

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 
 import { env } from '../config/env';
 import { prisma } from '../prisma/client';
+import { createNotificationIfEnabled } from './notification.service';
 import { ApiError } from '../utils/api-error';
 import { writeAuditLog } from './audit.service';
 import { getSellerEffectivePlan } from './marketplace-plan.service';
@@ -164,8 +165,10 @@ export const createListingInquiry = async (buyerId: string, listingId: string, m
     update: { message: text, status: 'NEW', readAt: null }
   });
 
-  await prisma.notification.create({
-    data: { userId: listing.sellerId, title: 'New buyer inquiry', message: `${buyer.name} asked about "${listing.title}".` }
+  await createNotificationIfEnabled('LISTING', {
+    userId: listing.sellerId,
+    title: 'New buyer inquiry',
+    message: `${buyer.name} asked about "${listing.title}".`
   });
 
   return { id: inquiry.id, status: inquiry.status, createdAt: inquiry.createdAt };
@@ -233,8 +236,10 @@ export const updateSellerInquiry = async (sellerId: string, inquiryId: string, i
   });
 
   if (reply) {
-    await prisma.notification.create({
-      data: { userId: inquiry.buyerId, title: 'The seller replied', message: `Reply about "${inquiry.listing.title}": ${reply.slice(0, 200)}` }
+    await createNotificationIfEnabled('LISTING', {
+      userId: inquiry.buyerId,
+      title: 'The seller replied',
+      message: `Reply about "${inquiry.listing.title}": ${reply.slice(0, 200)}`
     });
     await writeAuditLog({ actorUserId: sellerId, action: 'LISTING_INQUIRY_REPLIED', targetType: 'ListingInquiry', targetId: inquiryId });
   }

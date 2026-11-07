@@ -3,6 +3,7 @@ import { AccountStatus, ListingModerationStatus, ListingReportStatus, Prisma } f
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
 import { writeAuditLog } from './audit.service';
+import { createNotificationIfEnabled } from './notification.service';
 import {
   getSellerRatings,
   LISTING_CARD_INCLUDE,
@@ -178,12 +179,10 @@ export const adminModerateListing = async (input: { actorUserId: string; listing
   });
 
   await Promise.all([
-    prisma.notification.create({
-      data: {
+    createNotificationIfEnabled('LISTING', {
         userId: listing.sellerId,
         title: 'Marketplace listing update',
         message: `Your listing "${listing.title}" ${MODERATION_MESSAGES[input.action]}${note ? ` Note: ${note}` : ''}`
-      }
     }),
     writeAuditLog({
       actorUserId: input.actorUserId,

@@ -2,6 +2,7 @@ import { BookingStatus, CancelledByRole, HouseAvailabilityStatus, Prisma } from 
 
 import { prisma } from '../prisma/client';
 import { ApiError } from '../utils/api-error';
+import { createNotificationIfEnabled } from './notification.service';
 import { toMyReview } from './review.service';
 
 interface CreateBookingInput {
@@ -147,21 +148,17 @@ export const createBooking = async (input: CreateBookingInput) => {
     }
   });
 
-  await prisma.notification.create({
-    data: {
+  await createNotificationIfEnabled('BOOKING', {
       userId: input.userId,
       title: 'Booking Confirmation',
       message: `Thank you. Your booking for "${house.title}" is confirmed. The agent will contact you soon.`
-    }
   });
 
   if (house.agentId && house.agentId !== input.userId) {
-    await prisma.notification.create({
-      data: {
+    await createNotificationIfEnabled('BOOKING', {
         userId: house.agentId,
         title: 'New House Booking',
         message: `A user booked your house "${house.title}".`
-      }
     });
   }
 
@@ -238,12 +235,10 @@ export const updateBookingStatus = async (input: UpdateBookingStatusInput) => {
       include: BOOKING_DETAIL_INCLUDE
     });
 
-    await prisma.notification.create({
-      data: {
+    await createNotificationIfEnabled('BOOKING', {
         userId: booking.userId,
         title: 'Booking Confirmed',
         message: `Your booking for "${booking.house.title}" has been confirmed.`
-      }
     });
 
     return mapBooking(updated, input.actorUserId);
@@ -262,21 +257,17 @@ export const updateBookingStatus = async (input: UpdateBookingStatusInput) => {
     include: BOOKING_DETAIL_INCLUDE
   });
 
-  await prisma.notification.create({
-    data: {
+  await createNotificationIfEnabled('BOOKING', {
       userId: booking.userId,
       title: 'Booking Cancelled',
       message: `Your booking for "${booking.house.title}" has been cancelled.`
-    }
   });
 
   if (cancelledByRole === CancelledByRole.USER && booking.house.agentId !== booking.userId) {
-    await prisma.notification.create({
-      data: {
+    await createNotificationIfEnabled('BOOKING', {
         userId: booking.house.agentId,
         title: 'Booking Cancelled',
         message: `A booking for "${booking.house.title}" was cancelled by the booking user.`
-      }
     });
   }
 

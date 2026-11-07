@@ -1,5 +1,6 @@
 import { PageSkeleton } from '@/components/common/PageStates'
 import { HousingPreferencesCard } from '@/features/recommendations/components/HousingPreferencesCard'
+import { notificationsApi } from '@/features/notifications/api/notifications-api'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -228,6 +229,8 @@ export function ProfilePage() {
 
       <HousingPreferencesCard />
 
+      <NotificationPreferencesCard />
+
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">{t('profile.passwordTitle')}</CardTitle>
@@ -272,6 +275,88 @@ export function ProfilePage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function NotificationPreferencesCard() {
+  const { t } = useTranslation()
+  const queryClient = useQueryClient()
+  const [bookingUpdates, setBookingUpdates] = useState(true)
+  const [listingUpdates, setListingUpdates] = useState(true)
+  const [message, setMessage] = useState<string | null>(null)
+  const preferencesQuery = useQuery({
+    queryKey: ['notification-preferences'],
+    queryFn: notificationsApi.getPreferences,
+  })
+
+  useEffect(() => {
+    if (preferencesQuery.data?.preferences) {
+      setBookingUpdates(preferencesQuery.data.preferences.bookingUpdates)
+      setListingUpdates(preferencesQuery.data.preferences.listingUpdates)
+    }
+  }, [preferencesQuery.data])
+
+  const saveMutation = useMutation({
+    mutationFn: notificationsApi.updatePreferences,
+    onSuccess: async ({ preferences }) => {
+      setBookingUpdates(preferences.bookingUpdates)
+      setListingUpdates(preferences.listingUpdates)
+      setMessage(t('notifications.preferences.saved'))
+      await queryClient.invalidateQueries({ queryKey: ['notification-preferences'] })
+    },
+    onError: () => setMessage(t('notifications.preferences.saveError')),
+  })
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{t('notifications.preferences.title')}</CardTitle>
+        <p className="text-sm text-muted-foreground">{t('notifications.preferences.description')}</p>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {preferencesQuery.isLoading ? <p className="text-sm text-muted-foreground">{t('common.loading')}</p> : null}
+        {preferencesQuery.isError ? <p role="status" className="text-sm text-destructive">{t('notifications.preferences.loadError')}</p> : null}
+        {!preferencesQuery.isLoading && !preferencesQuery.isError ? (
+          <>
+            <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+              <input
+                type="checkbox"
+                className="mt-1 size-4 accent-primary"
+                checked={bookingUpdates}
+                onChange={(event) => { setBookingUpdates(event.target.checked); setMessage(null) }}
+              />
+              <span className="space-y-1">
+                <span className="block text-sm font-medium">{t('notifications.preferences.bookingUpdates')}</span>
+                <span className="block text-sm text-muted-foreground">{t('notifications.preferences.bookingDescription')}</span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer items-start gap-3 rounded-md border p-3">
+              <input
+                type="checkbox"
+                className="mt-1 size-4 accent-primary"
+                checked={listingUpdates}
+                onChange={(event) => { setListingUpdates(event.target.checked); setMessage(null) }}
+              />
+              <span className="space-y-1">
+                <span className="block text-sm font-medium">{t('notifications.preferences.listingUpdates')}</span>
+                <span className="block text-sm text-muted-foreground">{t('notifications.preferences.listingDescription')}</span>
+              </span>
+            </label>
+            {message ? <p role="status" className="text-sm text-muted-foreground">{message}</p> : null}
+            <Button
+              type="button"
+              disabled={saveMutation.isPending || preferencesQuery.isLoading}
+              onClick={() => {
+                setMessage(null)
+                saveMutation.mutate({ bookingUpdates, listingUpdates })
+              }}
+            >
+              {saveMutation.isPending ? t('common.loading') : t('notifications.preferences.save')}
+            </Button>
+          </>
+        ) : null}
+      </CardContent>
+    </Card>
   )
 }
 

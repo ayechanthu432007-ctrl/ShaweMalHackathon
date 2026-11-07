@@ -819,7 +819,19 @@
   },
   "notifications": {
     "empty": "No notifications yet.",
-    "loadError": "Could not load notifications."
+    "loadError": "Could not load notifications.",
+    "preferences": {
+      "title": "Notification preferences",
+      "description": "Choose which booking and listing updates you receive.",
+      "bookingUpdates": "Booking updates",
+      "bookingDescription": "Get updates when a house booking is made, confirmed, or cancelled.",
+      "listingUpdates": "Listing updates",
+      "listingDescription": "Get updates about listing reviews, sales, and moderation.",
+      "save": "Save preferences",
+      "saved": "Your preferences have been saved.",
+      "loadError": "Could not load your preferences. Please try again.",
+      "saveError": "Could not save your preferences. Please try again."
+    }
   },
   "agent": {
     "subtitle": "Submit your agent profile for admin verification.",
