@@ -40,6 +40,24 @@ type NominatimHit = {
   lon: string
 }
 
+type NominatimReverseHit = {
+  display_name?: string
+  address?: {
+    house_number?: string
+    road?: string
+    pedestrian?: string
+    footway?: string
+    neighbourhood?: string
+    suburb?: string
+    city_district?: string
+    quarter?: string
+    municipality?: string
+    town?: string
+    village?: string
+    city?: string
+  }
+}
+
 export async function geocodeNominatim(
   query: string,
   fetchImpl: typeof fetch = fetch,
@@ -77,4 +95,38 @@ export async function geocodeNominatim(
   }
 
   return { lat, lng }
+}
+
+export async function reverseGeocodeNominatim(
+  latitude: number,
+  longitude: number,
+  fetchImpl: typeof fetch = fetch,
+): Promise<{ street: string; township: string } | null> {
+  const params = new URLSearchParams({
+    format: 'jsonv2',
+    lat: String(latitude),
+    lon: String(longitude),
+    zoom: '18',
+    addressdetails: '1',
+  })
+  const response = await fetchImpl(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+    headers: { Accept: 'application/json' },
+  })
+  if (!response.ok) return null
+
+  const result = (await response.json()) as NominatimReverseHit
+  const address = result.address ?? {}
+  const road = address.road ?? address.pedestrian ?? address.footway ?? address.neighbourhood ?? ''
+  const street = [address.house_number, road].filter(Boolean).join(' ')
+  const township =
+    address.suburb ??
+    address.city_district ??
+    address.quarter ??
+    address.municipality ??
+    address.town ??
+    address.village ??
+    address.city ??
+    ''
+
+  return street || township ? { street, township } : null
 }

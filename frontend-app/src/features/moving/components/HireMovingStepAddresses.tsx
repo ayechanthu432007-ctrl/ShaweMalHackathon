@@ -7,7 +7,7 @@ import { selectClassName } from '@/components/ui/field-styles'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import typesOfCar from '@/assets/typesofcar.jpg'
-import { geocodeNominatim } from '@/features/houses/lib/geocode-location'
+import { geocodeNominatim, reverseGeocodeNominatim } from '@/features/houses/lib/geocode-location'
 import type { MasterDataItem } from '@/features/master-data/types'
 
 import { composeMovingAddress } from '../lib/moving-location'
@@ -77,6 +77,11 @@ export function HireMovingStepAddresses({
   const dropoffManualPin = useRef(false)
   const lastPickupTownship = useRef('')
   const lastDropoffTownship = useRef('')
+  const lookupGeneration = useRef({ pickup: 0, dropoff: 0 })
+  const lookupTimers = useRef<{ pickup: number | null; dropoff: number | null }>({ pickup: null, dropoff: null })
+  const [addressLookup, setAddressLookup] = useState<{ pickup: 'loading' | 'failed' | null; dropoff: 'loading' | 'failed' | null }>(
+    { pickup: null, dropoff: null },
+  )
 
   const pickupStreet = watch('pickupStreet')
   const dropoffStreet = watch('dropoffStreet')
@@ -86,6 +91,81 @@ export function HireMovingStepAddresses({
   const pickupLongitude = watch('pickupLongitude')
   const dropoffLatitude = watch('dropoffLatitude')
   const dropoffLongitude = watch('dropoffLongitude')
+  const currentAddresses = useRef({
+    pickup: { street: pickupStreet, township: pickupTownship },
+    dropoff: { street: dropoffStreet, township: dropoffTownship },
+  })
+  currentAddresses.current = {
+    pickup: { street: pickupStreet, township: pickupTownship },
+    dropoff: { street: dropoffStreet, township: dropoffTownship },
+  }
+
+  useEffect(
+    () => () => {
+      lookupGeneration.current.pickup += 1
+      lookupGeneration.current.dropoff += 1
+      if (lookupTimers.current.pickup !== null) window.clearTimeout(lookupTimers.current.pickup)
+      if (lookupTimers.current.dropoff !== null) window.clearTimeout(lookupTimers.current.dropoff)
+    },
+    [],
+  )
+
+  const handlePinChange = (role: MovingPinRole, point: { latitude: number; longitude: number }) => {
+    const isPickup = role === 'pickup'
+    const addressAtSelection = currentAddresses.current[role]
+    const generation = ++lookupGeneration.current[role]
+
+    if (isPickup) {
+      pickupManualPin.current = true
+      setValue('pickupLatitude', String(point.latitude), { shouldDirty: true, shouldTouch: true })
+      setValue('pickupLongitude', String(point.longitude), { shouldDirty: true, shouldTouch: true })
+    } else {
+      dropoffManualPin.current = true
+      setValue('dropoffLatitude', String(point.latitude), { shouldDirty: true, shouldTouch: true })
+      setValue('dropoffLongitude', String(point.longitude), { shouldDirty: true, shouldTouch: true })
+    }
+
+    setAddressLookup((current) => ({ ...current, [role]: 'loading' }))
+    const oldTimer = lookupTimers.current[role]
+    if (oldTimer !== null) window.clearTimeout(oldTimer)
+    lookupTimers.current[role] = window.setTimeout(() => {
+      void reverseGeocodeNominatim(point.latitude, point.longitude)
+        .then((result) => {
+          if (lookupGeneration.current[role] !== generation) return
+          const currentAddress = currentAddresses.current[role]
+          if (currentAddress.street !== addressAtSelection.street || currentAddress.township !== addressAtSelection.township) {
+            setAddressLookup((current) => ({ ...current, [role]: null }))
+            return
+          }
+          if (!result) {
+            setAddressLookup((current) => ({ ...current, [role]: 'failed' }))
+            return
+          }
+
+          if (isPickup) {
+            if (result.township) {
+              lastPickupTownship.current = result.township
+              pickupManualPin.current = true
+              setValue('pickupTownship', result.township, { shouldDirty: true, shouldTouch: true })
+            }
+            setValue('pickupStreet', result.street, { shouldDirty: true, shouldTouch: true })
+          } else {
+            if (result.township) {
+              lastDropoffTownship.current = result.township
+              dropoffManualPin.current = true
+              setValue('dropoffTownship', result.township, { shouldDirty: true, shouldTouch: true })
+            }
+            setValue('dropoffStreet', result.street, { shouldDirty: true, shouldTouch: true })
+          }
+          setAddressLookup((current) => ({ ...current, [role]: null }))
+        })
+        .catch(() => {
+          if (lookupGeneration.current[role] === generation) {
+            setAddressLookup((current) => ({ ...current, [role]: 'failed' }))
+          }
+        })
+    }, 700)
+  }
 
   useEffect(() => {
     setValue('pickupAddress', composeMovingAddress(pickupStreet, pickupTownship), {
@@ -194,18 +274,13 @@ export function HireMovingStepAddresses({
           dropoffLatitude={dropoffLatitude}
           dropoffLongitude={dropoffLongitude}
           pinTarget={pinTarget}
-          onPinChange={(role, point) => {
-            if (role === 'pickup') {
-              pickupManualPin.current = true
-              setValue('pickupLatitude', String(point.latitude), { shouldDirty: true, shouldTouch: true })
-              setValue('pickupLongitude', String(point.longitude), { shouldDirty: true, shouldTouch: true })
-              return
-            }
-            dropoffManualPin.current = true
-            setValue('dropoffLatitude', String(point.latitude), { shouldDirty: true, shouldTouch: true })
-            setValue('dropoffLongitude', String(point.longitude), { shouldDirty: true, shouldTouch: true })
-          }}
+          onPinChange={handlePinChange}
         />
+        {addressLookup[pinTarget] ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            {addressLookup[pinTarget] === 'loading' ? t('moving.addressLookupPending') : t('moving.addressLookupFailed')}
+          </p>
+        ) : null}
         {errors.pickupLatitude?.message || errors.dropoffLatitude?.message ? (
           <p className="text-sm text-destructive">
             {errors.pickupLatitude?.message ?? errors.dropoffLatitude?.message}
