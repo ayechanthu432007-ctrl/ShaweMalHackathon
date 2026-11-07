@@ -13,6 +13,7 @@ import { RecommendedHouses } from '@/features/recommendations/components/Recomme
 
 import { housesApi } from '../api/houses-api'
 import { RecentlyViewedHouses } from '../components/RecentlyViewedHouses'
+import { SavedHouseSearches } from '../components/SavedHouseSearches'
 import { FeatureHouses } from '../components/FeatureHouses'
 import { HouseCard } from '../components/HouseCard'
 import { HouseFilterForm, type HouseFilterValues } from '../components/HouseFilterForm'
@@ -118,6 +119,16 @@ export function FindingHousePage() {
         propertyTypes={propertyTypesQuery.data?.items ?? []}
         isLoadingOptions={citiesQuery.isLoading || propertyTypesQuery.isLoading}
         onSubmit={applyFilters}
+      />
+
+      <SavedHouseSearches
+        filters={{
+          city: filters.city,
+          type: filters.type,
+          minBudget: filters.minBudget,
+          maxBudget: filters.maxBudget,
+        }}
+        onSelect={applyFilters}
       />
 
       {housesQuery.isLoading ? <CardGridSkeleton count={6} /> : null}
