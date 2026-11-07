@@ -61,21 +61,28 @@ export function HistoryPage() {
       </div>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
           <CardTitle className="text-lg">{t('profile.bookingHistory')}</CardTitle>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/profile/bookings">{t('profile.bookings.openOverview')}</Link>
+          </Button>
         </CardHeader>
         <CardContent className="space-y-3">
           {bookingHistory.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t('profile.emptyBookings')}</p>
           ) : (
             bookingHistory.map((booking) => {
-              const canRate = booking.status.toUpperCase() === 'CONFIRMED'
+              const bookingStatus = booking.status.toUpperCase()
+              const bookingStatusLabel = t(
+                `profile.bookings.status.${bookingStatus === 'PENDING' || bookingStatus === 'CONFIRMED' || bookingStatus === 'CANCELLED' ? bookingStatus : 'UNKNOWN'}`,
+              )
+              const canRate = bookingStatus === 'CONFIRMED'
               const ratingKey = `booking:${booking.id}`
               return (
                 <div key={booking.id} className="space-y-3 rounded-md border p-3 text-sm">
                   <p className="font-medium">{booking.house?.title ?? booking.id}</p>
                   <p className="text-muted-foreground">
-                    {booking.status} · {new Date(booking.createdAt).toLocaleString()}
+                    {bookingStatusLabel} · {new Date(booking.createdAt).toLocaleString()}
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {booking.house?.id ? (

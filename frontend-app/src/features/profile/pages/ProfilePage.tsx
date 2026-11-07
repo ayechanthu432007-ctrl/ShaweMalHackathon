@@ -124,6 +124,9 @@ export function ProfilePage() {
             <Link to="/profile/wishlist">{t('nav.wishlist')}</Link>
           </Button>
           <Button asChild size="sm" variant="outline">
+            <Link to="/profile/bookings">{t('nav.myBookings')}</Link>
+          </Button>
+          <Button asChild size="sm" variant="outline">
             <Link to="/profile/history">{t('nav.history')}</Link>
           </Button>
           <Button asChild size="sm" variant="outline">

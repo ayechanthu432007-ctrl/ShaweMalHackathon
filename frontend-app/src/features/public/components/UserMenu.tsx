@@ -46,6 +46,9 @@ export function UserMenu() {
           <Link to="/profile/wishlist">{t('nav.wishlist')}</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
+          <Link to="/profile/bookings">{t('nav.myBookings')}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
           <Link to="/profile/history">{t('nav.history')}</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

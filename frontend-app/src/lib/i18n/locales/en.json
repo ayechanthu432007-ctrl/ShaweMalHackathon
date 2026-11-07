@@ -55,6 +55,7 @@
     "profile": "Profile",
     "wishlist": "Wishlist",
     "history": "History",
+    "myBookings": "My bookings",
     "notifications": "Notifications",
     "marketplace": "Marketplace",
     "myMarketplace": "My Marketplace",
@@ -1309,6 +1310,37 @@
     "wishlistHousesTab": "Houses",
     "wishlistItemsTab": "Marketplace items",
     "wishlistItemsEmpty": "You haven't saved any marketplace items yet.",
+    "bookings": {
+      "title": "My house bookings",
+      "subtitle": "See each booking's status and open the house or booking details.",
+      "loadError": "Your bookings couldn't be loaded. Please try again.",
+      "emptyTitle": "No house bookings yet",
+      "emptyBody": "When you book a house, it will appear here.",
+      "filteredEmpty": "There are no bookings with this status.",
+      "openOverview": "View all bookings",
+      "requestedOn": "Requested {{date}}",
+      "viewHouse": "View house",
+      "viewBooking": "Booking details",
+      "houseUnavailable": "House listing unavailable",
+      "filters": {
+        "ALL": "All bookings",
+        "PENDING": "Awaiting response",
+        "CONFIRMED": "Confirmed",
+        "CANCELLED": "Cancelled"
+      },
+      "status": {
+        "PENDING": "Awaiting confirmation",
+        "CONFIRMED": "Confirmed",
+        "CANCELLED": "Cancelled",
+        "UNKNOWN": "Status unavailable"
+      },
+      "statusHelp": {
+        "PENDING": "The agent has not confirmed this booking yet.",
+        "CONFIRMED": "The agent has confirmed this booking.",
+        "CANCELLED": "This booking was cancelled.",
+        "UNKNOWN": "Check the booking details or contact support."
+      }
+    },
     "houseCompare": {
       "title": "Compare saved houses",
       "description": "Select 2 or 3 homes to compare rent, size, location, and availability.",

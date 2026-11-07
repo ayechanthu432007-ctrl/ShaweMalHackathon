@@ -50,6 +50,10 @@ export function BookingConfirmationPage() {
 
   const booking = bookingQuery.data.booking
   const resolvedHouseId = booking.house?.id ?? houseId
+  const bookingStatus = booking.status.toUpperCase()
+  const bookingStatusLabel = t(
+    `profile.bookings.status.${bookingStatus === 'PENDING' || bookingStatus === 'CONFIRMED' || bookingStatus === 'CANCELLED' ? bookingStatus : 'UNKNOWN'}`,
+  )
 
   return (
     <section className="mx-auto max-w-2xl space-y-6">
@@ -66,7 +70,7 @@ export function BookingConfirmationPage() {
             <span className="font-medium">{booking.house?.title ?? resolvedHouseId}</span>
           </p>
           <p className="text-sm text-muted-foreground">
-            {t('houses.confirmation.statusLabel')}: {booking.status}
+            {t('houses.confirmation.statusLabel')}: {bookingStatusLabel}
           </p>
           <div className="rounded-lg border bg-muted/40 p-4">
             <h2 className="text-lg font-semibold tracking-tight">{t('houses.movingUpsell.title')}</h2>

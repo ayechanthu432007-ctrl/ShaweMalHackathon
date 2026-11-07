@@ -51,6 +51,7 @@ const MovingStatusPage = lazyPage(() => import('@/features/moving/pages/MovingSt
 const MovingReceiptPage = lazyPage(() => import('@/features/moving/pages/MovingReceiptPage'), 'MovingReceiptPage')
 const HistoryPage = lazyPage(() => import('@/features/profile/pages/HistoryPage'), 'HistoryPage')
 const ProfilePage = lazyPage(() => import('@/features/profile/pages/ProfilePage'), 'ProfilePage')
+const BookingsPage = lazyPage(() => import('@/features/profile/pages/BookingsPage'), 'BookingsPage')
 const WishlistPage = lazyPage(() => import('@/features/profile/pages/WishlistPage'), 'WishlistPage')
 const AboutUsPage = lazyPage(() => import('@/features/public/pages/AboutUsPage'), 'AboutUsPage')
 const FindingRoommatesPage = lazyPage(() => import('@/features/roommates/pages/FindingRoommatesPage'), 'FindingRoommatesPage')
@@ -122,6 +123,7 @@ export const publicRoutes: RouteObject = {
     { path: 'marketplace/plans', element: <LegacySellerPlansRedirect /> },
     { path: 'marketplace/checkout/:reference', element: <SellerCheckoutPage /> },
     { path: 'profile', element: <ProfilePage /> },
+    { path: 'profile/bookings', element: <BookingsPage /> },
     { path: 'profile/wishlist', element: <WishlistPage /> },
     { path: 'profile/history', element: <HistoryPage /> },
     { path: 'driver/jobs', element: <DriverJobsPage /> },
