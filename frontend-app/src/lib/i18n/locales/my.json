@@ -1225,7 +1225,29 @@
     "notificationSummary": "အသိပေးချက် {{total}} ခု · မဖတ်ရသေး {{unread}} ခု",
     "wishlistHousesTab": "အိမ်များ",
     "wishlistItemsTab": "ဈေးကွက်ပစ္စည်းများ",
-    "wishlistItemsEmpty": "သိမ်းထားသော ဈေးကွက်ပစ္စည်း မရှိသေးပါ။"
+    "wishlistItemsEmpty": "သိမ်းထားသော ဈေးကွက်ပစ္စည်း မရှိသေးပါ။",
+    "houseCompare": {
+      "title": "သိမ်းထားသော အိမ်များကို နှိုင်းယှဉ်မည်",
+      "description": "အိမ်ငှားခ၊ အကျယ်အဝန်း၊ တည်နေရာနှင့် ရရှိနိုင်မှုကို နှိုင်းယှဉ်ရန် အိမ် ၂ ခု သို့မဟုတ် ၃ ခု ရွေးပါ။",
+      "selectedCount": "{{max}} ခုအနက် {{count}} ခု ရွေးထားသည်",
+      "compareButton": "အိမ်များ နှိုင်းယှဉ်မည်",
+      "clearSelection": "ရွေးချယ်မှု ရှင်းမည်",
+      "limitReached": "တစ်ကြိမ်လျှင် အိမ် ၃ ခုအထိ နှိုင်းယှဉ်နိုင်သည်။",
+      "selectLabel": "နှိုင်းယှဉ်ရန် ထည့်မည်",
+      "selectHouse": "{{title}} ကို နှိုင်းယှဉ်မည်",
+      "resultsTitle": "အိမ် နှိုင်းယှဉ်ချက်",
+      "hideComparison": "နှိုင်းယှဉ်ချက် ဖျောက်မည်",
+      "feature": "အသေးစိတ်",
+      "monthlyRent": "လစဉ်အိမ်ငှားခ",
+      "deposit": "စပေါ်ငွေ",
+      "bedrooms": "အိပ်ခန်းများ",
+      "bathrooms": "ရေချိုးခန်းများ",
+      "floorArea": "အကျယ်အဝန်း",
+      "propertyType": "အိမ်အမျိုးအစား",
+      "location": "တည်နေရာ",
+      "availability": "ရရှိနိုင်မှု",
+      "notProvided": "မဖော်ပြထားပါ"
+    }
   },
   "uploads": {
     "addPhotos": "ဓာတ်ပုံများတင်ရန်",

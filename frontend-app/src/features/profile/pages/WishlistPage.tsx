@@ -7,7 +7,7 @@ import { LoadingState, PageSkeleton } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
-import { HouseCard } from '@/features/houses/components/HouseCard'
+import { SavedHouseComparison } from '@/features/houses/components/SavedHouseComparison'
 import { wishlistApi } from '@/features/houses/api/wishlist-api'
 import { ListingCard, ListingGrid } from '@/features/marketplace/components/ListingCard'
 import { useSavedListings } from '@/features/marketplace/hooks/useMarketplaceData'
@@ -134,11 +134,7 @@ export function WishlistPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <HouseCard key={item.id} house={item.house} />
-          ))}
-        </div>
+        <SavedHouseComparison items={items} />
       )}
     </div>
   )

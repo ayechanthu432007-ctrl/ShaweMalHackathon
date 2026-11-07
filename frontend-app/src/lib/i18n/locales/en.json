@@ -1293,7 +1293,29 @@
     "notificationSummary": "{{total}} notifications · {{unread}} unread",
     "wishlistHousesTab": "Houses",
     "wishlistItemsTab": "Marketplace items",
-    "wishlistItemsEmpty": "You haven't saved any marketplace items yet."
+    "wishlistItemsEmpty": "You haven't saved any marketplace items yet.",
+    "houseCompare": {
+      "title": "Compare saved houses",
+      "description": "Select 2 or 3 homes to compare rent, size, location, and availability.",
+      "selectedCount": "{{count}} of {{max}} selected",
+      "compareButton": "Compare houses",
+      "clearSelection": "Clear selection",
+      "limitReached": "You can compare up to 3 houses at a time.",
+      "selectLabel": "Add to comparison",
+      "selectHouse": "Compare {{title}}",
+      "resultsTitle": "House comparison",
+      "hideComparison": "Hide comparison",
+      "feature": "Details",
+      "monthlyRent": "Monthly rent",
+      "deposit": "Deposit",
+      "bedrooms": "Bedrooms",
+      "bathrooms": "Bathrooms",
+      "floorArea": "Floor area",
+      "propertyType": "Property type",
+      "location": "Location",
+      "availability": "Availability",
+      "notProvided": "Not provided"
+    }
   },
   "uploads": {
     "addPhotos": "Upload Photos",
