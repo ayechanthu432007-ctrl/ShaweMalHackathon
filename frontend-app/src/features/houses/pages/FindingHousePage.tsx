@@ -12,6 +12,7 @@ import { masterDataApi } from '@/features/master-data/api/master-data-api'
 import { RecommendedHouses } from '@/features/recommendations/components/RecommendedHouses'
 
 import { housesApi } from '../api/houses-api'
+import { RecentlyViewedHouses } from '../components/RecentlyViewedHouses'
 import { FeatureHouses } from '../components/FeatureHouses'
 import { HouseCard } from '../components/HouseCard'
 import { HouseFilterForm, type HouseFilterValues } from '../components/HouseFilterForm'
@@ -103,6 +104,8 @@ export function FindingHousePage() {
       <FeatureHouses />
 
       <RecommendedHouses />
+
+      <RecentlyViewedHouses />
 
       <HouseFilterForm
         defaultValues={{

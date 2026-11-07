@@ -27,6 +27,7 @@ import { HouseAvailabilityBadge } from '../components/HouseAvailabilityBadge'
 import { HouseGallery } from '../components/HouseGallery'
 import { amenityIcon, amenityLabel, nearbyPlaceIcon, splitNearbyPlaces } from '../components/house-icons'
 import { HouseLocationMap } from '../components/HouseLocationMap'
+import { saveRecentlyViewedHouse } from '../lib/recently-viewed'
 import { useWishlist } from '../hooks/useWishlist'
 import { isHouseAvailable } from '../lib/availability'
 
@@ -53,10 +54,14 @@ export function HouseDetailsPage() {
   })
 
   // One view per visit to this page; the server ignores repeats from the same visitor that day.
-  const loadedHouseId = detailsQuery.data?.item.id
+  const house = detailsQuery.data?.item
+  const loadedHouseId = house?.id
   useEffect(() => {
     if (loadedHouseId) trackHouseEvent(loadedHouseId, 'VIEW')
   }, [loadedHouseId])
+  useEffect(() => {
+    if (house) saveRecentlyViewedHouse(house)
+  }, [house])
 
   const relatedQuery = useQuery({
     queryKey: ['houses', id, 'related'],
@@ -97,7 +102,6 @@ export function HouseDetailsPage() {
     },
   })
 
-  const house = detailsQuery.data?.item
   const isWishlisted = Boolean(house && wishlistedIds.has(house.id))
   const myActiveBooking = myBookingsQuery.data?.items.find(
     (item) => item.houseId === id && item.status.toUpperCase() !== 'CANCELLED',

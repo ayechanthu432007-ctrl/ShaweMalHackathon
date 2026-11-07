@@ -20,6 +20,7 @@ import { Link } from 'react-router'
 import { Trans, useTranslation } from 'react-i18next'
 
 import { CardGridSkeleton, EmptyState, ErrorState } from '@/components/common/PageStates'
+import { RecentlyViewedHouses } from '@/features/houses/components/RecentlyViewedHouses'
 import { UserAvatar } from '@/components/common/UserAvatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -110,6 +111,8 @@ export function HomePage() {
           )}
         </HomeSection>
       ) : null}
+
+      <RecentlyViewedHouses />
 
       <CtaBanner />
 

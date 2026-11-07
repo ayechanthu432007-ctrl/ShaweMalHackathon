@@ -683,6 +683,8 @@
     "perMonthShort": "/month",
     "findingTitle": "Find a Home That Fits You",
     "findingSubtitle": "Search by city, property type, and budget to discover available homes.",
+    "recentlyViewed": "Recently viewed homes",
+    "recentlyViewedSubtitle": "Pick up where you left off.",
     "loadError": "Could not load houses. Please try again.",
     "detailsError": "Could not load house details.",
     "emptyTitle": "No houses match your filters",
