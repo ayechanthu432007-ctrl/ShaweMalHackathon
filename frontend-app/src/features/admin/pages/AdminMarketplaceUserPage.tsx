@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { ConfirmDialog } from '@/components/operational'
 import { textareaClassName } from '@/components/ui/field-styles'
 import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
@@ -87,6 +88,7 @@ export function AdminMarketplaceUserPage() {
   const queryClient = useQueryClient()
   const { user: currentAdmin } = useAuth()
   const [reason, setReason] = useState('')
+  const [banOpen, setBanOpen] = useState(false)
 
   const userQuery = useQuery({
     queryKey: ['admin', 'marketplace', 'user', id],
@@ -216,9 +218,7 @@ export function AdminMarketplaceUserPage() {
                   size="sm"
                   variant="destructive"
                   disabled={statusMutation.isPending || isSelf}
-                  onClick={() => {
-                    if (window.confirm(t('admin.marketplace.user.banConfirm', { name: user.name }))) statusMutation.mutate('BANNED')
-                  }}
+                  onClick={() => setBanOpen(true)}
                 >
                   {t('admin.marketplace.user.ban')}
                 </Button>
@@ -267,6 +267,21 @@ export function AdminMarketplaceUserPage() {
           ))}
         </div>
       </section>
+
+      <ConfirmDialog
+        open={banOpen}
+        title={t('admin.marketplace.user.banTitle')}
+        description={t('admin.marketplace.user.banHint')}
+        recordName={user.name}
+        confirmLabel={t('admin.marketplace.user.ban')}
+        isPending={statusMutation.isPending}
+        onCancel={() => {
+          if (!statusMutation.isPending) setBanOpen(false)
+        }}
+        onConfirm={() => {
+          statusMutation.mutate('BANNED', { onSettled: () => setBanOpen(false) })
+        }}
+      />
     </section>
   )
 }

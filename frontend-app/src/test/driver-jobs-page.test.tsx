@@ -1,4 +1,5 @@
-import { screen, within } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -146,30 +147,30 @@ describe('driver jobs inbox', () => {
     )
   })
 
-  it('shows assigned in-progress jobs separately from available jobs', async () => {
+  it('shows assigned jobs first, with available jobs on their own tab', async () => {
+    const user = userEvent.setup()
     renderJobsPage()
 
-    expect(await screen.findByRole('heading', { name: /my jobs/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /available jobs/i })).toBeInTheDocument()
+    const assignedTab = await screen.findByRole('button', { name: /my jobs/i })
+    expect(assignedTab).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /available jobs/i })).toBeInTheDocument()
 
-    expect(await screen.findByText(/mov-assigned: assigned pickup → assigned dropoff/i)).toBeInTheDocument()
-    expect(screen.getByText(/driver coming/i)).toBeInTheDocument()
+    expect(await screen.findByText('MOV-ASSIGNED')).toBeInTheDocument()
+    expect(screen.getAllByText(/driver coming/i).length).toBeGreaterThan(0)
     expect(screen.getByRole('link', { name: /update status/i })).toHaveAttribute('href', '/driver/jobs/assigned-1')
+    expect(screen.queryByRole('button', { name: /^accept$/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^reject$/i })).toBeNull()
+    expect(screen.getByRole('button', { name: /cancel job/i })).toBeInTheDocument()
+    expectMoveInDateBeforeEarnings(screen.getByRole('table'))
 
-    const assignedSection = screen.getByRole('heading', { name: /my jobs/i }).closest('section')
-    expect(assignedSection).not.toBeNull()
-    expect(within(assignedSection as HTMLElement).queryByRole('button', { name: /^accept$/i })).toBeNull()
-    expect(within(assignedSection as HTMLElement).queryByRole('button', { name: /^reject$/i })).toBeNull()
-    expect(within(assignedSection as HTMLElement).getByRole('button', { name: /cancel job/i })).toBeInTheDocument()
-    expectMoveInDateBeforeEarnings(assignedSection as HTMLElement)
+    await user.click(screen.getByRole('button', { name: /available jobs/i }))
 
-    const availableSection = screen.getByRole('heading', { name: /available jobs/i }).closest('section')
-    expect(availableSection).not.toBeNull()
-    expect(screen.getByText(/mov-available: available pickup → available dropoff/i)).toBeInTheDocument()
+    expect(await screen.findByText('MOV-AVAILABLE')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /view details/i })).toHaveAttribute('href', '/driver/jobs/available-1')
     expect(screen.getByRole('button', { name: /^accept$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^reject$/i })).toBeInTheDocument()
-    expectMoveInDateBeforeEarnings(availableSection as HTMLElement)
+    expect(screen.queryByText('MOV-ASSIGNED')).toBeNull()
+    expectMoveInDateBeforeEarnings(screen.getByRole('table'))
   })
 
   it('shows move-in date before estimated earnings on job details', async () => {

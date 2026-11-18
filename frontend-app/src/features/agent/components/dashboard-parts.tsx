@@ -1,5 +1,5 @@
 import { Lock, type LucideIcon } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -106,84 +106,4 @@ export function QueryState({ isLoading, isError, onRetry }: { isLoading: boolean
   return null
 }
 
-type BarDatum = { label: string; value: number; title?: string }
-
-/**
- * Single-series bar chart: one measure, one hue. Every bar has a hover/focus readout and
- * the same numbers are available as a table, so nothing depends on colour or on hovering.
- */
-export function BarSeries({ data, unit, ariaLabel, tickEvery = 1 }: { data: BarDatum[]; unit: string; ariaLabel: string; tickEvery?: number }) {
-  const { t } = useTranslation()
-  const [active, setActive] = useState<number | null>(null)
-  const [showTable, setShowTable] = useState(false)
-  const max = Math.max(1, ...data.map((item) => item.value))
-  const total = data.reduce((sum, item) => sum + item.value, 0)
-  const shown = active !== null ? data[active] : null
-
-  if (total === 0) {
-    return <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">{t('agentDash.noData')}</p>
-  }
-
-  return (
-    <div className="space-y-2">
-      <div className="flex min-h-5 items-center justify-between gap-2 text-sm">
-        <p className="text-muted-foreground" aria-live="polite">
-          {shown ? (
-            <>
-              <span className="font-medium text-foreground">{shown.title ?? shown.label}</span>: <span className="tabular-nums">{shown.value}</span> {unit}
-            </>
-          ) : (
-            t('agentDash.chartHint')
-          )}
-        </p>
-        <Button type="button" variant="ghost" size="sm" onClick={() => setShowTable((value) => !value)}>
-          {showTable ? t('agentDash.showChart') : t('agentDash.showTable')}
-        </Button>
-      </div>
-
-      {showTable ? (
-        <div className="max-h-64 overflow-auto rounded-lg border">
-          <table className="w-full text-sm">
-            <tbody>
-              {data.map((item) => (
-                <tr key={item.label + (item.title ?? '')} className="border-b last:border-0">
-                  <th scope="row" className="px-3 py-1.5 text-left font-normal text-muted-foreground">
-                    {item.title ?? item.label}
-                  </th>
-                  <td className="px-3 py-1.5 text-right tabular-nums">{item.value}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div role="img" aria-label={ariaLabel}>
-          <div className="flex h-40 items-end gap-0.5 border-b border-border" onMouseLeave={() => setActive(null)}>
-            {data.map((item, index) => (
-              // Pointer-only highlight; the chart's data is announced through the label and the table view.
-              <div
-                key={item.label + index}
-                aria-hidden
-                className="group flex h-full min-w-0 flex-1 items-end"
-                onMouseEnter={() => setActive(index)}
-                onClick={() => setActive(index)}
-              >
-                <span
-                  className={cn('w-full rounded-t bg-primary transition-opacity', active !== null && active !== index && 'opacity-40')}
-                  style={{ height: item.value === 0 ? 0 : `max(2px, ${(item.value / max) * 100}%)` }}
-                />
-              </div>
-            ))}
-          </div>
-          <div className="mt-1 flex gap-0.5 text-[10px] text-muted-foreground" aria-hidden>
-            {data.map((item, index) => (
-              <span key={item.label + index} className="min-w-0 flex-1 overflow-visible whitespace-nowrap text-center">
-                {index % tickEvery === 0 ? item.label : ''}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+export { BarSeries, type BarDatum } from '@/components/operational/bar-chart'

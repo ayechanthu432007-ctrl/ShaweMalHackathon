@@ -4,6 +4,12 @@ import { useForm } from 'react-hook-form'
 import { Link, useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import {
+  ConfirmDialog,
+  DataTable,
+  StatusBadge,
+  type DataTableColumn,
+} from '@/components/operational'
 import { selectClassName } from '@/components/ui/field-styles'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
@@ -79,6 +85,7 @@ export function AdminMasterDataEntityPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [deactivateTarget, setDeactivateTarget] = useState<AdminMasterDataItem | null>(null)
 
   const listQuery = useQuery({
     queryKey: ['admin', 'master-data', entity, activeFilter],
@@ -135,6 +142,7 @@ export function AdminMasterDataEntityPage() {
       return adminMasterDataApi.deactivate(entity, item.id)
     },
     onSuccess: async () => {
+      setDeactivateTarget(null)
       setSuccessMessage(t('admin.masterData.deactivateSuccess'))
       await invalidate()
     },
@@ -159,6 +167,69 @@ export function AdminMasterDataEntityPage() {
   }
 
   const items = listQuery.data?.items ?? []
+
+  const columns: DataTableColumn<AdminMasterDataItem>[] = [
+    {
+      key: 'label',
+      header: t('admin.masterData.nameColumn'),
+      cell: (item) => <span className="font-medium">{getMasterDataDisplayLabel(item)}</span>,
+      sortValue: (item) => getMasterDataDisplayLabel(item),
+    },
+    {
+      key: 'id',
+      header: t('admin.masterData.idColumn'),
+      cell: (item) => <span className="font-mono text-xs text-muted-foreground">{item.id}</span>,
+      sortValue: (item) => item.id,
+      hideOnMobile: true,
+    },
+    {
+      key: 'status',
+      header: t('admin.masterData.statusColumn'),
+      cell: (item) => (
+        <StatusBadge
+          status={item.isActive === false ? 'INACTIVE' : 'ACTIVE'}
+          label={item.isActive === false ? t('admin.masterData.inactive') : t('admin.masterData.active')}
+        />
+      ),
+      sortValue: (item) => (item.isActive === false ? 0 : 1),
+    },
+    {
+      key: 'actions',
+      header: t('admin.verifications.columns.actions'),
+      align: 'right',
+      cell: (item) => (
+        <div className="flex flex-wrap justify-end gap-2">
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={() => {
+              setEditingItem(item)
+              setFormError(null)
+              setSuccessMessage(null)
+            }}
+          >
+            {t('admin.masterData.edit')}
+          </Button>
+          {item.isActive !== false ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="destructive"
+              disabled={deactivateMutation.isPending}
+              onClick={() => {
+                setFormError(null)
+                setDeactivateTarget(item)
+              }}
+            >
+              {t('admin.masterData.deactivate')}
+            </Button>
+          ) : null}
+        </div>
+      ),
+      mobileFullWidth: true,
+    },
+  ]
 
   return (
     <section className="space-y-6">
@@ -277,15 +348,9 @@ export function AdminMasterDataEntityPage() {
             <CardTitle>{t('admin.masterData.listTitle')}</CardTitle>
             <CardDescription>{t('admin.masterData.listDescription')}</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {listQuery.isLoading ? (
-              <p className="text-sm text-muted-foreground" role="status">
-                {t('common.loading')}
-              </p>
-            ) : null}
-
+          <CardContent>
             {listQuery.isError ? (
-              <div className="space-y-3">
+              <div className="mb-3 space-y-3 rounded-lg border border-destructive/30 bg-danger-soft p-3">
                 <p className="text-sm text-destructive">{t('admin.masterData.listError')}</p>
                 <Button type="button" variant="outline" onClick={() => void listQuery.refetch()}>
                   {t('common.retry')}
@@ -293,59 +358,48 @@ export function AdminMasterDataEntityPage() {
               </div>
             ) : null}
 
-            {!listQuery.isLoading && !listQuery.isError && items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t('admin.masterData.empty')}</p>
-            ) : null}
-
-            <ul className="space-y-3">
-              {items.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-3"
-                >
-                  <div>
-                    <p className="font-medium">{getMasterDataDisplayLabel(item)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {item.id}
-                      {typeof item.isActive === 'boolean'
-                        ? ` · ${item.isActive ? t('admin.masterData.active') : t('admin.masterData.inactive')}`
-                        : ''}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setEditingItem(item)
-                        setFormError(null)
-                        setSuccessMessage(null)
-                      }}
-                    >
-                      {t('admin.masterData.edit')}
-                    </Button>
-                    {item.isActive !== false ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="destructive"
-                        disabled={deactivateMutation.isPending}
-                        onClick={() => {
-                          setFormError(null)
-                          deactivateMutation.mutate(item)
-                        }}
-                      >
-                        {t('admin.masterData.deactivate')}
-                      </Button>
-                    ) : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <DataTable
+              rows={items}
+              columns={columns}
+              rowKey={(item) => item.id}
+              caption={t('admin.masterData.listTitle')}
+              isLoading={listQuery.isLoading}
+              emptyMessage={t('admin.masterData.empty')}
+              csv={{
+                fileName: `admin-master-data-${entity}`,
+                columns: [
+                  { header: t('admin.masterData.nameColumn'), value: (item) => getMasterDataDisplayLabel(item) },
+                  { header: t('admin.masterData.idColumn'), value: (item) => item.id },
+                  {
+                    header: t('admin.masterData.statusColumn'),
+                    value: (item) => (item.isActive === false ? t('admin.masterData.inactive') : t('admin.masterData.active')),
+                  },
+                ],
+              }}
+              toolbar={
+                <span className="text-sm text-muted-foreground">
+                  {t('admin.masterData.itemCount', { count: items.length })}
+                </span>
+              }
+            />
           </CardContent>
         </Card>
       </div>
+
+      <ConfirmDialog
+        open={Boolean(deactivateTarget)}
+        title={t('admin.masterData.deactivateConfirmTitle')}
+        description={t('admin.masterData.deactivateConfirmBody')}
+        recordName={deactivateTarget ? getMasterDataDisplayLabel(deactivateTarget) : undefined}
+        confirmLabel={t('admin.masterData.deactivate')}
+        isPending={deactivateMutation.isPending}
+        onCancel={() => {
+          if (!deactivateMutation.isPending) setDeactivateTarget(null)
+        }}
+        onConfirm={() => {
+          if (deactivateTarget) deactivateMutation.mutate(deactivateTarget)
+        }}
+      />
     </section>
   )
 }

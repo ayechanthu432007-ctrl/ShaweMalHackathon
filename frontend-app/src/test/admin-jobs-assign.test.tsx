@@ -134,8 +134,8 @@ describe('admin jobs assign (FR-MOVE-005)', () => {
     expect(screen.getByText('MOV-20260817-000002')).toBeInTheDocument()
     expect(screen.getByText(/vehicle breakdown/i)).toBeInTheDocument()
 
-    await user.type(screen.getByLabelText(/order number/i), 'MOV-20260817-000001')
-    await user.click(screen.getByRole('button', { name: /^search$/i }))
+    await user.type(screen.getByRole('textbox', { name: 'Order number' }), 'MOV-20260817-000001')
+    await user.click(screen.getByRole('button', { name: /^apply filters$/i }))
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -144,9 +144,9 @@ describe('admin jobs assign (FR-MOVE-005)', () => {
       )
     })
 
-    const bookedCard = (await screen.findByText('MOV-20260817-000001')).closest('div.rounded-xl') as HTMLElement
-    await user.selectOptions(within(bookedCard).getByLabelText(/choose driver/i), 'driver-1')
-    await user.click(within(bookedCard).getByRole('button', { name: /assign driver/i }))
+    const bookedRow = within(screen.getByRole('table')).getByText('MOV-20260817-000001').closest('tr') as HTMLElement
+    await user.selectOptions(within(bookedRow).getByLabelText(/choose driver/i), 'driver-1')
+    await user.click(within(bookedRow).getByRole('button', { name: /assign driver/i }))
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(

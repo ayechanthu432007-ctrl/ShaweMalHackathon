@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Route, Routes } from 'react-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -92,7 +92,6 @@ describe('admin agent verification detail (FR-ADMIN-001)', () => {
 
   it('shows registration details and can approve', async () => {
     tokenStorage.setAccessToken(createToken())
-    vi.stubGlobal('confirm', vi.fn(() => true))
 
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
@@ -186,6 +185,10 @@ describe('admin agent verification detail (FR-ADMIN-001)', () => {
     expect(screen.getByText('Yangon')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /^approve$/i }))
+
+    const dialog = await screen.findByRole('alertdialog', { name: /approve this registration/i })
+    expect(within(dialog).getByText('Agent Ada')).toBeInTheDocument()
+    await user.click(within(dialog).getByRole('button', { name: /^approve$/i }))
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(

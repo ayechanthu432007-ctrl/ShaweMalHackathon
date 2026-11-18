@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
+import { ConfirmDialog } from '@/components/operational'
 import { BackLink } from '@/components/common/BackButton'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -87,6 +88,7 @@ export function AdminVerificationDetailPage({ kind }: { kind: DetailKind }) {
   const [rejectionReason, setRejectionReason] = useState('')
   const [actionError, setActionError] = useState<string | null>(null)
   const [actionSuccess, setActionSuccess] = useState<string | null>(null)
+  const [pendingAction, setPendingAction] = useState<VerificationAction | null>(null)
 
   const agentQuery = useQuery({
     queryKey: ['admin', 'agent', 'registration', userId],
@@ -123,15 +125,6 @@ export function AdminVerificationDetailPage({ kind }: { kind: DetailKind }) {
     setActionError(null)
     setActionSuccess(null)
 
-    const confirmed = window.confirm(
-      statusAction === 'reject'
-        ? t('admin.verifications.confirmReject')
-        : statusAction === 'approve'
-          ? t('admin.verifications.confirmApprove')
-          : t('admin.verifications.confirmPending'),
-    )
-    if (!confirmed) return
-
     try {
       const result = await mutation.mutateAsync(statusAction)
       const nextStatus =
@@ -142,6 +135,24 @@ export function AdminVerificationDetailPage({ kind }: { kind: DetailKind }) {
       setActionError(error instanceof ApiRequestError ? error.message : t('admin.verifications.actionFailed'))
     }
   }
+
+  const requestAction = (statusAction: VerificationAction) => {
+    setActionError(null)
+    setActionSuccess(null)
+    setPendingAction(statusAction)
+  }
+
+  const confirmAction = () => {
+    if (!pendingAction) return
+    const statusAction = pendingAction
+    setPendingAction(null)
+    void runAction(statusAction)
+  }
+
+  const registrationName =
+    kind === 'agent'
+      ? agentQuery.data?.profile.name ?? agentQuery.data?.user.name
+      : driverQuery.data?.profile.name ?? driverQuery.data?.user.name
 
   return (
     <section className="space-y-6">
@@ -183,9 +194,9 @@ export function AdminVerificationDetailPage({ kind }: { kind: DetailKind }) {
           actionError={actionError}
           actionSuccess={actionSuccess}
           isSubmitting={mutation.isPending}
-          onApprove={() => void runAction('approve')}
-          onReject={() => void runAction('reject')}
-          onResetPending={status && status !== 'PENDING' ? () => void runAction('pending') : undefined}
+          onApprove={() => requestAction('approve')}
+          onReject={() => requestAction('reject')}
+          onResetPending={status && status !== 'PENDING' ? () => requestAction('pending') : undefined}
         />
       ) : null}
 
@@ -197,11 +208,37 @@ export function AdminVerificationDetailPage({ kind }: { kind: DetailKind }) {
           actionError={actionError}
           actionSuccess={actionSuccess}
           isSubmitting={mutation.isPending}
-          onApprove={() => void runAction('approve')}
-          onReject={() => void runAction('reject')}
-          onResetPending={status && status !== 'PENDING' ? () => void runAction('pending') : undefined}
+          onApprove={() => requestAction('approve')}
+          onReject={() => requestAction('reject')}
+          onResetPending={status && status !== 'PENDING' ? () => requestAction('pending') : undefined}
         />
       ) : null}
+
+      <ConfirmDialog
+        open={Boolean(pendingAction)}
+        title={
+          pendingAction === 'reject'
+            ? t('admin.verifications.confirmReject')
+            : pendingAction === 'approve'
+              ? t('admin.verifications.confirmApprove')
+              : t('admin.verifications.confirmPending')
+        }
+        description={t('admin.verifications.confirmRecordHint')}
+        recordName={registrationName}
+        confirmLabel={
+          pendingAction === 'reject'
+            ? t('admin.verifications.statusReject')
+            : pendingAction === 'approve'
+              ? t('admin.verifications.statusApprove')
+              : t('admin.verifications.confirmPending')
+        }
+        tone={pendingAction === 'reject' ? 'danger' : 'default'}
+        isPending={mutation.isPending}
+        onCancel={() => {
+          if (!mutation.isPending) setPendingAction(null)
+        }}
+        onConfirm={confirmAction}
+      />
     </section>
   )
 }

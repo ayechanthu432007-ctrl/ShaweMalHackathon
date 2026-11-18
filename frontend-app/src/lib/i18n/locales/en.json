@@ -222,7 +222,8 @@
       "submit": "Update verification",
       "success": "Updated {{name}} — verification status: {{status}}",
       "actionFailed": "Could not update verification.",
-      "loadDocsFailed": "Could not load this registration."
+      "loadDocsFailed": "Could not load this registration.",
+      "confirmRecordHint": "This updates the record below. Check the name before you continue."
     },
     "users": {
       "title": "Users & roles",
@@ -269,7 +270,9 @@
       "noDrivers": "No verified drivers are available to assign.",
       "submit": "Assign driver",
       "success": "Job assigned successfully.",
-      "failed": "Could not assign this job."
+      "failed": "Could not assign this job.",
+      "route": "Route",
+      "status": "Status"
     },
     "masterData": {
       "title": "Master data",
@@ -338,7 +341,13 @@
         "status-codes": "Statuses",
         "roles": "Roles",
         "moving-inventory-items": "Moving inventory items"
-      }
+      },
+      "nameColumn": "Name",
+      "idColumn": "ID",
+      "statusColumn": "Status",
+      "itemCount": "Items: {{count}}",
+      "deactivateConfirmTitle": "Deactivate this item?",
+      "deactivateConfirmBody": "It stops appearing in pickers and new records. Existing records keep their reference."
     },
     "reports": {
       "title": "Reports",
@@ -366,7 +375,19 @@
         "verificationHint": "Pending {{pending}} · Verified {{verified}} · Rejected {{rejected}}",
         "housingHint": "Available {{available}} · Not available {{notAvailable}}",
         "movingHint": "Completed {{completed}} of {{total}}"
-      }
+      },
+      "period": "Period",
+      "available": "Available",
+      "notAvailable": "Not available",
+      "metric": "Metric",
+      "name": "Name",
+      "averageRating": "Average rating",
+      "ratingCount": "Reviews",
+      "listingsUnit": "listings",
+      "bookingsByStatus": "Bookings by status",
+      "bookingsUnit": "bookings",
+      "movingByStatus": "Moving requests by status",
+      "movingUnit": "requests"
     },
     "bookingReport": {
       "title": "House booking report",
@@ -384,6 +405,13 @@
         "agent": "Agent",
         "booker": "Booker",
         "cancelledBy": "Cancelled by"
+      },
+      "statusValue": {
+        "PENDING": "Pending",
+        "CONFIRMED": "Confirmed",
+        "CANCELLED": "Cancelled",
+        "COMPLETED": "Completed",
+        "NO_SHOW": "No show"
       }
     },
     "movingReport": {
@@ -540,7 +568,9 @@
         "banConfirm": "Ban {{name}}? They will be signed out and their listings hidden.",
         "sellerContact": "Seller contact details",
         "listingHistory": "Listing history ({{count}})",
-        "reportsReceived": "Reports received ({{count}})"
+        "reportsReceived": "Reports received ({{count}})",
+        "banTitle": "Ban this seller?",
+        "banHint": "They will be signed out and their listings hidden."
       }
     },
     "subscriptions": {
@@ -902,7 +932,18 @@
         "title": "Title",
         "description": "Additional Information",
         "floorLevel": "Floor level"
-      }
+      },
+      "columnTitle": "Listing",
+      "columnLocation": "Location",
+      "filtersTitle": "Find a listing",
+      "filtersDescription": "Filter your listings by name, city, or availability.",
+      "searchLabel": "Search listings",
+      "searchPlaceholder": "Title, city, or property type",
+      "availabilityAll": "Any availability",
+      "noMatches": "No listings match these filters.",
+      "itemCount": "Listings: {{count}}",
+      "deleteConfirmTitle": "Delete this listing?",
+      "deleteConfirmBody": "The listing and its photos will be removed. Bookings already made are not affected."
     },
     "bookings": {
       "title": "House bookings",
@@ -914,7 +955,18 @@
       "bookerDetails": "Booker details",
       "cancelledBy": "Cancelled by {{actor}}",
       "cancelConfirm": "Cancel this booking?",
-      "cancelFailed": "Could not cancel the booking."
+      "cancelFailed": "Could not cancel the booking.",
+      "houseColumn": "House",
+      "cancelledByLabel": "Cancelled by",
+      "filtersTitle": "Find a booking",
+      "filtersDescription": "Filter bookings by guest or status.",
+      "searchLabel": "Search bookings",
+      "searchPlaceholder": "House, guest name, email, or phone",
+      "statusAll": "Any status",
+      "noMatches": "No bookings match these filters.",
+      "itemCount": "Bookings: {{count}}",
+      "cancelConfirmTitle": "Cancel this booking?",
+      "cancelConfirmBody": "The guest will see the booking as cancelled. This cannot be undone."
     }
   },
   "moving": {
@@ -1222,7 +1274,14 @@
     "cancelReasonRequired": "Cancellation reason is required.",
     "keepJob": "Keep job",
     "cancelSuccess": "Moving job cancelled.",
-    "backToJobs": "Back to jobs"
+    "backToJobs": "Back to jobs",
+    "jobColumn": "Job",
+    "jobFiltersTitle": "Find a job",
+    "jobFiltersDescription": "Search by order number, address, or customer.",
+    "jobSearchLabel": "Search jobs",
+    "jobSearchPlaceholder": "Order number, address, or customer",
+    "noJobMatches": "No jobs match this search.",
+    "itemCount": "Jobs: {{count}}"
   },
   "roommates": {
     "photos": "Your photos",
@@ -2590,6 +2649,41 @@
       "boost": "Promote selected products for more visibility.",
       "plans": "Compare Free Seller and Premium Seller.",
       "subscription": "View plan, expiry date, and renewal options."
+    }
+  },
+  "ops": {
+    "table": {
+      "density": "Table density",
+      "comfortable": "Comfortable rows",
+      "compact": "Compact rows",
+      "sortBy": "Sort by {{column}}",
+      "selectAll": "Select all rows",
+      "selectRow": "Select row {{name}}",
+      "selected": "{{count}} selected"
+    },
+    "export": {
+      "csv": "Export CSV",
+      "selected": "Export {{count}} selected",
+      "print": "Print"
+    },
+    "filters": {
+      "title": "Filters",
+      "active": "Active filters",
+      "remove": "Remove filter {{label}}",
+      "clearAll": "Clear all",
+      "apply": "Apply filters"
+    },
+    "confirm": {
+      "dismiss": "Dismiss dialog",
+      "defaultConfirm": "Confirm"
+    },
+    "chart": {
+      "noData": "No data to show yet",
+      "hint": "Hover or tap a bar to see its value",
+      "showTable": "Show table",
+      "showChart": "Show chart",
+      "label": "Label",
+      "value": "Value"
     }
   }
 }

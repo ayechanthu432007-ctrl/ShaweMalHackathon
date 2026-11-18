@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
@@ -81,7 +81,6 @@ describe('agent bookings page (FR-AGENT-004)', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     const user = userEvent.setup()
     renderWithProviders(<AgentBookingsPage />, { initialEntries: ['/agent/bookings'] })
 
@@ -90,6 +89,8 @@ describe('agent bookings page (FR-AGENT-004)', () => {
     expect(screen.getByText('pat@example.com')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /cancel booking/i }))
+    const dialog = await screen.findByRole('alertdialog', { name: /cancel this booking/i })
+    await user.click(within(dialog).getByRole('button', { name: /cancel booking/i }))
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/bookings/booking-1/status'), expect.any(Object))
     })

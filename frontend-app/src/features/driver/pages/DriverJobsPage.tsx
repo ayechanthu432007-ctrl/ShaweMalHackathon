@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type ReactNode, useEffect, useState } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
-import { Badge } from '@/components/ui/badge'
+import { DataTable, FilterBar, StatusBadge, type DataTableColumn } from '@/components/operational'
 import { formatMmk } from '@/lib/format'
 import { selectClassName } from '@/components/ui/field-styles'
 import { LoadingState } from '@/components/common/PageStates'
@@ -69,6 +69,15 @@ export function DriverJobsPage() {
   const [etaAt, setEtaAt] = useState('')
   const [etaNotes, setEtaNotes] = useState('')
   const [cancelJobTarget, setCancelJobTarget] = useState<MovingRequest | null>(null)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [jobSearch, setJobSearch] = useState('')
+  const tab = searchParams.get('tab') === 'available' ? 'available' : 'assigned'
+  const setTab = (next: 'assigned' | 'available') => {
+    const params = new URLSearchParams(searchParams)
+    if (next === 'assigned') params.delete('tab')
+    else params.set('tab', next)
+    setSearchParams(params, { replace: true })
+  }
 
   const isDriver = Boolean(user?.roles?.includes('driver'))
 
@@ -182,6 +191,18 @@ export function DriverJobsPage() {
     },
   })
 
+  const listQuery = tab === 'assigned' ? assignedQuery : availableQuery
+  const allJobs = useMemo(() => listQuery.data?.items ?? [], [listQuery.data?.items])
+  const jobs = useMemo(() => {
+    const term = jobSearch.trim().toLowerCase()
+    if (!term) return allJobs
+    return allJobs.filter((job) =>
+      [job.orderNumber, job.id, job.pickupAddress, job.dropoffAddress, job.requester?.name]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(term)),
+    )
+  }, [allJobs, jobSearch])
+
   if (isBootstrapping || !isAuthenticated) {
     return <LoadingState />
   }
@@ -285,9 +306,9 @@ export function DriverJobsPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
-                      <p>
+                      <p className="flex flex-wrap items-center gap-2">
                         <span className="font-medium">{t('driver.currentStatus')}: </span>
-                        {movingStatusLabel(request.status, t)}
+                        <StatusBadge status={request.status} label={movingStatusLabel(request.status, t)} />
                       </p>
                       {nextStatus ? (
                         <Button
@@ -367,8 +388,9 @@ export function DriverJobsPage() {
                 <CardTitle>
                   <h2 className="text-lg font-semibold tracking-tight">{t('driver.jobDetailTitle')}</h2>
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {t('moving.statusLabel')}: {movingStatusLabel(request.status, t)}
+                <p className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                  {t('moving.statusLabel')}:
+                  <StatusBadge status={request.status} label={movingStatusLabel(request.status, t)} />
                 </p>
               </CardHeader>
               <CardContent className="space-y-4 text-sm">
@@ -431,89 +453,199 @@ export function DriverJobsPage() {
     )
   }
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{t('driver.jobsTitle')}</h1>
-        <p className="text-sm text-muted-foreground">{t('driver.jobsSubtitle')}</p>
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
-        <JobListSection
-          headingId="assigned-jobs"
-          title={t('driver.assignedTitle')}
-          query={assignedQuery}
-          emptyLabel={t('driver.emptyAssigned')}
-          listErrorLabel={t('driver.assignedListError')}
-          retryLabel={t('common.retry')}
-          loadingLabel={t('common.loading')}
-          renderActions={(item) => (
-            <>
-              <Button asChild variant="outline" size="sm">
-                <Link to={`/driver/jobs/${item.id}`}>{t('driver.updateStatus')}</Link>
-              </Button>
-              {canDriverCancelAssignedJob(item.status) ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  disabled={cancelMutation.isPending}
-                  onClick={() => {
-                    setActionError(null)
-                    setActionSuccess(null)
-                    setCancelJobTarget(item)
-                  }}
-                >
-                  {t('driver.cancelJob')}
-                </Button>
-              ) : null}
-            </>
-          )}
-          statusLabel={(status) => t(`moving.statusBadge.${status}`, { defaultValue: status })}
-          moveInDateLabel={t('moving.moveInDate')}
-          earningsLabel={t('moving.estimatedEarnings')}
-        />
-
-        <JobListSection
-          headingId="available-jobs"
-          title={t('driver.availableTitle')}
-          query={availableQuery}
-          emptyLabel={t('driver.emptyJobs')}
-          listErrorLabel={t('driver.listError')}
-          retryLabel={t('common.retry')}
-          loadingLabel={t('common.loading')}
-          renderActions={(item) => (
-            <>
-              <Button asChild variant="outline" size="sm">
-                <Link to={`/driver/jobs/${item.id}`}>{t('driver.viewJob')}</Link>
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                disabled={acceptMutation.isPending}
-                onClick={() => acceptMutation.mutate(item.id)}
-              >
-                {t('driver.accept')}
-              </Button>
+  const columns: DataTableColumn<MovingRequest>[] = [
+    {
+      key: 'job',
+      header: t('driver.jobColumn'),
+      cell: (item) => (
+        <div className="min-w-0">
+          <div className="font-medium">{item.orderNumber ?? item.id}</div>
+          <div className="text-xs text-muted-foreground">
+            {item.pickupAddress} → {item.dropoffAddress}
+          </div>
+          {item.requester?.name ? (
+            <div className="text-xs text-muted-foreground">{item.requester.name}</div>
+          ) : null}
+        </div>
+      ),
+      sortValue: (item) => item.orderNumber ?? item.id,
+    },
+    {
+      key: 'moveInDate',
+      header: t('moving.moveInDate'),
+      cell: (item) => formatMoveInDate(item.moveInDate),
+      sortValue: (item) => new Date(item.moveInDate ?? 0),
+      hideOnMobile: true,
+    },
+    {
+      key: 'earnings',
+      header: t('moving.estimatedEarnings'),
+      cell: (item) => (item.estimatedEarnings != null ? formatMmk(item.estimatedEarnings) : '—'),
+      sortValue: (item) => item.estimatedEarnings ?? 0,
+      align: 'right',
+    },
+    {
+      key: 'status',
+      header: t('moving.statusLabel'),
+      cell: (item) => <StatusBadge status={item.status} label={movingStatusLabel(item.status, t)} />,
+      sortValue: (item) => item.status,
+    },
+    {
+      key: 'actions',
+      header: t('admin.verifications.columns.actions'),
+      align: 'right',
+      cell: (item) =>
+        tab === 'assigned' ? (
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/driver/jobs/${item.id}`}>{t('driver.updateStatus')}</Link>
+            </Button>
+            {canDriverCancelAssignedJob(item.status) ? (
               <Button
                 type="button"
                 size="sm"
                 variant="ghost"
-                disabled={rejectMutation.isPending}
-                onClick={() => rejectMutation.mutate(item.id)}
+                className="text-destructive hover:text-destructive"
+                disabled={cancelMutation.isPending}
+                onClick={() => {
+                  setActionError(null)
+                  setActionSuccess(null)
+                  setCancelJobTarget(item)
+                }}
               >
-                {t('driver.reject')}
+                {t('driver.cancelJob')}
               </Button>
-            </>
-          )}
-          moveInDateLabel={t('moving.moveInDate')}
-          earningsLabel={t('moving.estimatedEarnings')}
-        />
+            ) : null}
+          </div>
+        ) : (
+          <div className="flex flex-wrap justify-end gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to={`/driver/jobs/${item.id}`}>{t('driver.viewJob')}</Link>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              disabled={acceptMutation.isPending}
+              onClick={() => acceptMutation.mutate(item.id)}
+            >
+              {t('driver.accept')}
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              disabled={rejectMutation.isPending}
+              onClick={() => rejectMutation.mutate(item.id)}
+            >
+              {t('driver.reject')}
+            </Button>
+          </div>
+        ),
+      mobileFullWidth: true,
+    },
+  ]
+
+  const listTitle = tab === 'assigned' ? t('driver.assignedTitle') : t('driver.availableTitle')
+  const emptyLabel = tab === 'assigned' ? t('driver.emptyAssigned') : t('driver.emptyJobs')
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('driver.jobsTitle')}</h1>
+        <p className="mt-2 max-w-3xl text-muted-foreground">{t('driver.jobsSubtitle')}</p>
       </div>
 
-      {actionError ? <p className="text-sm text-destructive">{actionError}</p> : null}
-      {actionSuccess ? <p className="text-sm text-primary">{actionSuccess}</p> : null}
+      <div className="flex flex-wrap gap-2" role="group" aria-label={t('driver.jobsTitle')}>
+        <Button
+          type="button"
+          variant={tab === 'assigned' ? 'secondary' : 'outline'}
+          aria-pressed={tab === 'assigned'}
+          onClick={() => setTab('assigned')}
+        >
+          {t('driver.assignedTitle')}
+        </Button>
+        <Button
+          type="button"
+          variant={tab === 'available' ? 'secondary' : 'outline'}
+          aria-pressed={tab === 'available'}
+          onClick={() => setTab('available')}
+        >
+          {t('driver.availableTitle')}
+        </Button>
+      </div>
+
+      <FilterBar
+        title={t('driver.jobFiltersTitle')}
+        description={t('driver.jobFiltersDescription')}
+        onClear={() => setJobSearch('')}
+        activeFilters={
+          jobSearch.trim()
+            ? [{ key: 'search', label: jobSearch.trim(), onRemove: () => setJobSearch('') }]
+            : []
+        }
+      >
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="driver-job-search">{t('driver.jobSearchLabel')}</Label>
+          <Input
+            id="driver-job-search"
+            value={jobSearch}
+            onChange={(event) => setJobSearch(event.target.value)}
+            placeholder={t('driver.jobSearchPlaceholder')}
+          />
+        </div>
+      </FilterBar>
+
+      {actionError ? (
+        <p className="text-sm text-destructive" role="alert">
+          {actionError}
+        </p>
+      ) : null}
+      {actionSuccess ? (
+        <p className="text-sm text-success-ink" role="status">
+          {actionSuccess}
+        </p>
+      ) : null}
+
+      {listQuery.isError ? (
+        <div className="space-y-3 rounded-xl border border-destructive/30 bg-danger-soft p-4">
+          <p className="text-sm text-destructive">
+            {tab === 'assigned' ? t('driver.assignedListError') : t('driver.listError')}
+          </p>
+          <Button type="button" variant="outline" onClick={() => void listQuery.refetch()}>
+            {t('common.retry')}
+          </Button>
+        </div>
+      ) : null}
+
+      <DataTable
+        rows={jobs}
+        columns={columns}
+        rowKey={(item) => item.id}
+        caption={listTitle}
+        isLoading={listQuery.isLoading}
+        emptyMessage={allJobs.length === 0 ? emptyLabel : t('driver.noJobMatches')}
+        selectable
+        rowLabel={(item) => item.orderNumber ?? item.id}
+        sortParam="jobSort"
+        directionParam="jobDir"
+        densityParam="jobDensity"
+        csv={{
+          fileName: tab === 'assigned' ? 'driver-assigned-jobs' : 'driver-available-jobs',
+          columns: [
+            { header: t('moving.orderNumber'), value: (item) => item.orderNumber ?? item.id },
+            { header: t('moving.pickupAddress'), value: (item) => item.pickupAddress },
+            { header: t('moving.dropoffAddress'), value: (item) => item.dropoffAddress },
+            { header: t('moving.moveInDate'), value: (item) => formatMoveInDate(item.moveInDate) },
+            { header: t('moving.estimatedEarnings'), value: (item) => item.estimatedEarnings ?? '' },
+            { header: t('moving.statusLabel'), value: (item) => movingStatusLabel(item.status, t) },
+            { header: t('driver.customerName'), value: (item) => item.requester?.name ?? '' },
+            { header: t('driver.customerPhone'), value: (item) => item.requester?.phone ?? '' },
+          ],
+        }}
+        toolbar={
+          <span className="text-sm text-muted-foreground">{t('driver.itemCount', { count: jobs.length })}</span>
+        }
+      />
 
       <CancelDriverJobDialog
         open={Boolean(cancelJobTarget)}
@@ -532,90 +664,5 @@ export function DriverJobsPage() {
         }}
       />
     </div>
-  )
-}
-
-function JobListSection({
-  headingId,
-  title,
-  query,
-  emptyLabel,
-  listErrorLabel,
-  retryLabel,
-  loadingLabel,
-  renderActions,
-  statusLabel,
-  moveInDateLabel,
-  earningsLabel,
-}: {
-  headingId: string
-  title: string
-  query: {
-    isLoading: boolean
-    isError: boolean
-    refetch: () => unknown
-    data?: { items: MovingRequest[] }
-  }
-  emptyLabel: string
-  listErrorLabel: string
-  retryLabel: string
-  loadingLabel: string
-  renderActions: (item: MovingRequest) => ReactNode
-  statusLabel?: (status: string) => string
-  moveInDateLabel: string
-  earningsLabel: string
-}) {
-  const items = query.data?.items ?? []
-
-  return (
-    <section className="h-full min-w-0" aria-labelledby={headingId}>
-      <Card className="flex h-full flex-col">
-        <CardHeader>
-          <h2 id={headingId} className="text-lg font-semibold leading-none tracking-tight">
-            {title}
-          </h2>
-        </CardHeader>
-        <CardContent className="flex flex-1 flex-col gap-3">
-          {query.isLoading ? <p className="text-sm text-muted-foreground">{loadingLabel}</p> : null}
-          {query.isError ? (
-            <div className="space-y-2">
-              <p className="text-sm text-destructive">{listErrorLabel}</p>
-              <Button type="button" variant="outline" onClick={() => void query.refetch()}>
-                {retryLabel}
-              </Button>
-            </div>
-          ) : null}
-          {!query.isLoading && !query.isError && items.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{emptyLabel}</p>
-          ) : null}
-          <div className="grid gap-3">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="flex flex-col gap-3 rounded-lg border border-border p-4"
-              >
-                <div className="space-y-1 text-sm">
-                  <p className="font-medium">
-                    {item.orderNumber ?? item.id}: {item.pickupAddress} → {item.dropoffAddress}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {moveInDateLabel}: {formatMoveInDate(item.moveInDate)}
-                  </p>
-                  <p className="text-muted-foreground">
-                    {earningsLabel}: {item.estimatedEarnings != null ? formatMmk(item.estimatedEarnings) : '—'}
-                  </p>
-                  {statusLabel ? (
-                    <p>
-                      <Badge tone="info">{statusLabel(item.status)}</Badge>
-                    </p>
-                  ) : null}
-                </div>
-                <div className="flex flex-wrap gap-2">{renderActions(item)}</div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-    </section>
   )
 }
