@@ -170,6 +170,31 @@
       }
     }
   },
+  "firstVisitGuide": {
+    "eyebrow": "A quick start",
+    "title": "New here? Start with these three steps",
+    "subtitle": "Choose what you need and we’ll guide you to the right place.",
+    "step": "Step {{count}}",
+    "close": "Close getting started guide",
+    "dismiss": "Maybe later",
+    "steps": {
+      "housing": {
+        "title": "Find a home",
+        "body": "Search by location and budget, review each home’s details, then send a booking request to the agent.",
+        "action": "Explore homes"
+      },
+      "moving": {
+        "title": "Book movers",
+        "body": "Add your pickup, destination, and items to see an estimate. Submit your request and follow its progress.",
+        "action": "Plan a move"
+      },
+      "marketplace": {
+        "title": "Use the Marketplace",
+        "body": "Browse household items for sale, or sign in to post an item and connect with interested buyers.",
+        "action": "Browse items"
+      }
+    }
+  },
   "auth": {
     "signInFeatureMarketBody": "Buy and sell second-hand furniture and home essentials.",
     "signInFeatureMarket": "Relocation Marketplace",

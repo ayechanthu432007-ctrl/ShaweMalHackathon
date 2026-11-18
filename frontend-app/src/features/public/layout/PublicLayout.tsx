@@ -11,6 +11,7 @@ import { LanguageToggle } from '@/components/common/LanguageToggle'
 import { ThemeToggle } from '@/components/common/ThemeToggle'
 import { Button } from '@/components/ui/button'
 import { NotificationsMenu } from '@/features/notifications/components/NotificationsMenu'
+import { FirstVisitGuide } from '@/features/home/components/FirstVisitGuide'
 import { UserMenu } from '@/features/public/components/UserMenu'
 // The transparent version of the logo, so it sits directly on the header colour.
 import shawemalLogo from '@/assets/shawemal-logo-mark.png'
@@ -235,6 +236,7 @@ export function PublicLayout() {
         </nav>
       </header>
       <main className="mx-auto max-w-6xl px-4 pt-8 pb-28 sm:pb-12">
+        <FirstVisitGuide />
         {/* Header and footer stay put while a page's code loads. */}
         <Suspense fallback={<PageSkeleton />}>
           <Outlet />
