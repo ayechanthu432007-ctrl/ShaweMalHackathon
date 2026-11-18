@@ -37,3 +37,14 @@ export const listReviewsValidator = [
   query('targetType').isIn(reviewTargetTypes).withMessage('targetType must be AGENT or DRIVER.'),
   query('targetUserId').trim().notEmpty().withMessage('targetUserId is required.')
 ];
+
+export const reviewSummaryValidator = [
+  query('targetType').isIn(reviewTargetTypes).withMessage('targetType must be AGENT or DRIVER.'),
+  query('targetUserId')
+    .optional({ values: 'falsy' })
+    .isString()
+    .withMessage('targetUserId must be a string.')
+    .trim()
+    .notEmpty()
+    .withMessage('targetUserId must not be empty.')
+];

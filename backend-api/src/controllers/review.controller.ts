@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ReviewTargetType } from '@prisma/client';
 
-import { createReview, listReviews } from '../services/review.service';
+import { createReview, getReviewSummary, listReviews } from '../services/review.service';
 import { ApiError } from '../utils/api-error';
 import { sendSuccess } from '../utils/api-response';
 
@@ -61,4 +61,13 @@ export const listReviewsController = async (req: Request, res: Response): Promis
   });
 
   sendSuccess(res, 200, 'Reviews fetched successfully', payload);
+};
+
+export const reviewSummaryController = async (req: Request, res: Response): Promise<void> => {
+  const payload = await getReviewSummary({
+    targetType: parseTargetType(req.query.targetType) as ReviewTargetType,
+    targetUserId: optionalTrimmed(req.query.targetUserId)
+  });
+
+  sendSuccess(res, 200, 'Review summary fetched successfully', payload);
 };

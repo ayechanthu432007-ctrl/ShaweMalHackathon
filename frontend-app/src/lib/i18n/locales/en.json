@@ -863,6 +863,8 @@
     "photoCount": "{{current}} / {{total}}",
     "showPhoto": "Show photo {{index}}",
     "listingAgent": "Listing agent",
+    "agentRatingLabel": "Agent rating",
+    "agentRatingNote": "From confirmed house bookings.",
     "agentPhone": "Phone",
     "agentEmail": "Email",
     "contactAgent": "Contact Agent",
@@ -1117,6 +1119,8 @@
     "progressLabel": "Moving progress",
     "sloganTitle": "Move With Confidence",
     "sloganSubtitle": "Connect with verified agents and trusted moving partners.",
+    "driverRatingLabel": "Moving service rating",
+    "driverRatingNote": "Based on reviews for completed moves.",
     "easyStepsTitle": "Your on-demand move in 4 easy steps",
     "easyStep1Title": "Pin your pickup & destination",
     "easyStep1": "Choose where you are moving from and to, add street or landmark details, and drop pins on the map so drivers know exactly where to go.",
@@ -1581,7 +1585,10 @@
     "driverFallback": "your driver",
     "agentFallback": "your agent",
     "starLabel": "{{count}} star",
-    "starValue": "{{rating}} out of 5 stars"
+    "starValue": "{{rating}} out of 5 stars",
+    "summaryCount_one": "{{count}} review",
+    "summaryCount_other": "{{count}} reviews",
+    "noRatings": "No ratings yet"
   },
   "marketplace": {
     "title": "Shawe Mal Marketplace",

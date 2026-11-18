@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { UserAvatar } from '@/components/common/UserAvatar'
+import { ReviewSummary } from '@/features/reviews/components/ReviewSummary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { trackHouseEvent } from '@/features/agent/api/agent-plan-api'
@@ -45,6 +46,13 @@ export function AgentContactCard({ house, children }: AgentContactCardProps) {
           <div className="min-w-0">
             <p className="truncate text-base font-semibold">{agent.name}</p>
             <p className="text-xs text-muted-foreground">{t('houses.listingAgent')}</p>
+            <ReviewSummary
+              targetType="AGENT"
+              targetUserId={agent.id}
+              title={t('houses.agentRatingLabel')}
+              note={t('houses.agentRatingNote')}
+              className="mt-2"
+            />
           </div>
         </div>
 

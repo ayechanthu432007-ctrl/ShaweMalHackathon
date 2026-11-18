@@ -263,3 +263,21 @@ export const listReviews = async (input: ListReviewsInput) => {
     }
   };
 };
+
+export const getReviewSummary = async (input: { targetType: ReviewTargetType; targetUserId?: string }) => {
+  const stats = await prisma.ratingReview.aggregate({
+    where: {
+      targetType: input.targetType,
+      ...(input.targetUserId ? { targetUserId: input.targetUserId } : {})
+    },
+    _avg: { rating: true },
+    _count: { _all: true }
+  });
+
+  return {
+    summary: {
+      averageRating: stats._avg.rating ?? 0,
+      reviewCount: stats._count._all
+    }
+  };
+};

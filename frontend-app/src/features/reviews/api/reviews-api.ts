@@ -18,4 +18,12 @@ export const reviewsApi = {
       },
     )
   },
+  summary(targetType: 'AGENT' | 'DRIVER', targetUserId?: string) {
+    const search = new URLSearchParams({ targetType })
+    if (targetUserId) search.set('targetUserId', targetUserId)
+    return apiRequest<{ summary: { averageRating: number; reviewCount: number } }>(
+      `/reviews/summary?${search.toString()}`,
+      { auth: false },
+    )
+  },
 }

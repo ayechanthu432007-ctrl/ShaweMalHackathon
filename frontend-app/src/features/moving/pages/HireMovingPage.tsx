@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 
 import { LoadingState } from '@/components/common/PageStates'
 import { useAuth } from '@/app/providers/AuthProvider'
+import { ReviewSummary } from '@/features/reviews/components/ReviewSummary'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { masterDataApi } from '@/features/master-data/api/master-data-api'
 import { parseCoordinatePair } from '@/features/houses/lib/geocode-location'
@@ -360,6 +361,13 @@ export function HireMovingPage() {
         <div className="space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{t('moving.sloganTitle')}</h1>
           <p className="text-muted-foreground">{t('moving.sloganSubtitle')}</p>
+          <div className="mx-auto mt-3 w-fit rounded-xl border bg-muted/30 px-4 py-3 text-left">
+            <ReviewSummary
+              targetType="DRIVER"
+              title={t('moving.driverRatingLabel')}
+              note={t('moving.driverRatingNote')}
+            />
+          </div>
         </div>
         <HireMovingStepProgress current={step} />
         {(bookingId || houseId) && (
