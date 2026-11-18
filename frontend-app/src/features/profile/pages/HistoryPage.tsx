@@ -50,7 +50,7 @@ export function HistoryPage() {
     )
   }
 
-  const { bookingHistory, movingHistory, notifications } = historyQuery.data
+  const { bookingHistory, movingHistory, marketplaceHistory, notifications } = historyQuery.data
 
   return (
     <div className="space-y-6">
@@ -164,6 +164,38 @@ export function HistoryPage() {
                       existing={item.myReview}
                     />
                   ) : null}
+                </div>
+              )
+            })
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardTitle className="text-lg">{t('profile.marketplaceHistory')}</CardTitle>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/marketplace">{t('profile.browseMarketplace')}</Link>
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {marketplaceHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t('profile.emptyMarketplaceHistory')}</p>
+          ) : (
+            marketplaceHistory.map((item) => {
+              const actionLabel = t(`profile.marketplaceAction.${item.action}`)
+              const statusLabel = item.status ? t(`profile.marketplaceStatus.${item.status}`, { defaultValue: item.status }) : null
+              return (
+                <div key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3 text-sm">
+                  <div className="space-y-1">
+                    <p className="font-medium">{item.title}</p>
+                    <p className="text-muted-foreground">
+                      {actionLabel}{statusLabel ? ` · ${statusLabel}` : ''} · {new Date(item.createdAt).toLocaleString()}
+                    </p>
+                  </div>
+                  <Link className="text-primary underline-offset-2 hover:underline" to={item.action === 'LISTED' ? `/marketplace/my/listings/${item.listingId}/edit` : `/marketplace/items/${item.listingId}`}>
+                    {item.action === 'LISTED' ? t('profile.editListing') : t('houses.details')}
+                  </Link>
                 </div>
               )
             })

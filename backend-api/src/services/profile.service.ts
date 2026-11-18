@@ -85,7 +85,16 @@ export const updateMyProfile = async (userId: string, input: UpdateProfileInput)
 };
 
 export const getMyProfileHistory = async (userId: string) => {
-  const [bookingHistory, movingHistory, unreadNotificationCount, totalNotificationCount, recentNotifications] = await Promise.all([
+  const [
+    bookingHistory,
+    movingHistory,
+    unreadNotificationCount,
+    totalNotificationCount,
+    recentNotifications,
+    savedMarketplaceItems,
+    marketplaceInquiries,
+    marketplaceListings
+  ] = await Promise.all([
     prisma.booking.findMany({
       where: {
         userId
@@ -180,8 +189,52 @@ export const getMyProfileHistory = async (userId: string) => {
         createdAt: 'desc'
       },
       take: 10
+    }),
+    prisma.wishlist.findMany({
+      where: { userId, listingId: { not: null } },
+      include: { listing: { select: { id: true, title: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    }),
+    prisma.listingInquiry.findMany({
+      where: { buyerId: userId },
+      include: { listing: { select: { id: true, title: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 10
+    }),
+    prisma.listing.findMany({
+      where: { sellerId: userId },
+      select: { id: true, title: true, status: true, moderationStatus: true, createdAt: true },
+      orderBy: { createdAt: 'desc' },
+      take: 10
     })
   ]);
+
+  const marketplaceHistory = [
+    ...savedMarketplaceItems.flatMap((item) => item.listing ? [{
+      id: `saved-${item.id}`,
+      listingId: item.listing.id,
+      title: item.listing.title,
+      action: 'SAVED' as const,
+      createdAt: item.createdAt
+    }] : []),
+    ...marketplaceInquiries.map((inquiry) => ({
+      id: `inquiry-${inquiry.id}`,
+      listingId: inquiry.listing.id,
+      title: inquiry.listing.title,
+      action: 'INQUIRY' as const,
+      status: inquiry.status,
+      createdAt: inquiry.createdAt
+    })),
+    ...marketplaceListings.map((listing) => ({
+      id: `listing-${listing.id}`,
+      listingId: listing.id,
+      title: listing.title,
+      action: 'LISTED' as const,
+      status: listing.moderationStatus === 'APPROVED' ? listing.status : listing.moderationStatus,
+      createdAt: listing.createdAt
+    }))
+  ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 20);
 
   return {
     bookingHistory: bookingHistory.map((booking) => {
@@ -198,6 +251,7 @@ export const getMyProfileHistory = async (userId: string) => {
         myReview: toMyReview(ratingReview, userId)
       };
     }),
+    marketplaceHistory,
     notifications: {
       total: totalNotificationCount,
       unread: unreadNotificationCount,

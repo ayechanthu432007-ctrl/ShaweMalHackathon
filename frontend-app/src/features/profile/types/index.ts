@@ -47,6 +47,14 @@ export type ProfileHistory = {
     assignedDriver?: { id: string; name: string; phone?: string | null } | null
     myReview?: { id: string; rating: number; comment?: string | null } | null
   }>
+  marketplaceHistory: Array<{
+    id: string
+    listingId: string
+    title: string
+    action: 'SAVED' | 'INQUIRY' | 'LISTED'
+    status?: string
+    createdAt: string
+  }>
   notifications: {
     total: number
     unread: number
