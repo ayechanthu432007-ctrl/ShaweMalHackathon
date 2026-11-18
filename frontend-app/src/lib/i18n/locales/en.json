@@ -271,7 +271,17 @@
       "subscriptions": "Plans & payments"
     },
     "dashboard": {
-      "quickLinks": "Quick links"
+      "quickLinks": "Quick links",
+      "needsAttention": "Needs attention",
+      "pendingReviews": "Listings awaiting review",
+      "pendingReviewsHint": "Items waiting for approval.",
+      "reviewListings": "Review listings",
+      "bookings": "House bookings",
+      "bookingsHint": "Awaiting confirmation: {{pending}}",
+      "openBookings": "Open booking report",
+      "openReports": "Open reports",
+      "openReportsHint": "Marketplace reports waiting for review.",
+      "reviewReports": "Review reports"
     },
     "verifications": {
       "title": "Agent & driver verification",
