@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useState, useRef } from 'react'
-import { ClipboardList, Home, Menu, Plus, Store, Truck, Users, X, type LucideIcon } from 'lucide-react'
+import { CircleHelp, ClipboardList, Home, Menu, Plus, Store, Truck, Users, X, type LucideIcon } from 'lucide-react'
 import { Link, NavLink, Outlet } from 'react-router'
 import { useTranslation } from 'react-i18next'
 
@@ -39,6 +39,7 @@ const SUB_LINK_ICONS: Record<string, LucideIcon> = {
   '/moving-status': ClipboardList,
   '/finding-roommates': Users,
   '/marketplace': Store,
+  '/help': CircleHelp,
 }
 
 const publicSubLinks = [
@@ -47,6 +48,7 @@ const publicSubLinks = [
   { to: '/moving-status', labelKey: 'nav.sub.trackMove' },
   { to: '/finding-roommates', labelKey: 'nav.sub.roommates' },
   { to: '/marketplace', labelKey: 'nav.marketplace' },
+  { to: '/help', labelKey: 'nav.helpCenter' },
 ] as const
 
 function NavItem({ to, label, end, onClick }: { to: string; label: string; end?: boolean; onClick?: () => void }) {

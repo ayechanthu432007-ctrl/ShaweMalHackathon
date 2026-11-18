@@ -54,6 +54,7 @@ const ProfilePage = lazyPage(() => import('@/features/profile/pages/ProfilePage'
 const BookingsPage = lazyPage(() => import('@/features/profile/pages/BookingsPage'), 'BookingsPage')
 const WishlistPage = lazyPage(() => import('@/features/profile/pages/WishlistPage'), 'WishlistPage')
 const AboutUsPage = lazyPage(() => import('@/features/public/pages/AboutUsPage'), 'AboutUsPage')
+const HelpCenterPage = lazyPage(() => import('@/features/public/pages/HelpCenterPage'), 'HelpCenterPage')
 const FindingRoommatesPage = lazyPage(() => import('@/features/roommates/pages/FindingRoommatesPage'), 'FindingRoommatesPage')
 
 export const publicRoutes: RouteObject = {
@@ -63,6 +64,7 @@ export const publicRoutes: RouteObject = {
   children: [
     { index: true, element: <HomePage /> },
     { path: 'about-us', element: <AboutUsPage /> },
+    { path: 'help', element: <HelpCenterPage /> },
     { path: 'agent-register', element: <AgentRegisterPage /> },
     {
       // One shared dashboard shell for every agent page; existing addresses are unchanged.

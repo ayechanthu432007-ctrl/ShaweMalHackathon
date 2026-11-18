@@ -57,6 +57,7 @@
     "history": "History",
     "myBookings": "My bookings",
     "notifications": "Notifications",
+    "helpCenter": "Help Center",
     "marketplace": "Marketplace",
     "myMarketplace": "My Marketplace",
     "agentDashboard": "Agent dashboard",
@@ -84,6 +85,90 @@
     "agentRegisterTitle": "Agent Register",
     "signUpTitle": "Sign Up",
     "signInTitle": "Sign In"
+  },
+  "helpCenter": {
+    "eyebrow": "Here to help",
+    "title": "How can we help?",
+    "subtitle": "Find quick answers about finding a home, booking a move, managing reservations, and buying or selling on Shawe Mal.",
+    "searchLabel": "Search help topics",
+    "searchPlaceholder": "Search for an answer...",
+    "topicsLabel": "Help topics",
+    "topics": {
+      "all": "All topics",
+      "housing": "Housing",
+      "moving": "Moving",
+      "bookings": "Bookings",
+      "marketplace": "Marketplace"
+    },
+    "noResultsTitle": "No answers found",
+    "noResultsBody": "Try another word or choose a different topic.",
+    "reset": "Show all answers",
+    "shortcutsTitle": "Go to a service",
+    "shortcutsSubtitle": "Open the page you need when you're ready.",
+    "links": {
+      "browseHomes": "Browse homes and compare details",
+      "requestMove": "Plan and request a move",
+      "myBookings": "Review your house bookings",
+      "browseMarketplace": "Browse items for sale"
+    },
+    "questions": {
+      "housing": {
+        "search": {
+          "question": "How do I find a home that fits my needs?",
+          "answer": "Open Housing and narrow the results by location, home type, or budget. Open a home to review its photos, amenities, availability, rent, and deposit before you decide."
+        },
+        "costs": {
+          "question": "Where can I check rent, deposit, and other details?",
+          "answer": "Each home page shows the rent and any deposit or fees the agent has provided. Review the costs, house rules, and included amenities, and ask the listing agent if anything is unclear."
+        },
+        "request": {
+          "question": "How do I ask to book a home?",
+          "answer": "Sign in, open an available home, and choose Book house. The agent is notified and can contact you. You can follow the request under My bookings."
+        }
+      },
+      "moving": {
+        "request": {
+          "question": "What do I need to request a moving service?",
+          "answer": "Sign in and enter your pickup and drop-off locations, move date, and the items you need moved. Add at least one cargo photo, review the suggested vehicle and estimated price, then submit your request."
+        },
+        "estimate": {
+          "question": "How is the moving price estimated?",
+          "answer": "The estimate uses your route, item list, and vehicle details. Map distance is measured in a straight line, so the final road distance may differ. Review the estimate before you submit the request."
+        },
+        "track": {
+          "question": "Where can I follow my move?",
+          "answer": "Open Moving Status to see your requests and their latest progress. Keep your order number handy when you contact us about a move."
+        }
+      },
+      "bookings": {
+        "find": {
+          "question": "Where can I see my house bookings?",
+          "answer": "Sign in and open My bookings from your profile. You can see each request's current status and open its house or booking details."
+        },
+        "status": {
+          "question": "What do the booking statuses mean?",
+          "answer": "Awaiting confirmation means the agent has not confirmed yet. Confirmed means the agent accepted your booking. Cancelled means the booking is no longer active. The agent may contact you about a request."
+        },
+        "cancel": {
+          "question": "Can I cancel a house booking?",
+          "answer": "Open the booked home while your booking is active and choose Cancel booking. The request status will change to Cancelled."
+        }
+      },
+      "marketplace": {
+        "items": {
+          "question": "What can I buy or sell in the Marketplace?",
+          "answer": "The Marketplace is for relocation-related goods such as furniture, appliances, electronics, household items, bags, and books. Items must be legal and safe. Open Marketplace policy for the full list of allowed and prohibited items."
+        },
+        "sell": {
+          "question": "How do I post an item for sale?",
+          "answer": "Sign in, choose Sell in the Marketplace, and add an honest description, real photos, price, and contact methods. Review the Marketplace policy before you publish."
+        },
+        "contact": {
+          "question": "How do I contact a seller, and what should I know about payment?",
+          "answer": "Open an item and use one of the seller's contact buttons. Contact details are shown to signed-in buyers who choose to contact the seller. Agree on pickup and payment details directly, and never send an advance deposit to an unknown account."
+        }
+      }
+    }
   },
   "auth": {
     "signInFeatureMarketBody": "Buy and sell second-hand furniture and home essentials.",
